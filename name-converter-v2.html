@@ -82,9 +82,8 @@ h1{font-size:22px;background:linear-gradient(135deg,#c0392b,#8e44ad);-webkit-bac
 .en-variants{margin:10px 0 6px}
 .en-vars-title{font-size:12px;font-weight:600;color:#8b7d6b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
 .en-vars-grid{display:flex;gap:6px;flex-wrap:wrap}
-.en-var-card{flex:1;min-width:130px;background:linear-gradient(135deg,#667eea20,#764ba220);border-radius:10px;padding:10px 12px;border:1px solid #e0d5c8;text-align:center}
-.en-var-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8b7d6b;margin-bottom:3px}
-.en-var-name{font-size:16px;font-weight:700;color:#2c1810}
+.en-var-card{flex:1;min-width:200px;background:linear-gradient(135deg,#667eea20,#764ba220);border-radius:10px;padding:14px 12px;border:1px solid #d4c8b8;text-align:center}
+.en-var-name{font-size:20px;font-weight:700;color:#2c1810;letter-spacing:1px}
 
 /* Transitions */
 @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -198,37 +197,28 @@ function nameToPinyin(name, opts={}) {
 }
 
 // ═══════════════════════════════════════════════════════
-// ENGLISH NAME GENERATOR
+// ENGLISH NAME MAPPING — Chinese → Real English Name
 // ═══════════════════════════════════════════════════════
 
-function generateEnglishNames(inputChars, syllables, pinyinStr) {
-  if (syllables.length === 0) return [];
-  if (syllables.length === 1) {
-    const entry = syllables[0].entry;
-    if (!entry) return [capitalize(stripTone(syllables[0].pinyin))];
-    const m = entry.meanings;
-    const name1 = capitalize(stripTone(entry.pinyin));
-    const name2 = m[0] || name1;
-    const name3 = (m.length > 1 ? m[1] : m[0]) || name1;
-    return [name1, name2, name3];
+const EN_NAMES = {"伟":{"names":["Victor","Vincent","Magnus"]},"强":{"names":["Ethan","Gabriel","Andrew"]},"刚":{"names":["Ethan","Gabriel","Stanley"]},"毅":{"names":["Ethan","Derek","Martin"]},"勇":{"names":["Valiant","Leo","Gideon"]},"健":{"names":["Ethan","Felix","Zachary"]},"壮":{"names":["Ethan","Conan","Gabe"]},"力":{"names":["Ethan","Gabriel","Conan"]},"武":{"names":["Marcus","Martin","Lewis"]},"杰":{"names":["Jason","Jay","Jack"]},"豪":{"names":["Howard","Harvey","Hank"]},"宏":{"names":["Henry","Harold","Hugh"]},"盛":{"names":["Felix","Florence","Prosper"]},"振":{"names":["Victor","Vincent","Vince"]},"龙":{"names":["Drake","Dragon","Lucius"]},"志":{"names":["William","Will","Wilfred"]},"成":{"names":["Victor","Vincent","Charles"]},"功":{"names":["Merit","Victor","Charles"]},"业":{"names":["Ernest","Eric","Carter"]},"建":{"names":["Benedict","Dean","Mason"]},"立":{"names":["Stanley","Liam","Mason"]},"远":{"names":["Farley","Ambrose","Drake"]},"大":{"names":["Magnus","Max","Grant"]},"高":{"names":["Hayes","Alistair","Major"]},"超":{"names":["Charles","Chase","Super"]},"扬":{"names":["Eli","Elias","Paris"]},"开":{"names":["Kai","Cole","Dean"]},"发":{"names":["Felix","Floyd","Devon"]},"世":{"names":["Mason","Desmond","Jeremy"]},"国":{"names":["George","Gregory","Chase"]},"王":{"names":["King","Roy","Regis"]},"侯":{"names":["Harold","Harry","Louis"]},"英":{"names":["Ethan","Evan","Harrison"]},"俊":{"names":["Justin","James","Jay"]},"元":{"names":["Primus","Orion","Aaron"]},"首":{"names":["Leander","Alan","Aaron"]},"雄":{"names":["Hero","Harrison","Marcus"]},"威":{"names":["Victor","Vince","Miles"]},"霸":{"names":["Baron","Victor","Chase"]},"劲":{"names":["Ethan","Gavin","Grant"]},"猛":{"names":["Leon","Leo","Conan"]},"天":{"names":["Skyler","Celeste","Orion"]},"明":{"names":["Lucas","Luke","Clark"]},"智":{"names":["Sage","Solomon","Albert"]},"慧":{"names":["Sophia","Sage","Hannah"]},"睿":{"names":["Rory","Raymond","Sage"]},"聪":{"names":["Connor","Sage","Alvin"]},"颖":{"names":["Evelyn","Yvonne","Gift"]},"悟":{"names":["Noah","Lucas","Aaron"]},"哲":{"names":["Sage","Solomon","Theo"]},"思":{"names":["Noah","Theo","Thomas"]},"文":{"names":["Winston","Owen","Dean"]},"才":{"names":["Trent","Taylor","Alvin"]},"朗":{"names":["Lance","Larry","Clark"]},"皓":{"names":["Blake","Albus","Lucas"]},"昭":{"names":["Lucas","Luke","Clark"]},"亮":{"names":["Lucas","Lucius","Felix"]},"士":{"names":["Sheldon","Silas","Edgar"]},"师":{"names":["Shepherd","Mason","Simon"]},"博":{"names":["Noah","Boris","Edmund"]},"学":{"names":["Lorenzo","Noah","Edgar"]},"知":{"names":["Noah","Theo","Jasper"]},"达":{"names":["David","Daniel","Dale"]},"理":{"names":["Raymond","Ray","Roger"]},"美":{"names":["Bella","Grace","Belle"]},"丽":{"names":["Lily","Leah","Lia"]},"艳":{"names":["Scarlett","Ruby","Rose"]},"婷":{"names":["Tina","Tiana","Grace"]},"娜":{"names":["Natalie","Naomi","Nina"]},"娴":{"names":["Sharon","Rebecca","Anne"]},"淑":{"names":["Susan","Shirley","Grace"]},"雅":{"names":["Yvonne","Grace","Eva"]},"倩":{"names":["Chloe","Cheryl","Cara"]},"娇":{"names":["Jade","Gemma","Lily"]},"媚":{"names":["Maya","Mira","Chloe"]},"秀":{"names":["Sue","Sharon","Grace"]},"琳":{"names":["Jade","Gemma","Lynn"]},"蕾":{"names":["Rose","Lily","Blossom"]},"薇":{"names":["Rose","Violet","Lily"]},"凤":{"names":["Phoenix","Phebe","Nadia"]},"玉":{"names":["Jade","Pearl","Gemma"]},"莹":{"names":["Jade","Crystal","Iris"]},"燕":{"names":["Yvonne","Sylvia","Avis"]},"莺":{"names":["Melody","Harmony","Aria"]},"瑞":{"names":["Ray","Felix","Roy"]},"祥":{"names":["Felix","Ben","Benedict"]},"福":{"names":["Felix","Floyd","Ben"]},"禄":{"names":["Forrest","Felix","Oliver"]},"金":{"names":["Goldie","Aurelius","Kim"]},"宝":{"names":["Trevor","Pearl","Jasper"]},"珍":{"names":["Jade","Gemma","Pearl"]},"珠":{"names":["Pearl","Jade","Margaret"]},"华":{"names":["Henry","Flora","Spencer"]},"富":{"names":["Richard","Forrest","Midas"]},"荣":{"names":["Gloria","Roy","Reginald"]},"昌":{"names":["Charles","Chester","Chase"]},"兴":{"names":["Felix","Forrest","Ernest"]},"旺":{"names":["Warren","Wayne","Felix"]},"隆":{"names":["Lawrence","Larry","Royal"]},"嘉":{"names":["James","Jason","Gavin"]},"源":{"names":["Jordan","River","Wells"]},"涛":{"names":["Toby","Dylan","Marshall"]},"海":{"names":["Dylan","Marvin","Morgan"]},"江":{"names":["River","Jordan","Brooks"]},"河":{"names":["River","Brooks","Jordan"]},"泽":{"names":["Zachary","Marsh","Grace"]},"润":{"names":["Ryan","Rain","Dylan"]},"浩":{"names":["Hugo","Harvey","Dylan"]},"鸿":{"names":["Hugo","Hunter","Grant"]},"瀚":{"names":["Hank","Hudson","Dylan"]},"清":{"names":["Clive","Clark","Crystal"]},"冰":{"names":["Blake","Bianca","Crystal"]},"雪":{"names":["Snow","Nevada","Winter"]},"云":{"names":["Skye","Nimbus","Cloud"]},"霞":{"names":["Rose","Aurora","Skye"]},"虹":{"names":["Iris","Rainbow","Skye"]},"晨":{"names":["Dawn","Aurora","Matteo"]},"曦":{"names":["Aurora","Sunny","Cyrus"]},"阳":{"names":["Sunny","Oriole","Saul"]},"日":{"names":["Sunny","Sol","Dylan"]},"月":{"names":["Luna","Selene","Mona"]},"星":{"names":["Stella","Star","Esther"]},"光":{"names":["Lucas","Felix","Lucian"]},"辉":{"names":["Felix","Lucas","Harvey"]},"旭":{"names":["Sunny","Dawn","Oriole"]},"晴":{"names":["Skye","Sunny","Clark"]},"暖":{"names":["Noah","Wesley","Gabriel"]},"林":{"names":["Forrest","Lynn","Glen"]},"森":{"names":["Forrest","Silas","Glen"]},"松":{"names":["Pine","Everett","Glen"]},"春":{"names":["April","Spring","Vern"]},"夏":{"names":["Summer","August","Sunny"]},"秋":{"names":["Autumn","Harvest","Hazel"]},"冬":{"names":["Winter","Noel","Ivy"]},"山":{"names":["Monty","Rocky","Sierra"]},"峰":{"names":["Parker","Monty","Everest"]},"岳":{"names":["Monty","Yale","Sierra"]},"石":{"names":["Stone","Rocky","Peter"]},"岩":{"names":["Rocky","Stone","Peter"]},"桃":{"names":["Peach","Georgia","Persica"]},"杏":{"names":["Apricot","April","Spring"]},"桂":{"names":["Laura","Laurel","Lawrence"]},"杨":{"names":["Asher","Ashley","Linden"]},"梅":{"names":["Mae","May","Margaret"]},"兰":{"names":["Orchid","Lily","Violet"]},"竹":{"names":["Bamboo","Benedict","Cole"]},"荷":{"names":["Lotus","Lily","Nel"]},"莲":{"names":["Lily","Lotus","Leah"]},"芬":{"names":["Fiona","Flora","Rose"]},"芳":{"names":["Fiona","Flora","Rose"]},"香":{"names":["Fiona","Flora","Rose"]},"花":{"names":["Flora","Flower","Rose"]},"果":{"names":["Brandon","Oliver","Apple"]},"德":{"names":["Derek","David","Ethan"]},"仁":{"names":["Rene","Ryan","Ben"]},"义":{"names":["Ethan","Justin","Ivan"]},"礼":{"names":["Reed","Riley","Ryan"]},"信":{"names":["Faith","Tristan","Conrad"]},"忠":{"names":["Constance","Truman","Noah"]},"孝":{"names":["Noah","Hugh","Revere"]},"良":{"names":["Goodwin","Ben","Evan"]},"善":{"names":["Ben","Bonnie","Evan"]},"诚":{"names":["Ernest","Earnest","Truman"]},"谦":{"names":["Hugh","Humphrey","Noah"]},"敬":{"names":["Revere","Honor","Hugh"]},"厚":{"names":["Hugo","Hugh","Forrest"]},"安":{"names":["Noah","Irene","Solace"]},"宁":{"names":["Noah","Irene","Serena"]},"静":{"names":["Serena","Noah","Irene"]},"平":{"names":["Noah","Irene","Oliver"]},"和":{"names":["Irene","Olivia","Harvey"]},"顺":{"names":["Noah","Oliver","Harvey"]},"永":{"names":["Everett","Evan","Noah"]},"真":{"names":["Tristan","True","Ernest"]},"实":{"names":["Ernest","Solomon","Walter"]},"正":{"names":["Justin","Ethan","Walter"]},"直":{"names":["Ethan","Ernest","Raymond"]},"方":{"names":["Frank","Forrest","Ethan"]},"公":{"names":["Justin","Frank","Ethan"]},"君":{"names":["James","Julian","King"]},"臣":{"names":["Loyal","Truman","Mason"]},"中":{"names":["Chance","Ethan","Oliver"]},"寿":{"names":["Noah","Ethan","Long"]},"康":{"names":["Ethan","Felix","Noah"]},"爱":{"names":["David","Amore","Cara"]},"心":{"names":["Cordelia","David","Hart"]},"欣":{"names":["Joy","Felix","Noah"]},"乐":{"names":["Joy","Felix","Felicity"]},"欢":{"names":["Joy","Felix","Felicity"]},"喜":{"names":["Joy","Felix","Beatrice"]},"悦":{"names":["Joy","Felix","Felicity"]},"怡":{"names":["Joy","Irene","Felix"]},"梦":{"names":["Dream","Mona","Noah"]},"念":{"names":["Noah","Grace","Evan"]},"子":{"names":["Sonny","Noah","Ethan"]},"友":{"names":["Felix","Noah","Amos"]},"朋":{"names":["Felix","Noah","Amos"]},"家":{"names":["Homer","Noah","Ethan"]},"人":{"names":["Ethan","Noah","Hugh"]},"民":{"names":["Ethan","Mason","Noah"]},"祖":{"names":["Ethan","Noah","Abraham"]},"宗":{"names":["Ethan","Noah","Abraham"]},"孙":{"names":["Sonny","Noah","Ethan"]},"诗":{"names":["Poet","Shay","Theo"]},"词":{"names":["Lyric","Word","Shay"]},"曲":{"names":["Melody","Aria","Sonny"]},"歌":{"names":["Melody","Aria","Sonny"]},"琴":{"names":["Melody","Aria","Harp"]},"音":{"names":["Melody","Aria","Noah"]},"声":{"names":["Melody","Aria","Evan"]},"剑":{"names":["Marcus","Ethan","Blade"]},"飞":{"names":["Flynn","Avi","Icarus"]},"翔":{"names":["Flynn","Icarus","Avi"]},"驰":{"names":["Chase","Speedy","Felix"]},"奔":{"names":["Chase","Felix","Dash"]},"帆":{"names":["Sail","Morgan","Noah"]},"航":{"names":["Morgan","Noah","Sail"]},"鹏":{"names":["Peter","Pete","Flynn"]},"鹤":{"names":["Crane","Noah","Ethan"]},"小":{"names":["Noah","Ethan","Sonny"]},"凡":{"names":["Noah","Ethan","Hugh"]},"为":{"names":["Ethan","Noah","Carter"]},"得":{"names":["Felix","Ethan","Victor"]},"多":{"names":["Felix","Noah","Midas"]},"万":{"names":["Felix","Ethan","Noah"]},"全":{"names":["Paul","Preston","Keegan"]},"新":{"names":["Neo","Novak","Felix"]}};
+
+const SURNAMES = {"张":"Zhang","李":"Li","王":"Wang","赵":"Zhao","刘":"Liu","陈":"Chen","杨":"Yang","黄":"Huang","周":"Zhou","吴":"Wu","徐":"Xu","孙":"Sun","马":"Ma","朱":"Zhu","胡":"Hu","林":"Lin","何":"He","郭":"Guo","高":"Gao","罗":"Luo","梁":"Liang","宋":"Song","唐":"Tang","韩":"Han","曹":"Cao","许":"Xu","邓":"Deng","萧":"Xiao","冯":"Feng","程":"Cheng","蔡":"Cai","潘":"Pan","袁":"Yuan","叶":"Ye","蒋":"Jiang","沈":"Shen","任":"Ren","姚":"Yao","卢":"Lu","傅":"Fu","钟":"Zhong","崔":"Cui","汪":"Wang","陆":"Lu","戴":"Dai","范":"Fan","方":"Fang","石":"Shi","廖":"Liao","熊":"Xiong","金":"Jin","谭":"Tan","夏":"Xia","韦":"Wei","贾":"Jia","邹":"Zou","秦":"Qin","薛":"Xue","邱":"Qiu","江":"Jiang","余":"Yu","于":"Yu"};
+
+function getEnglishName(syllables) {
+  if (syllables.length === 0) return '';
+  const chars = syllables.map(s => s.char);
+  const surnameChar = chars[0];
+  const givenChars = chars.slice(1);
+  let enGiven = '';
+  if (givenChars.length > 0) {
+    for (let c of givenChars) { if (EN_NAMES[c]) { enGiven = EN_NAMES[c].names[0]; break; } }
   }
-  const surnamePy = syllables[0].pinyin ? capitalize(stripTone(syllables[0].pinyin)) : '';
-  const givenPy = syllables.slice(1).map(s => s.pinyin ? capitalize(stripTone(s.pinyin)) : '').join(' ');
-  const var1 = surnamePy + ' ' + givenPy;
-  const var2 = givenPy + ' ' + surnamePy;
-  let meaningWord = '';
-  for (let i = 1; i < syllables.length; i++) {
-    const entry = syllables[i].entry;
-    if (entry && entry.meanings && entry.meanings.length > 0) {
-      meaningWord = entry.meanings[0];
-      break;
-    }
+  if (!enGiven && chars.length === 1) {
+    if (EN_NAMES[surnameChar]) enGiven = EN_NAMES[surnameChar].names[0];
   }
-  if (!meaningWord && syllables[0].entry && syllables[0].entry.meanings) {
-    meaningWord = syllables[0].entry.meanings[0];
-  }
-  const var3 = meaningWord ? (meaningWord + ' ' + surnamePy) : var2;
-  return [var1, var2, var3];
+  const surnameEn = SURNAMES[surnameChar] || capitalize(stripTone(syllables[0].pinyin));
+  if (enGiven) return enGiven + ' ' + surnameEn;
+  return surnameEn;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -350,19 +340,16 @@ function analyze() {
   html += `<span class="name-pinyin">${pinyinStr}</span>`;
   html += `</div>`;
 
-  // English name variants
-  const enVars = generateEnglishNames(input, syllables, pinyinStr);
-  if (enVars.length > 0) {
+  // English name
+  const enName = getEnglishName(syllables);
+  if (enName) {
     html += `<div class="en-variants">`;
-    html += `<div class="en-vars-title">🌍 English Name Suggestions</div>`;
+    html += `<div class="en-vars-title">🌍 English Name</div>`;
     html += `<div class="en-vars-grid">`;
-    enVars.forEach((v, i) => {
-      html += `<div class="en-var-card">`;
-      html += `<div class="en-var-label">${['Formal','English Order','Meaning'][i]||''}</div>`;
-      html += `<div class="en-var-name">${v}</div>`;
-      html += `</div>`;
-    });
-    html += `</div></div>`;
+    html += `<div class="en-var-card">`;
+    html += `<div class="en-var-name">${enName}</div>`;
+    html += `<div style="font-size:11px;color:#8b7d6b;margin-top:2px">Real English name based on character meanings</div>`;
+    html += `</div></div></div>`;
   }
 
   // Character cards
