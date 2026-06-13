@@ -78,6 +78,14 @@ h1{font-size:22px;background:linear-gradient(135deg,#c0392b,#8e44ad);-webkit-bac
 .summary-box .title{font-size:12px;font-weight:600;color:#8b7d6b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
 .summary-box .text{font-size:14px;color:#2c1810}
 
+/* English name variants */
+.en-variants{margin:10px 0 6px}
+.en-vars-title{font-size:12px;font-weight:600;color:#8b7d6b;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.en-vars-grid{display:flex;gap:6px;flex-wrap:wrap}
+.en-var-card{flex:1;min-width:130px;background:linear-gradient(135deg,#667eea20,#764ba220);border-radius:10px;padding:10px 12px;border:1px solid #e0d5c8;text-align:center}
+.en-var-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#8b7d6b;margin-bottom:3px}
+.en-var-name{font-size:16px;font-weight:700;color:#2c1810}
+
 /* Transitions */
 @keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .animate{animation:slideIn .35s ease}
@@ -105,12 +113,6 @@ footer{text-align:center;padding:20px 0;font-size:12px;color:#b8a898}
 
 <div class="controls">
   <input type="text" id="nameInput" placeholder="输入中文名字 (e.g. 伟, 张伟明, 阿历山大)" autofocus>
-  <select id="modeSelect">
-    <option value="auto">🔀 Auto (最佳显示)</option>
-    <option value="pinyin">🔊 拼音 Pinyin</option>
-    <option value="meaning">📖 含义 Meaning</option>
-    <option value="full">📊 完整 Full</option>
-  </select>
   <button class="btn btn-primary" onclick="analyze()">⟳ 转换</button>
   <button class="btn btn-demo" id="demoBtn" onclick="toggleDemo()">▶ Demo</button>
 </div>
@@ -196,6 +198,40 @@ function nameToPinyin(name, opts={}) {
 }
 
 // ═══════════════════════════════════════════════════════
+// ENGLISH NAME GENERATOR
+// ═══════════════════════════════════════════════════════
+
+function generateEnglishNames(inputChars, syllables, pinyinStr) {
+  if (syllables.length === 0) return [];
+  if (syllables.length === 1) {
+    const entry = syllables[0].entry;
+    if (!entry) return [capitalize(stripTone(syllables[0].pinyin))];
+    const m = entry.meanings;
+    const name1 = capitalize(stripTone(entry.pinyin));
+    const name2 = m[0] || name1;
+    const name3 = (m.length > 1 ? m[1] : m[0]) || name1;
+    return [name1, name2, name3];
+  }
+  const surnamePy = syllables[0].pinyin ? capitalize(stripTone(syllables[0].pinyin)) : '';
+  const givenPy = syllables.slice(1).map(s => s.pinyin ? capitalize(stripTone(s.pinyin)) : '').join(' ');
+  const var1 = surnamePy + ' ' + givenPy;
+  const var2 = givenPy + ' ' + surnamePy;
+  let meaningWord = '';
+  for (let i = 1; i < syllables.length; i++) {
+    const entry = syllables[i].entry;
+    if (entry && entry.meanings && entry.meanings.length > 0) {
+      meaningWord = entry.meanings[0];
+      break;
+    }
+  }
+  if (!meaningWord && syllables[0].entry && syllables[0].entry.meanings) {
+    meaningWord = syllables[0].entry.meanings[0];
+  }
+  const var3 = meaningWord ? (meaningWord + ' ' + surnamePy) : var2;
+  return [var1, var2, var3];
+}
+
+// ═══════════════════════════════════════════════════════
 // DEMO — 10 names in a loop
 // ═══════════════════════════════════════════════════════
 
@@ -267,7 +303,6 @@ function showDemoName(idx) {
 
 function analyze() {
   const input = document.getElementById('nameInput').value.trim();
-  const mode = document.getElementById('modeSelect').value;
   const result = document.getElementById('result');
   if (!input) { result.innerHTML = ''; return; }
 
@@ -314,6 +349,21 @@ function analyze() {
   html += `<span class="name-display">${input}</span>`;
   html += `<span class="name-pinyin">${pinyinStr}</span>`;
   html += `</div>`;
+
+  // English name variants
+  const enVars = generateEnglishNames(input, syllables, pinyinStr);
+  if (enVars.length > 0) {
+    html += `<div class="en-variants">`;
+    html += `<div class="en-vars-title">🌍 English Name Suggestions</div>`;
+    html += `<div class="en-vars-grid">`;
+    enVars.forEach((v, i) => {
+      html += `<div class="en-var-card">`;
+      html += `<div class="en-var-label">${['Formal','English Order','Meaning'][i]||''}</div>`;
+      html += `<div class="en-var-name">${v}</div>`;
+      html += `</div>`;
+    });
+    html += `</div></div>`;
+  }
 
   // Character cards
   html += `<div class="char-grid">`;
@@ -375,9 +425,8 @@ function analyze() {
 
   html += `</div>`; // end card
 
-  // Details card (if meaning mode or full mode)
-  if (mode === 'meaning' || mode === 'full' || mode === 'auto') {
-    html += `<div class="card animate" style="animation-delay:.1s">`;
+  // Details card (always shown)
+  html += `<div class="card animate" style="animation-delay:.1s">`;
     html += `<div style="font-size:13px;font-weight:600;color:#8b7d6b;margin-bottom:8px">🔍 Character Details</div>`;
     syllables.forEach(s => {
       if (!s.entry) return;
@@ -389,7 +438,7 @@ function analyze() {
       html += `<span style="color:#666">${capitalize(stripTone(e.pinyin))}</span> · `;
       html += `${e.emoji} ${e.meanings.join(', ')}`;
       html += `</span></div>`;
-      if (mode === 'full' && e.notes) {
+      if (e.notes) {
         html += `<div class="detail-row" style="padding-left:72px;font-size:12px;color:#8b7d6b">`;
         html += `${e.notes}`;
         html += `</div>`;
@@ -399,9 +448,7 @@ function analyze() {
     Object.entries(themes).forEach(([t, c]) => {
       html += `<span class="theme-tag">${capitalize(t)} (${c})</span>`;
     });
-    html += `</div>`;
-    html += `</div>`;
-  }
+    html += `</div>`; // end details card
 
   result.innerHTML = html;
 }
@@ -412,11 +459,9 @@ function analyze() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const input = document.getElementById('nameInput');
-  const mode = document.getElementById('modeSelect');
 
   // Auto-analyze on input
   input.addEventListener('input', analyze);
-  mode.addEventListener('change', analyze);
 
   // Enter key
   input.addEventListener('keydown', e => { if (e.key === 'Enter') analyze(); });
