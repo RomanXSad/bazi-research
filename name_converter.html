@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chinese Name Converter 中文名转换器</title>
+<style>
+:root {
+  --bg: #f8f7f4;
+  --card: #ffffff;
+  --text: #2c2c2c;
+  --accent: #c0392b;
+  --accent2: #e74c3c;
+  --border: #e0ddd5;
+  --muted: #888;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  padding: 0;
+}
+.container { max-width: 900px; margin: 0 auto; padding: 20px 16px; }
+header {
+  text-align: center;
+  padding: 30px 0 20px;
+  border-bottom: 2px solid var(--accent);
+  margin-bottom: 24px;
+}
+header h1 { font-size: 1.8em; color: var(--accent); }
+header p { color: var(--muted); font-size: 0.9em; margin-top: 4px; }
+.tabs { display: flex; gap: 4px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab-btn {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  cursor: pointer;
+  font-size: 0.95em;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.2s;
+  text-align: center;
+  font-weight: 500;
+}
+.tab-btn:hover { background: #f0eeea; }
+.tab-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  font-size: 0.95em;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 1em;
+  background: var(--card);
+  transition: border 0.2s;
+}
+input:focus, select:focus { outline: none; border-color: var(--accent); }
+textarea { min-height: 80px; resize: vertical; }
+.btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 8px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-weight: 600;
+}
+.btn:hover { background: var(--accent2); }
+.btn-secondary {
+  background: var(--border);
+  color: var(--text);
+}
+.btn-secondary:hover { background: #ccc; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > * { flex: 1; min-width: 120px; }
+.result-box {
+  background: #f9f7f4;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+  min-height: 60px;
+  white-space: pre-wrap;
+  font-size: 0.95em;
+  line-height: 1.7;
+}
+.result-box:empty { display: none; }
+.char-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 4px;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.char-result:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(192,57,43,0.15);
+}
+.char-result .char { font-size: 1.6em; }
+.char-result .info { font-size: 0.85em; color: var(--muted); }
+.char-result .element-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 600;
+}
+.element-木 { background: #c8e6c9; color: #2e7d32; }
+.element-火 { background: #ffcdd2; color: #c62828; }
+.element-土 { background: #ffe0b2; color: #e65100; }
+.element-金 { background: #e0e0e0; color: #37474f; }
+.element-水 { background: #b3e5fc; color: #01579b; }
+.theme-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75em;
+  font-weight: 600;
+  background: #e8eaf6;
+  color: #283593;
+  margin-left: 4px;
+}
+.detail-panel {
+  background: linear-gradient(135deg, #fafafa 0%, #f5f0eb 100%);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 16px;
+}
+.detail-panel h3 { color: var(--accent); margin-bottom: 12px; }
+.detail-panel .detail-row { display: flex; margin-bottom: 8px; }
+.detail-panel .detail-label { font-weight: 600; width: 120px; color: var(--muted); }
+.detail-panel .detail-value { flex: 1; }
+.loading { opacity: 0.5; pointer-events: none; }
+footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85em;
+  padding: 30px 0 20px;
+  border-top: 1px solid var(--border);
+  margin-top: 30px;
+}
+.search-filters { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.search-filters > * { flex: 1; min-width: 150px; }
+.count-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+}
+@media (max-width: 600px) {
+  .container { padding: 12px; }
+  header h1 { font-size: 1.4em; }
+  .card { padding: 16px; }
+  .tabs { flex-direction: column; }
+  .tab-btn { border-radius: 8px; min-width: auto; }
+  .row { flex-direction: column; }
+  .search-filters { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>📜 Chinese Name Converter</h1>
+    <p>Pinyin · Meanings · Element Balance · 五行 Analysis</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('pinyin')">🔤 Pinyin</button>
+    <button class="tab-btn" onclick="switchTab('meaning')">📖 Meaning</button>
+    <button class="tab-btn" onclick="switchTab('analyze')">🔍 Name Analysis</button>
+    <button class="tab-btn" onclick="switchTab('search')">🔎 Search</button>
+  </div>
+
+  <!-- TAB 1: PINYIN -->
+  <div id="tab-pinyin" class="tab-content active">
+    <div class="card">
+      <div class="form-group">
+        <label for="pinyin-input">Enter Chinese text</label>
+        <input type="text" id="pinyin-input" placeholder="e.g. 张伟明" oninput="convertPinyin()">
+      </div>
+      <div class="row">
+        <label class="form-group" style="flex-direction:row;align-items:center;gap:6px">
+          <input type="checkbox" id="pinyin-notone" onchange="convertPinyin()"> No tone marks
+        </label>
+        <label class="form-group" style="flex-direction:row;align-items:center;gap:6px">
+          <input type="checkbox" id="pinyin-caps" onchange="convertPinyin()"> Capitalize
+        </label>
+        <label class="form-group" style="flex-direction:row;align-items:center;gap:6px">
+          <input type="checkbox" id="pinyin-meaning" onchange="convertPinyin()"> Show meanings
+        </label>
+      </div>
+      <div id="pinyin-result" class="result-box"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: MEANING -->
+  <div id="tab-meaning" class="tab-content">
+    <div class="card">
+      <div class="form-group">
+        <label for="meaning-input">Enter Chinese character(s)</label>
+        <input type="text" id="meaning-input" placeholder="e.g. 伟" oninput="showMeaning()">
+      </div>
+      <label class="form-group" style="flex-direction:row;align-items:center;gap:6px">
+        <input type="checkbox" id="meaning-deep" onchange="showMeaning()"> Deep analysis
+      </label>
+      <div id="meaning-result" class="result-box"></div>
+    </div>
+  </div>
+
+  <!-- TAB 3: NAME ANALYSIS -->
+  <div id="tab-analyze" class="tab-content">
+    <div class="card">
+      <div class="form-group">
+        <label for="name-input">Enter a full Chinese name</label>
+        <input type="text" id="name-input" placeholder="e.g. 张伟明" oninput="analyzeName()">
+      </div>
+      <div id="name-result" class="result-box"></div>
+    </div>
+  </div>
+
+  <!-- TAB 4: SEARCH -->
+  <div id="tab-search" class="tab-content">
+    <div class="card">
+      <div class="form-group">
+        <label for="search-query">Search by meaning, pinyin, or notes</label>
+        <input type="text" id="search-query" placeholder="e.g. great, jade, mountain..." oninput="doSearch()">
+      </div>
+      <div class="search-filters">
+        <div class="form-group">
+          <label for="search-element">Element (五行)</label>
+          <select id="search-element" onchange="doSearch()">
+            <option value="">Any</option>
+            <option value="木">Wood 木</option>
+            <option value="火">Fire 火</option>
+            <option value="土">Earth 土</option>
+            <option value="金">Metal 金</option>
+            <option value="水">Water 水</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="search-theme">Theme</label>
+          <select id="search-theme" onchange="doSearch()">
+            <option value="">Any</option>
+            <option value="strength">Strength</option>
+            <option value="wisdom">Wisdom</option>
+            <option value="beauty">Beauty</option>
+            <option value="nature">Nature</option>
+            <option value="virtue">Virtue</option>
+            <option value="prosperity">Prosperity</option>
+            <option value="gentle">Gentle</option>
+            <option value="talent">Talent</option>
+            <option value="family">Family</option>
+          </select>
+        </div>
+      </div>
+      <div id="search-results-info"></div>
+      <div id="search-results" class="result-box"></div>
+    </div>
+  </div>
+
+  <footer>
+    Chinese Name Converter — 中文名转换器 · Built with ♥
+  </footer>
+</div>
+
+<script>
+// ── CHARACTER DICTIONARY (embedded) ──
+
+const DICT = {};
+
+// Load from inline data
+const DICT_DATA = `PASTE_DICT_HERE`;
+
+// We'll load the dictionary via a helper
+let dictLoaded = false;
+
+function loadDict() {
+  if (dictLoaded) return;
+  // Parse inline JSON
+  const data = document.getElementById('dict-data')?.textContent;
+  if (data) {
+    try {
+      const parsed = JSON.parse(data);
+      Object.assign(DICT, parsed);
+    } catch(e) {
+      console.error('Dict parse error:', e);
+    }
+  }
+  dictLoaded = true;
+}
+
+// ── SURNAMES (top ~100) ──
+const SURNAMES = new Set([
+  "赵","钱","孙","李","周","吴","郑","王","冯","陈","褚","卫","蒋","沈",
+  "韩","杨","朱","秦","许","何","吕","施","张","孔","曹","严","华",
+  "金","魏","陶","姜","谢","邹","喻","柏","水","窦","章","云","苏",
+  "潘","葛","范","彭","郎","鲁","韦","昌","马","苗","凤","花","方","俞",
+  "任","袁","柳","酆","鲍","史","唐","费","廉","岑","薛","雷","贺","倪",
+  "汤","滕","殷","罗","毕","郝","邬","安","常","乐","于","时","傅","皮",
+  "卞","齐","康","伍","余","元","卜","顾","孟","平","黄","和","穆","萧",
+  "尹","姚","邵","湛","汪","祁","毛","禹","狄","米","贝","明","臧","计",
+  "伏","成","戴","谈","宋","茅","庞","熊","纪","舒","屈","项","祝","董",
+  "梁","杜","阮","蓝","闵","席","季","麻","强","贾","路","娄","危","江",
+  "童","颜","郭","梅","盛","林","刁","钟","徐","邱","骆","高","夏","蔡",
+  "田","樊","胡","凌","霍","虞","万","支","柯","管","卢","莫","经",
+  "房","裘","缪","干","解","应","宗","丁","宣","邓","郁","单","杭",
+  "洪","包","诸","左","石","崔","吉","钮","龚","程","嵇","邢","滑","裴",
+  "陆","荣","翁","荀","羊","於","惠","甄","曲","家","封","芮","储",
+  "靳","汲","邴","糜","松","井","段","富","巫","乌","焦","巴","牧",
+  "山","谷","车","侯","宓","蓬","全","郗","班","仰","秋","仲","伊",
+  "宫","宁","仇","栾","暴","甘","厉","戎","祖","武","符","刘","景",
+  "詹","束","龙","叶","幸","司","韶","郜","黎","蓟","薄","印","宿","白",
+  "怀","蒲","邰","从","鄂","索","籍","赖","卓","蔺","屠","蒙","池",
+  "乔","阴","郁","胥","苍","双","闻","莘","党","翟","谭","贡","劳",
+  "姬","申","扶","堵","冉","宰","郦","雍","桑","桂","濮",
+  "牛","寿","通","边","扈","燕","冀","浦","尚","农","温","别","庄",
+  "晏","柴","瞿","阎","充","慕","连","茹","习","宦","艾","鱼","容","向",
+  "古","易","慎","戈","廖","庾","终","暨","居","衡","步","都","耿","满",
+  "弘","匡","国","文","寇","广","禄","阙","东","欧","沃","利","蔚",
+  "越","隆","师","巩","厍","聂","晁","勾","敖","融","冷","訾","辛",
+  "阚","那","简","饶","空","曾","毋","沙","养","鞠","须","丰","巢",
+  "关","蒯","相","查","后","荆","红","游","竺","权","盖","桓",
+  "司马","上官","欧阳","夏侯","诸葛","东方","皇甫","尉迟","公孙","慕容","司徒","司空"
+]);
+
+const ELEMENT_LABELS = {"木":"Wood 🌳","火":"Fire 🔥","土":"Earth 🏔️","金":"Metal ⚔️","水":"Water 🌊"};
+const GENDER_SYMS = {"M":"♂️","F":"♀️","unisex":"⚧️"};
+
+// ── TONE MARKS for pinyin conversion ──
+// Simple tone conversion map (pypinyin replacement)
+const TONE_MAP = {
+  'a': 'āáǎà', 'e': 'ēéěè', 'i': 'īíǐì', 'o': 'ōóǒò', 'u': 'ūúǔù', 'v': 'ǖǘǚǜ'
+};
+// Reverse
+const REV_TONE = {};
+for (const [base, tones] of Object.entries(TONE_MAP)) {
+  for (let t = 0; t < tones.length; t++) {
+    REV_TONE[tones[t]] = {base, tone: t+1};
+  }
+}
+
+function getPinyin(text, noTone, caps) {
+  // Use stored pinyin from dictionary if available
+  let result = [];
+  for (const ch of text) {
+    const info = DICT[ch];
+    if (info && info.pinyin) {
+      result.push(info.pinyin);
+    } else {
+      // Fallback: try to guess from character
+      result.push(ch);
+    }
+  }
+  let output = result.join(' ');
+  if (noTone) {
+    // Strip tone marks
+    let s = '';
+    for (const c of output) {
+      let found = false;
+      for (const [base, tones] of Object.entries(TONE_MAP)) {
+        const idx = tones.indexOf(c);
+        if (idx >= 0) { s += base; found = true; break; }
+      }
+      if (!found) s += c;
+    }
+    output = s;
+  }
+  if (caps) {
+    output = output.replace(/(\S+)/g, (m) => {
+      const first = m[0];
+      let upFirst = first.toUpperCase();
+      // Handle accented first letter
+      for (const [base, tones] of Object.entries(TONE_MAP)) {
+        const idx = tones.indexOf(first);
+        if (idx >= 0) { upFirst = base.toUpperCase(); break; }
+      }
+      return upFirst + m.slice(1);
+    });
+  }
+  return output;
+}
+
+function getSurname(name) {
+  if (name.length >= 2 && SURNAMES.has(name.slice(0,2))) return name.slice(0,2);
+  if (name.length >= 1 && SURNAMES.has(name[0])) return name[0];
+  return null;
+}
+
+// ── TAB SWITCHING ──
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelector(`.tab-btn[onclick*="${name}"]`).classList.add('active');
+}
+
+// ── FEATURE A: PINYIN ──
+function convertPinyin() {
+  loadDict();
+  const text = document.getElementById('pinyin-input').value.trim();
+  if (!text) { document.getElementById('pinyin-result').innerHTML = ''; return; }
+  const noTone = document.getElementById('pinyin-notone').checked;
+  const caps = document.getElementById('pinyin-caps').checked;
+  const showMeaning = document.getElementById('pinyin-meaning').checked;
+
+  const surname = getSurname(text);
+  const surLen = surname ? surname.length : 0;
+  const given = text.slice(surLen);
+
+  let lines = [];
+  if (showMeaning) {
+    let allChars = text.split('');
+    for (let i = 0; i < allChars.length; i++) {
+      const ch = allChars[i];
+      const info = DICT[ch];
+      const py = getPinyin(ch, noTone, caps);
+      const label = (surname && i < surLen) ? '(surname)' : '';
+      if (info) {
+        const meanings = info.meanings.slice(0,2).join(', ');
+        lines.push(`<span class="char-result"><span class="char">${ch}</span><span class="info">${py} ${label} — ${meanings} ${info.emoji||''}</span></span>`);
+      } else {
+        lines.push(`<span class="char-result"><span class="char">${ch}</span><span class="info">${py} ${label}</span></span>`);
+      }
+    }
+    // Also show full pinyin
+    const fullPy = getPinyin(text, noTone, caps);
+    lines.unshift(`<div style="font-size:1.2em;margin-bottom:8px;font-weight:600">${fullPy}</div>`);
+  } else {
+    const fullPy = getPinyin(text, noTone, caps);
+    lines.push(`<div style="font-size:1.3em">${fullPy}</div>`);
+  }
+  document.getElementById('pinyin-result').innerHTML = lines.join('\n');
+}
+
+// ── FEATURE B: MEANING ──
+function showMeaning() {
+  loadDict();
+  const text = document.getElementById('meaning-input').value.trim();
+  if (!text) { document.getElementById('meaning-result').innerHTML = ''; return; }
+  const deep = document.getElementById('meaning-deep').checked;
+
+  let html = '';
+  for (const ch of text) {
+    const info = DICT[ch];
+    if (!info) {
+      html += `<div class="detail-panel"><p>Character '${ch}' not found in dictionary.</p></div>`;
+      continue;
+    }
+    const elemLabel = ELEMENT_LABELS[info.element] || info.element;
+    const genderSym = GENDER_SYMS[info.gender] || '';
+    const meanings = info.meanings.join(', ');
+    const themeLabel = info.theme.charAt(0).toUpperCase() + info.theme.slice(1);
+
+    html += `<div class="detail-panel">
+      <h3>${ch} (${info.pinyin}) ${info.emoji||''}</h3>
+      <div class="detail-row"><span class="detail-label">Meanings</span><span class="detail-value">${meanings}</span></div>
+      <div class="detail-row"><span class="detail-label">Element</span><span class="detail-value"><span class="element-badge element-${info.element}">${elemLabel}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Theme</span><span class="detail-value"><span class="theme-badge">${themeLabel}</span></span></div>
+      <div class="detail-row"><span class="detail-label">Gender</span><span class="detail-value">${info.gender ? info.gender.charAt(0).toUpperCase()+info.gender.slice(1) : 'Unisex'} ${genderSym}</span></div>
+      ${info.notes ? `<div class="detail-row"><span class="detail-label">Note</span><span class="detail-value">${info.notes}</span></div>` : ''}`;
+
+    if (deep) {
+      const elemDesc = {
+        '木': 'Wood — growth, flexibility, creativity, vitality',
+        '火': 'Fire — passion, brightness, transformation, energy',
+        '土': 'Earth — stability, nurturing, reliability, balance',
+        '金': 'Metal — strength, structure, refinement, determination',
+        '水': 'Water — wisdom, adaptability, depth, flow'
+      };
+      html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <strong>Extended Analysis</strong>
+        <p style="margin-top:6px;color:#555">This character expresses: ${meanings}.</p>
+        <p style="color:#555">${elemDesc[info.element] || ''}</p>
+        <p style="color:#555">Theme: ${themeLabel} — suitable for names expressing ${info.theme}.</p>
+        <p style="color:#555">${info.notes || ''}</p>`;
+      // Common name patterns
+      const patterns = {
+        'strength': `Common patterns: 勇${ch}, ${ch}强, ${ch}杰`,
+        'beauty': `Common patterns: 美${ch}, ${ch}丽, 秀${ch}`,
+        'wisdom': `Common patterns: 智${ch}, ${ch}慧, ${ch}明`,
+        'nature': `Common patterns: ${ch}林, 海${ch}, 云${ch}`,
+        'virtue': `Common patterns: 德${ch}, ${ch}义, 仁${ch}`,
+        'prosperity': `Common patterns: 富${ch}, ${ch}贵, ${ch}荣`
+      };
+      html += `<p style="color:#555;margin-top:6px">${patterns[info.theme] || `${ch} is a popular choice in compound names.`}</p>`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+  document.getElementById('meaning-result').innerHTML = html;
+}
+
+// ── FEATURE C: NAME ANALYSIS ──
+function analyzeName() {
+  loadDict();
+  const text = document.getElementById('name-input').value.trim();
+  if (!text) { document.getElementById('name-result').innerHTML = ''; return; }
+
+  const surname = getSurname(text);
+  const surLen = surname ? surname.length : 0;
+  const given = text.slice(surLen);
+  const fullPy = getPinyin(text, false, true);
+
+  let html = `<div class="detail-panel" style="border-color:#555">
+    <h3>📋 Name Analysis: ${text}</h3>
+    <div class="detail-row"><span class="detail-label">Pinyin</span><span class="detail-value" style="font-size:1.2em">${fullPy}</span></div>`;
+
+  if (surname) {
+    html += `<div class="detail-row"><span class="detail-label">Surname</span><span class="detail-value">${surname} (${getPinyin(surname, false, true)})</span></div>`;
+    html += `<div class="detail-row"><span class="detail-label">Given</span><span class="detail-value">${given} (${getPinyin(given, false, true)})</span></div>`;
+  }
+
+  html += `<hr style="margin:12px 0;border-color:var(--border)"><strong>Character Breakdown</strong>`;
+
+  const themes = [];
+  const elements = [];
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const info = DICT[ch];
+    const label = (surname && i < surLen) ? 'Surname' : 'Given';
+    if (info) {
+      const elemLabel = ELEMENT_LABELS[info.element] || info.element;
+      const meanings = info.meanings.join(', ');
+      html += `<div style="margin:8px 0;padding:8px;background:rgba(0,0,0,0.02);border-radius:6px">
+        <strong>${ch}</strong> (${info.pinyin}) [${label}]
+        <div style="font-size:0.9em;color:#555">${meanings}</div>
+        <div style="font-size:0.9em"><span class="element-badge element-${info.element}">${elemLabel}</span> <span class="theme-badge">${info.theme}</span> ${info.emoji||''}</div>
+      </div>`;
+      themes.push(info.theme);
+      elements.push(info.element);
+    } else {
+      html += `<div style="margin:8px 0;padding:8px;background:rgba(0,0,0,0.02);border-radius:6px">
+        <strong>${ch}</strong> (${getPinyin(ch, false, true)}) [${label}] — not in dictionary
+      </div>`;
+    }
+  }
+
+  // Overall analysis
+  if (themes.length > 0) {
+    html += `<hr style="margin:12px 0;border-color:var(--border)"><strong>Overall Analysis</strong>`;
+
+    // Count themes
+    const themeCounts = {};
+    themes.forEach(t => { themeCounts[t] = (themeCounts[t] || 0) + 1; });
+    const primaryTheme = Object.entries(themeCounts).sort((a,b) => b[1]-a[1])[0][0];
+    html += `<div style="margin-top:8px">Primary Theme: <span class="theme-badge">${primaryTheme.charAt(0).toUpperCase()+primaryTheme.slice(1)}</span></div>`;
+
+    // Element balance
+    if (elements.length > 0) {
+      html += `<div style="margin-top:12px"><strong>Element Balance (五行)</strong></div>`;
+      const elemCounts = {};
+      elements.forEach(e => { elemCounts[e] = (elemCounts[e] || 0) + 1; });
+      const total = elements.length;
+      for (const elem of ['木','火','土','金','水']) {
+        const count = elemCounts[elem] || 0;
+        const pct = (count / total * 100).toFixed(0);
+        const barW = Math.max(count * 30, count > 0 ? 30 : 4);
+        html += `<div style="display:flex;align-items:center;gap:8px;margin:4px 0">
+          <span style="width:100px">${ELEMENT_LABELS[elem] || elem}</span>
+          <div style="flex:1;height:20px;background:#eee;border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:${barW}px;background:${elem==='木'?'#4caf50':elem==='火'?'#f44336':elem==='土'?'#ff9800':elem==='金'?'#9e9e9e':'#03a9f4'};border-radius:4px"></div>
+          </div>
+          <span>${count}/${total} (${pct}%)</span>
+        </div>`;
+      }
+
+      // Balance score
+      const uniqueElems = Object.keys(elemCounts).length;
+      let score;
+      if (uniqueElems >= 3) score = '⚖️ Well-balanced';
+      else if (uniqueElems === 2) score = '🔶 Moderately balanced';
+      else score = '🔴 Concentrated';
+      html += `<div style="margin-top:8px;font-weight:600">Element Balance Score: ${score}</div>`;
+
+      // Dominant
+      const maxElem = Object.entries(elemCounts).sort((a,b) => b[1]-a[1])[0][0];
+      const generating = {'木':'火','火':'土','土':'金','金':'水','水':'木'};
+      html += `<div style="margin-top:4px;font-size:0.9em;color:#555">Dominant: ${ELEMENT_LABELS[maxElem]} → Generates: ${ELEMENT_LABELS[generating[maxElem]]}</div>`;
+    }
+  }
+
+  html += `</div>`;
+  document.getElementById('name-result').innerHTML = html;
+}
+
+// ── FEATURE D: SEARCH ──
+function doSearch() {
+  loadDict();
+  const query = document.getElementById('search-query').value.toLowerCase().trim();
+  const element = document.getElementById('search-element').value;
+  const theme = document.getElementById('search-theme').value;
+
+  const results = [];
+  for (const [ch, info] of Object.entries(DICT)) {
+    let match = true;
+    if (query) {
+      const meanings = (info.meanings || []).join(' ').toLowerCase();
+      const notes = (info.notes || '').toLowerCase();
+      const pinyin = info.pinyin.toLowerCase();
+      if (!meanings.includes(query) && !notes.includes(query) && !pinyin.includes(query)) {
+        match = false;
+      }
+    }
+    if (element && info.element !== element) match = false;
+    if (theme && info.theme !== theme) match = false;
+    if (match) results.push(ch);
+  }
+
+  // Deduplicate
+  const seen = new Set();
+  const unique = [];
+  for (const ch of results) {
+    if (!seen.has(ch)) { seen.add(ch); unique.push(ch); }
+  }
+
+  const infoEl = document.getElementById('search-results-info');
+  const resultEl = document.getElementById('search-results');
+
+  if (unique.length === 0) {
+    infoEl.innerHTML = '<p style="color:var(--muted)">No matching characters found.</p>';
+    resultEl.innerHTML = '';
+    return;
+  }
+
+  infoEl.innerHTML = `<p>Found <strong>${unique.length}</strong> matching character(s). Click a character for details.</p>`;
+
+  // Group by theme
+  const groups = {};
+  for (const ch of unique) {
+    const info = DICT[ch];
+    const t = info.theme || 'other';
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(ch);
+  }
+
+  let html = '';
+  for (const themeName of Object.keys(groups).sort()) {
+    html += `<div style="margin-bottom:12px"><strong style="font-size:0.95em">${themeName.charAt(0).toUpperCase()+themeName.slice(1)}</strong><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">`;
+    for (const ch of groups[themeName]) {
+      const info = DICT[ch];
+      html += `<span class="char-result" onclick="showCharDetail('${ch}')" style="cursor:pointer">
+        <span class="char">${ch}</span>
+        <span class="info">${info.pinyin}<br><span class="element-badge element-${info.element}" style="font-size:0.7em">${ELEMENT_LABELS[info.element]||info.element}</span></span>
+      </span>`;
+    }
+    html += `</div></div>`;
+  }
+
+  resultEl.innerHTML = html;
+}
+
+function showCharDetail(ch) {
+  switchTab('meaning');
+  document.getElementById('meaning-input').value = ch;
+  showMeaning();
+  document.getElementById('meaning-input').focus();
+}
+
+// ── INIT ──
+// Load dict data from hidden script tag
+(function() {
+  const dataEl = document.getElementById('dict-data');
+  if (dataEl && dataEl.textContent) {
+    try {
+      const parsed = JSON.parse(dataEl.textContent);
+      Object.assign(DICT, parsed);
+      dictLoaded = true;
+    } catch(e) {
+      console.error('Dict parse error:', e);
+    }
+  }
+})();
+</script>
+
+<!-- Dictionary data embedded as JSON -->
+<script id="dict-data" type="application/json">{"伟": {"pinyin": "wěi", "meanings": ["Great", "Grand", "Mighty"], "element": "土", "theme": "strength", "emoji": "✨", "gender": "M", "notes": "One of the most popular name characters."}, "强": {"pinyin": "qiáng", "meanings": ["Strong", "Powerful", "Superior"], "element": "金", "theme": "strength", "emoji": "💪", "gender": "M", "notes": "Symbolizes inner strength and resilience. Common in male names."}, "刚": {"pinyin": "gāng", "meanings": ["Firm", "Strong", "Indomitable"], "element": "金", "theme": "strength", "emoji": "⛰️", "gender": "M", "notes": "Implies unyielding strength like steel."}, "毅": {"pinyin": "yì", "meanings": ["Firm", "Persevering", "Resolute"], "element": "木", "theme": "strength", "emoji": "🎯", "gender": "M", "notes": "Conveys determination and unwavering willpower. A classic virtue name."}, "勇": {"pinyin": "yǒng", "meanings": ["Brave", "Courageous", "Valiant"], "element": "火", "theme": "strength", "emoji": "🦁", "gender": "M", "notes": "Directly embodies courage and bravery."}, "猛": {"pinyin": "měng", "meanings": ["Fierce", "Valiant", "Powerful"], "element": "火", "theme": "strength", "emoji": "🐯", "gender": "M", "notes": "Suggests fierceness and bold strength. Less common but impactful."}, "雄": {"pinyin": "xióng", "meanings": ["Heroic", "Male", "Grand"], "element": "水", "theme": "strength", "emoji": "🦅", "gender": "M", "notes": "Heroic and grand."}, "威": {"pinyin": "wēi", "meanings": ["Awe", "Dignity"], "element": "金", "theme": "strength", "emoji": "👑", "gender": "M", "notes": "Awe-inspiring power."}, "霸": {"pinyin": "bà", "meanings": ["Overlord", "Champion", "Dominant"], "element": "火", "theme": "strength", "emoji": "🏆", "gender": "M", "notes": "A bold character meaning hegemon or champion. Less traditional but very strong."}, "劲": {"pinyin": "jìn", "meanings": ["Strong", "Vigorous", "Robust"], "element": "木", "theme": "strength", "emoji": "⚡", "gender": "M", "notes": "Suggests vigor and robust energy. Modern usage in athletic contexts."}, "健": {"pinyin": "jiàn", "meanings": ["Healthy", "Strong", "Robust"], "element": "木", "theme": "strength", "emoji": "🏋️", "gender": "M", "notes": "Combines the meanings of health and strength. Very common in male names."}, "壮": {"pinyin": "zhuàng", "meanings": ["Strong", "Robust", "Sturdy"], "element": "土", "theme": "strength", "emoji": "🏔️", "gender": "M", "notes": "Conveys physical strength and sturdiness. Traditional name character."}, "力": {"pinyin": "lì", "meanings": ["Power", "Strength", "Force"], "element": "火", "theme": "strength", "emoji": "💥", "gender": "M", "notes": "The character for power itself. Simple, direct, and impactful in names."}, "武": {"pinyin": "wǔ", "meanings": ["Martial", "Military"], "element": "火", "theme": "surname", "emoji": "⚔️", "gender": "unisex", "notes": "Surname meaning martial."}, "杰": {"pinyin": "jié", "meanings": ["Outstanding", "Heroic", "Eminent"], "element": "木", "theme": "strength", "emoji": "🌟", "gender": "M", "notes": "Implies being outstanding or heroic. One of the most common name characters."}, "豪": {"pinyin": "háo", "meanings": ["Heroic", "Bold", "Luxurious"], "element": "金", "theme": "strength", "emoji": "🏅", "gender": "M", "notes": "Suggests heroism and boldness. Also relates to luxury and grandeur."}, "宏": {"pinyin": "hóng", "meanings": ["Grand", "Vast", "Magnificent"], "element": "水", "theme": "strength", "emoji": "🌊", "gender": "M", "notes": "Expresses grandeur and vastness. Used in names to suggest broad vision."}, "盛": {"pinyin": "shèng", "meanings": ["Thriving", "Flourishing", "Grand"], "element": "火", "theme": "prosperity", "emoji": "🔥", "gender": "M", "notes": "Grand flourishing. Implies peak prosperity and vitality."}, "昂": {"pinyin": "áng", "meanings": ["High", "Proud", "Elevated"], "element": "木", "theme": "strength", "emoji": "📈", "gender": "M", "notes": "Suggests being high-spirited and proud. Expresses confidence."}, "振": {"pinyin": "zhèn", "meanings": ["Energize", "Inspire", "Shake"], "element": "金", "theme": "strength", "emoji": "🚀", "gender": "M", "notes": "Means to revitalize or energize. Suggests dynamic leadership."}, "明": {"pinyin": "míng", "meanings": ["Bright", "Clear"], "element": "火", "theme": "wisdom", "emoji": "💡", "gender": "unisex", "notes": "Bright and clear."}, "智": {"pinyin": "zhì", "meanings": ["Wisdom", "Intelligence"], "element": "火", "theme": "wisdom", "emoji": "🧠", "gender": "M", "notes": "Wisdom."}, "慧": {"pinyin": "huì", "meanings": ["Wise", "Intelligent"], "element": "水", "theme": "wisdom", "emoji": "🦉", "gender": "F", "notes": "Wisdom."}, "睿": {"pinyin": "ruì", "meanings": ["Astute", "Perceptive", "Wise"], "element": "金", "theme": "wisdom", "emoji": "🔮", "gender": "M", "notes": "Denotes deep wisdom and farsightedness. A sophisticated character."}, "聪": {"pinyin": "cōng", "meanings": ["Intelligent", "Clever", "Bright"], "element": "水", "theme": "wisdom", "emoji": "👂", "gender": "unisex", "notes": "Relates to acute hearing and mental quickness. Popular for both genders."}, "颖": {"pinyin": "yǐng", "meanings": ["Clever", "Outstanding", "Gifted"], "element": "木", "theme": "wisdom", "emoji": "🌾", "gender": "F", "notes": "Implies cleverness and outstanding talent. Often used in girls' names."}, "悟": {"pinyin": "wù", "meanings": ["Enlightened", "Aware", "Comprehend"], "element": "木", "theme": "wisdom", "emoji": "☀️", "gender": "unisex", "notes": "Buddhist connotations of enlightenment and awakening."}, "哲": {"pinyin": "zhé", "meanings": ["Philosophical", "Wise", "Sage"], "element": "火", "theme": "wisdom", "emoji": "📚", "gender": "M", "notes": "Relates to philosophy and deep wisdom. Classic scholar name."}, "思": {"pinyin": "sī", "meanings": ["Think", "Consider", "Long for"], "element": "金", "theme": "wisdom", "emoji": "💭", "gender": "unisex", "notes": "Thought and longing."}, "文": {"pinyin": "wén", "meanings": ["Literature", "Culture"], "element": "水", "theme": "surname", "emoji": "📖", "gender": "unisex", "notes": "Surname meaning culture."}, "博": {"pinyin": "bó", "meanings": ["Broad", "Erudite", "Wealthy"], "element": "水", "theme": "wisdom", "emoji": "🌐", "gender": "M", "notes": "Implies broad learning and erudition. Suggests a wealth of knowledge."}, "学": {"pinyin": "xué", "meanings": ["Study", "Learning", "Knowledge"], "element": "水", "theme": "wisdom", "emoji": "📝", "gender": "M", "notes": "Directly represents the pursuit of knowledge. Traditional scholarly name."}, "知": {"pinyin": "zhī", "meanings": ["Knowledge", "Awareness", "Wise"], "element": "火", "theme": "wisdom", "emoji": "🎓", "gender": "unisex", "notes": "Represents knowledge and awareness. Simple yet profound."}, "达": {"pinyin": "dá", "meanings": ["Reach", "Achieve", "Express"], "element": "火", "theme": "strength", "emoji": "🎯", "gender": "M", "notes": "To achieve and reach."}, "理": {"pinyin": "lǐ", "meanings": ["Reason", "Logic", "Principle"], "element": "金", "theme": "wisdom", "emoji": "⚖️", "gender": "M", "notes": "Represents reason and natural principles. Philosophical name character."}, "美": {"pinyin": "měi", "meanings": ["Beautiful", "Pretty", "Elegant"], "element": "水", "theme": "beauty", "emoji": "🌸", "gender": "F", "notes": "The character for beauty itself. Extremely popular in girls' names."}, "丽": {"pinyin": "lì", "meanings": ["Beautiful", "Lovely", "Graceful"], "element": "火", "theme": "beauty", "emoji": "💐", "gender": "F", "notes": "Implies loveliness and grace. Very common female name character."}, "艳": {"pinyin": "yàn", "meanings": ["Gorgeous", "Radiant", "Colorful"], "element": "火", "theme": "beauty", "emoji": "🌺", "gender": "F", "notes": "Suggests vibrant, gorgeous beauty. Used for striking, colorful names."}, "婷": {"pinyin": "tíng", "meanings": ["Graceful", "Elegant", "Slender"], "element": "木", "theme": "beauty", "emoji": "💃", "gender": "F", "notes": "Describes graceful, elegant posture. Very common in female names."}, "娜": {"pinyin": "nà", "meanings": ["Elegant", "Graceful"], "element": "水", "theme": "beauty", "emoji": "✨", "gender": "F", "notes": "Elegance."}, "娴": {"pinyin": "xián", "meanings": ["Refined", "Elegant", "Cultured"], "element": "火", "theme": "beauty", "emoji": "🎀", "gender": "F", "notes": "Describes refined, cultured elegance. Traditional virtue for women."}, "淑": {"pinyin": "shū", "meanings": ["Gentle", "Refined", "Pure"], "element": "水", "theme": "beauty", "emoji": "🤍", "gender": "F", "notes": "Implies gentle refinement and moral purity. Classic female virtue name."}, "雅": {"pinyin": "yǎ", "meanings": ["Elegant", "Refined", "Graceful"], "element": "木", "theme": "beauty", "emoji": "🎵", "gender": "F", "notes": "Represents elegance and sophistication. Highly prized in naming."}, "倩": {"pinyin": "qiàn", "meanings": ["Pretty", "Charming"], "element": "火", "theme": "beauty", "emoji": "😊", "gender": "F", "notes": "Charming and pretty."}, "娇": {"pinyin": "jiāo", "meanings": ["Tender", "Lovely", "Charming"], "element": "火", "theme": "beauty", "emoji": "🌷", "gender": "F", "notes": "Suggests tender loveliness and delicacy. Common in girls' names."}, "媚": {"pinyin": "mèi", "meanings": ["Charming", "Enchanting", "Alluring"], "element": "水", "theme": "beauty", "emoji": "💋", "gender": "F", "notes": "Implies enchanting charm and allure. Less common but very expressive."}, "秀": {"pinyin": "xiù", "meanings": ["Elegant", "Graceful", "Outstanding"], "element": "木", "theme": "beauty", "emoji": "🌿", "gender": "F", "notes": "Suggests elegant refinement and outstanding quality. Very popular."}, "琳": {"pinyin": "lín", "meanings": ["Jade", "Gem", "Beautiful Jade"], "element": "木", "theme": "beauty", "emoji": "💎", "gender": "F", "notes": "Beautiful jade. Precious stone imagery is very common in girls' names."}, "瑶": {"pinyin": "yáo", "meanings": ["Jade", "Precious", "Lustrous"], "element": "火", "theme": "beauty", "emoji": "🟢", "gender": "F", "notes": "Refers to precious jade. Mythical and highly valued name character."}, "璇": {"pinyin": "xuán", "meanings": ["Jade", "Precious Stone", "Lustrous"], "element": "金", "theme": "beauty", "emoji": "💠", "gender": "F", "notes": "Beautiful jade. Sophisticated and elegant name character for girls."}, "莹": {"pinyin": "yíng", "meanings": ["Lustrous", "Sparkling", "Jade-like"], "element": "火", "theme": "beauty", "emoji": "✨", "gender": "F", "notes": "Suggests sparkling, lustrous beauty like polished jade."}, "琦": {"pinyin": "qí", "meanings": ["Beautiful Jade", "Extraordinary", "Precious"], "element": "木", "theme": "beauty", "emoji": "💚", "gender": "F", "notes": "Beautiful and extraordinary jade. Conveys preciousness."}, "珠": {"pinyin": "zhū", "meanings": ["Pearl", "Precious", "Jewel"], "element": "金", "theme": "beauty", "emoji": "🪷", "gender": "F", "notes": "Pearl. Implies preciousness and rarity. Traditional name for girls."}, "黛": {"pinyin": "dài", "meanings": ["Dark Beauty", "Elegant", "Refined"], "element": "水", "theme": "beauty", "emoji": "🖤", "gender": "F", "notes": "Originally black pigment for eyebrows. Poetic, refined beauty."}, "姿": {"pinyin": "zī", "meanings": ["Posture", "Grace", "Looks"], "element": "金", "theme": "beauty", "emoji": "🧘", "gender": "F", "notes": "Graceful bearing."}, "妙": {"pinyin": "miào", "meanings": ["Wondrous", "Exquisite", "Skillful"], "element": "水", "theme": "talent", "emoji": "🎊", "gender": "F", "notes": "Exquisite skill and wondrous talent."}, "山": {"pinyin": "shān", "meanings": ["Mountain", "Lofty", "Sturdy"], "element": "土", "theme": "nature", "emoji": "🏔️", "gender": "M", "notes": "Mountain imagery conveys stability and grandeur. Classic nature name."}, "川": {"pinyin": "chuān", "meanings": ["River", "Stream", "Flowing"], "element": "水", "theme": "nature", "emoji": "🏞️", "gender": "M", "notes": "River. Suggests smooth, flowing movement and adaptability."}, "江": {"pinyin": "jiāng", "meanings": ["River", "Yangtze"], "element": "水", "theme": "surname", "emoji": "🌊", "gender": "unisex", "notes": "Surname meaning river."}, "海": {"pinyin": "hǎi", "meanings": ["Ocean", "Sea", "Vast"], "element": "水", "theme": "nature", "emoji": "🌅", "gender": "M", "notes": "Ocean. Implies vastness and depth. One of the most popular name characters."}, "林": {"pinyin": "lín", "meanings": ["Forest", "Many Trees"], "element": "木", "theme": "nature", "emoji": "🌲", "gender": "unisex", "notes": "Forest."}, "森": {"pinyin": "sēn", "meanings": ["Forest", "Abundant", "Lush Growth"], "element": "木", "theme": "prosperity", "emoji": "🌳", "gender": "M", "notes": "Dense forest — abundant growth symbolizing prosperity."}, "树": {"pinyin": "shù", "meanings": ["Tree", "Establish", "Upright"], "element": "木", "theme": "nature", "emoji": "🌴", "gender": "M", "notes": "Tree. Symbolizes firm establishment and upright character."}, "松": {"pinyin": "sōng", "meanings": ["Pine", "Resilient", "Enduring"], "element": "木", "theme": "nature", "emoji": "🎄", "gender": "M", "notes": "Pine tree — symbol of resilience and longevity. Endures winter cold."}, "柏": {"pinyin": "bǎi", "meanings": ["Cypress", "Cedar", "Evergreen"], "element": "木", "theme": "nature", "emoji": "🌲", "gender": "M", "notes": "Cypress tree. Evergreen symbol of longevity and steadfastness."}, "梅": {"pinyin": "méi", "meanings": ["Plum Blossom", "Winter Bloom"], "element": "木", "theme": "nature", "emoji": "🌺", "gender": "F", "notes": "Plum blossom — blooms in winter, symbol of perseverance and beauty."}, "兰": {"pinyin": "lán", "meanings": ["Orchid", "Elegant", "Noble"], "element": "木", "theme": "nature", "emoji": "🌷", "gender": "F", "notes": "Orchid. Symbol of refinement and nobility in Chinese culture."}, "竹": {"pinyin": "zhú", "meanings": ["Bamboo", "Flexible", "Upright"], "element": "木", "theme": "nature", "emoji": "🎋", "gender": "M", "notes": "Bamboo — bends but doesn't break. Symbol of resilience and virtue."}, "菊": {"pinyin": "jú", "meanings": ["Chrysanthemum", "Autumn Bloom"], "element": "木", "theme": "nature", "emoji": "🌼", "gender": "F", "notes": "Chrysanthemum. Autumn flower, symbol of longevity and nobility."}, "莲": {"pinyin": "lián", "meaning": ["Lotus", "Pure", "Elegant"], "meanings": ["Lotus", "Pure", "Elegant"], "element": "木", "theme": "nature", "emoji": "🪷", "gender": "F", "notes": "Lotus — rises pure from mud. Deep Buddhist symbolism."}, "荷": {"pinyin": "hé", "meanings": ["Lotus", "Water Lily", "Gentle"], "element": "水", "theme": "nature", "emoji": "🪷", "gender": "F", "notes": "Lotus/water lily. Gentle beauty and purity in water."}, "花": {"pinyin": "huā", "meanings": ["Flower", "Blossom"], "element": "木", "theme": "beauty", "emoji": "🌸", "gender": "F", "notes": "Flower."}, "云": {"pinyin": "yún", "meanings": ["Cloud", "Say", "Lofty"], "element": "水", "theme": "nature", "emoji": "☁️", "gender": "unisex", "notes": "Cloud."}, "雪": {"pinyin": "xuě", "meanings": ["Snow", "Pure"], "element": "水", "theme": "nature", "emoji": "❄️", "gender": "F", "notes": "Snow. Pure and beautiful."}, "霜": {"pinyin": "shuāng", "meanings": ["Frost", "Crisp"], "element": "水", "theme": "nature", "emoji": "🧊", "gender": "F", "notes": "Frost. Crisp and pure."}, "露": {"pinyin": "lù", "meanings": ["Dew", "Reveal"], "element": "水", "theme": "nature", "emoji": "💧", "gender": "F", "notes": "Dew drops. Fresh and pure."}, "冰": {"pinyin": "bīng", "meanings": ["Ice", "Pure"], "element": "水", "theme": "nature", "emoji": "🧊", "gender": "F", "notes": "Ice."}, "月": {"pinyin": "yuè", "meanings": ["Moon", "Month"], "element": "水", "theme": "nature", "emoji": "🌙", "gender": "F", "notes": "Moon. Romantic and luminous."}, "星": {"pinyin": "xīng", "meanings": ["Star", "Radiant", "Brilliant"], "element": "火", "theme": "nature", "emoji": "⭐", "gender": "unisex", "notes": "Star. Implies brilliance and shining destiny. Modern and popular."}, "阳": {"pinyin": "yáng", "meanings": ["Sun", "Positive", "Male"], "element": "火", "theme": "nature", "emoji": "☀️", "gender": "M", "notes": "Sunlit. Yang energy."}, "光": {"pinyin": "guāng", "meanings": ["Light", "Bright", "Radiance"], "element": "火", "theme": "nature", "emoji": "💫", "gender": "M", "notes": "Light and radiance."}, "霞": {"pinyin": "xiá", "meanings": ["Rosy Clouds", "Sunset Glow"], "element": "水", "theme": "nature", "emoji": "🌇", "gender": "F", "notes": "Sunset clouds. Poetic and beautiful. Popular in female names."}, "虹": {"pinyin": "hóng", "meanings": ["Rainbow", "Colorful", "Hope"], "element": "火", "theme": "nature", "emoji": "🌈", "gender": "F", "notes": "Rainbow. Symbol of hope and colorful beauty."}, "雨": {"pinyin": "yǔ", "meanings": ["Rain", "Nourishing"], "element": "水", "theme": "nature", "emoji": "🌧️", "gender": "unisex", "notes": "Rain. Life-giving and gentle."}, "雷": {"pinyin": "léi", "meanings": ["Thunder"], "element": "火", "theme": "surname", "emoji": "⚡", "gender": "unisex", "notes": "Surname meaning thunder."}, "风": {"pinyin": "fēng", "meanings": ["Wind", "Free", "Graceful"], "element": "木", "theme": "nature", "emoji": "🌬️", "gender": "unisex", "notes": "Wind. Symbol of freedom and graceful movement."}, "春": {"pinyin": "chūn", "meanings": ["Spring", "Youth", "Vitality"], "element": "木", "theme": "nature", "emoji": "🌱", "gender": "F", "notes": "Spring. Symbol of youth, renewal, and vitality."}, "夏": {"pinyin": "xià", "meanings": ["Summer", "Xia"], "element": "火", "theme": "surname", "emoji": "☀️", "gender": "unisex", "notes": "Surname meaning summer."}, "秋": {"pinyin": "qiū", "meanings": ["Autumn", "Harvest", "Mature"], "element": "金", "theme": "nature", "emoji": "🍂", "gender": "F", "notes": "Autumn. Symbol of harvest and maturity. Poetic and beautiful."}, "冬": {"pinyin": "dōng", "meanings": ["Winter", "Pure", "Enduring"], "element": "水", "theme": "nature", "emoji": "❄️", "gender": "unisex", "notes": "Winter. Symbol of endurance and purity."}, "天": {"pinyin": "tiān", "meanings": ["Sky", "Heaven", "Day"], "element": "火", "theme": "nature", "emoji": "🌌", "gender": "M", "notes": "Sky/heaven."}, "地": {"pinyin": "dì", "meanings": ["Earth", "Ground", "Steadfast"], "element": "土", "theme": "nature", "emoji": "🌍", "gender": "M", "notes": "Earth. Symbol of steadfastness and nurturing stability."}, "石": {"pinyin": "shí", "meanings": ["Stone", "Rock"], "element": "土", "theme": "surname", "emoji": "🪨", "gender": "unisex", "notes": "Surname meaning stone."}, "玉": {"pinyin": "yù", "meanings": ["Jade", "Pure", "Precious"], "element": "土", "theme": "nature", "emoji": "🟢", "gender": "F", "notes": "Jade — the most precious stone in Chinese culture. Purity and virtue."}, "金": {"pinyin": "jīn", "meanings": ["Gold", "Metal"], "element": "金", "theme": "surname", "emoji": "🥇", "gender": "unisex", "notes": "Surname meaning gold."}, "银": {"pinyin": "yín", "meanings": ["Silver", "Bright", "Precious"], "element": "金", "theme": "nature", "emoji": "🥈", "gender": "unisex", "notes": "Silver. Precious metal, bright and valuable."}, "德": {"pinyin": "dé", "meanings": ["Virtue", "Morality", "Germany"], "element": "火", "theme": "virtue", "emoji": "🛡️", "gender": "M", "notes": "Virtue."}, "仁": {"pinyin": "rén", "meanings": ["Humane", "Benevolent", "Kind"], "element": "木", "theme": "virtue", "emoji": "💗", "gender": "M", "notes": "Core Confucian virtue of humaneness."}, "义": {"pinyin": "yì", "meanings": ["Justice", "Righteousness", "Loyalty"], "element": "金", "theme": "virtue", "emoji": "⚖️", "gender": "M", "notes": "Righteousness and moral duty."}, "礼": {"pinyin": "lǐ", "meanings": ["Ritual", "Manners", "Respect"], "element": "木", "theme": "virtue", "emoji": "🙏", "gender": "unisex", "notes": "Propriety and ritual decorum."}, "信": {"pinyin": "xìn", "meanings": ["Trust", "Letter", "Faith"], "element": "金", "theme": "virtue", "emoji": "✉️", "gender": "unisex", "notes": "Trust and communication."}, "忠": {"pinyin": "zhōng", "meanings": ["Loyal", "Devoted", "Faithful"], "element": "火", "theme": "virtue", "emoji": "🐕", "gender": "M", "notes": "Loyalty and devotion."}, "孝": {"pinyin": "xiào", "meanings": ["Filial", "Dutiful"], "element": "土", "theme": "virtue", "emoji": "👨‍👩‍👧‍👦", "gender": "unisex", "notes": "Filial piety."}, "诚": {"pinyin": "chéng", "meanings": ["Honest", "Sincere"], "element": "金", "theme": "virtue", "emoji": "💝", "gender": "unisex", "notes": "Sincerity."}, "善": {"pinyin": "shàn", "meanings": ["Good", "Kind"], "element": "水", "theme": "virtue", "emoji": "😇", "gender": "unisex", "notes": "Goodness and kindness."}, "良": {"pinyin": "liáng", "meanings": ["Good", "Fine", "Excellent"], "element": "火", "theme": "virtue", "emoji": "👍", "gender": "unisex", "notes": "Goodness."}, "谦": {"pinyin": "qiān", "meanings": ["Modest", "Humble"], "element": "木", "theme": "virtue", "emoji": "🙇", "gender": "M", "notes": "Humility."}, "和": {"pinyin": "hé", "meanings": ["Peace", "Harmony", "Union"], "element": "木", "theme": "virtue", "emoji": "☮️", "gender": "unisex", "notes": "Harmony. Central Chinese virtue of social harmony."}, "平": {"pinyin": "píng", "meanings": ["Peaceful", "Flat", "Equal"], "element": "水", "theme": "virtue", "emoji": "🕊️", "gender": "unisex", "notes": "Peace and equality. Simple, balanced virtue name."}, "安": {"pinyin": "ān", "meanings": ["Peaceful", "Safe", "Calm"], "element": "土", "theme": "virtue", "emoji": "🏠", "gender": "unisex", "notes": "Peace and safety."}, "静": {"pinyin": "jìng", "meanings": ["Quiet", "Calm", "Serene"], "element": "金", "theme": "virtue", "emoji": "🧘", "gender": "F", "notes": "Serene and quiet."}, "宁": {"pinyin": "níng", "meanings": ["Serene", "Peaceful", "Tranquil"], "element": "火", "theme": "virtue", "emoji": "😌", "gender": "unisex", "notes": "Serenity and tranquility. Modern favorite."}, "真": {"pinyin": "zhēn", "meanings": ["True", "Genuine", "Real"], "element": "金", "theme": "virtue", "emoji": "💎", "gender": "unisex", "notes": "Truth and genuineness. Simple but profound."}, "富": {"pinyin": "fù", "meanings": ["Rich", "Wealthy", "Abundant"], "element": "土", "theme": "prosperity", "emoji": "💰", "gender": "M", "notes": "Wealth and abundance. Auspicious name character."}, "贵": {"pinyin": "guì", "meanings": ["Noble", "Valuable", "Honorable"], "element": "木", "theme": "prosperity", "emoji": "👑", "gender": "unisex", "notes": "Nobility and preciousness. Implies high status."}, "福": {"pinyin": "fú", "meanings": ["Fortune", "Blessing"], "element": "水", "theme": "prosperity", "emoji": "🧧", "gender": "M", "notes": "Good fortune."}, "禄": {"pinyin": "lù", "meanings": ["Prosperity", "Emolument", "Fortune"], "element": "火", "theme": "prosperity", "emoji": "🥂", "gender": "M", "notes": "Official salary and prosperity. Auspicious and traditional."}, "寿": {"pinyin": "shòu", "meanings": ["Longevity", "Life", "Durable"], "element": "土", "theme": "prosperity", "emoji": "🎂", "gender": "M", "notes": "Longevity. One of the three auspicious stars (福禄寿)."}, "财": {"pinyin": "cái", "meanings": ["Wealth", "Money", "Fortune"], "element": "金", "theme": "prosperity", "emoji": "💵", "gender": "M", "notes": "Wealth and financial fortune. Direct and auspicious."}, "宝": {"pinyin": "bǎo", "meanings": ["Treasure", "Precious", "Jewel"], "element": "火", "theme": "prosperity", "emoji": "🏆", "gender": "unisex", "notes": "Treasure. Implies being precious and valued."}, "鑫": {"pinyin": "xīn", "meanings": ["Prosperous", "Wealthy", "Gold Abundance"], "element": "金", "theme": "prosperity", "emoji": "💰", "gender": "M", "notes": "Three gold characters stacked — extreme prosperity. Popular in business."}, "荣": {"pinyin": "róng", "meanings": ["Glory", "Honor", "Flourishing"], "element": "木", "theme": "prosperity", "emoji": "🌻", "gender": "unisex", "notes": "Glory and flourishing. Implies thriving success and honor."}, "华": {"pinyin": "huá", "meanings": ["Splendid", "China", "Prosperous"], "element": "水", "theme": "prosperity", "emoji": "🏮", "gender": "unisex", "notes": "Splendor. Also represents Chinese civilization."}, "昌": {"pinyin": "chāng", "meanings": ["Prosperous", "Bright", "Flourishing"], "element": "火", "theme": "prosperity", "emoji": "☀️", "gender": "M", "notes": "Prosperity and brightness. Classic auspicious name."}, "旺": {"pinyin": "wàng", "meanings": ["Prosperous", "Vibrant", "Booming"], "element": "火", "theme": "prosperity", "emoji": "📈", "gender": "M", "notes": "Vibrant prosperity and booming energy. Modern favorite."}, "裕": {"pinyin": "yù", "meanings": ["Abundant", "Wealthy", "Plentiful"], "element": "金", "theme": "prosperity", "emoji": "🎁", "gender": "M", "notes": "Abundance and plenty. Suggests a life of comfort."}, "丰": {"pinyin": "fēng", "meanings": ["Abundant", "Plentiful", "Harvest"], "element": "火", "theme": "prosperity", "emoji": "🌾", "gender": "unisex", "notes": "Abundance and harvest. Simple but auspicious."}, "家": {"pinyin": "jiā", "meanings": ["Family", "Home", "Household"], "element": "木", "theme": "family", "emoji": "🏠", "gender": "unisex", "notes": "Family. Core Chinese value expressed in naming."}, "国": {"pinyin": "guó", "meanings": ["Country", "Nation", "Patriotic"], "element": "土", "theme": "family", "emoji": "🇨🇳", "gender": "M", "notes": "Country/nation. Expresses patriotism and national pride."}, "世": {"pinyin": "shì", "meanings": ["World", "Generation", "Life"], "element": "金", "theme": "family", "emoji": "🌍", "gender": "M", "notes": "World and generation."}, "子": {"pinyin": "zǐ", "meanings": ["Child", "Son", "Master"], "element": "水", "theme": "family", "emoji": "👶", "gender": "M", "notes": "Child/son. Classic name element. Also means 'master' (Confucius)."}, "孙": {"pinyin": "sūn", "meanings": ["Grandchild", "Descendant"], "element": "水", "theme": "surname", "emoji": "👶", "gender": "unisex", "notes": "Common surname. Also means grandchild/descendant."}, "祖": {"pinyin": "zǔ", "meanings": ["Ancestor", "Founder", "Origin"], "element": "火", "theme": "family", "emoji": "🏛️", "gender": "M", "notes": "Ancestor. Carries deep respect for family lineage."}, "宗": {"pinyin": "zōng", "meanings": ["Ancestral", "Clan", "Lineage"], "element": "火", "theme": "family", "emoji": "🏯", "gender": "M", "notes": "Clan and ancestral lineage. Traditional family name character."}, "康": {"pinyin": "kāng", "meanings": ["Healthy", "Peaceful"], "element": "木", "theme": "surname", "emoji": "💚", "gender": "unisex", "notes": "Surname meaning health."}, "乐": {"pinyin": "lè", "meanings": ["Joy", "Music", "Happy"], "element": "火", "theme": "family", "emoji": "😄", "gender": "unisex", "notes": "Joy and music."}, "艺": {"pinyin": "yì", "meanings": ["Art", "Talent", "Skill"], "element": "木", "theme": "talent", "emoji": "🎨", "gender": "unisex", "notes": "Art and artistic talent. Expresses creative ability."}, "才": {"pinyin": "cái", "meanings": ["Talent", "Ability", "Gifted"], "element": "金", "theme": "talent", "emoji": "🎯", "gender": "M", "notes": "Talent and natural ability. Classic character for gifted children."}, "能": {"pinyin": "néng", "meanings": ["Capable", "Able", "Competent"], "element": "火", "theme": "talent", "emoji": "💪", "gender": "unisex", "notes": "Ability and capability. Modern talent name character."}, "巧": {"pinyin": "qiǎo", "meanings": ["Skillful", "Clever", "Deft"], "element": "木", "theme": "talent", "emoji": "🔧", "gender": "F", "notes": "Skillful and clever."}, "灵": {"pinyin": "líng", "meanings": ["Spirited", "Quick", "Nimble"], "element": "火", "theme": "talent", "emoji": "✨", "gender": "unisex", "notes": "Nimble wit and spiritual quickness. Very popular."}, "敏": {"pinyin": "mǐn", "meanings": ["Quick", "Agile", "Sharp"], "element": "水", "theme": "talent", "emoji": "⚡", "gender": "unisex", "notes": "Quick-minded and agile. Expresses sharp intelligence."}, "音": {"pinyin": "yīn", "meanings": ["Music", "Sound", "Harmony"], "element": "土", "theme": "talent", "emoji": "🎵", "gender": "unisex", "notes": "Music and sound. Expresses musical talent and harmony."}, "琴": {"pinyin": "qín", "meanings": ["Zither", "Music", "Artistic"], "element": "木", "theme": "talent", "emoji": "🎹", "gender": "F", "notes": "Chinese zither. Elegant artistic name for girls."}, "画": {"pinyin": "huà", "meanings": ["Painting", "Picture", "Artistic"], "element": "土", "theme": "talent", "emoji": "🖼️", "gender": "unisex", "notes": "Painting. Expresses visual artistic talent."}, "诗": {"pinyin": "shī", "meanings": ["Poetry", "Poetic", "Literary"], "element": "金", "theme": "talent", "emoji": "📜", "gender": "unisex", "notes": "Poetry. Expresses literary talent and romantic sensibility."}, "书": {"pinyin": "shū", "meanings": ["Book", "Calligraphy", "Write"], "element": "火", "theme": "talent", "emoji": "📕", "gender": "unisex", "notes": "Book and calligraphy. Expresses scholarly talent."}, "墨": {"pinyin": "mò", "meanings": ["Ink", "Calligraphy", "Dark"], "element": "水", "theme": "talent", "emoji": "🖋️", "gender": "unisex", "notes": "Ink. Artistic and scholarly. Sophisticated choice."}, "柔": {"pinyin": "róu", "meanings": ["Soft", "Gentle", "Flexible"], "element": "木", "theme": "gentle", "emoji": "🕊️", "gender": "F", "notes": "Softness and gentleness. Valued feminine quality."}, "婉": {"pinyin": "wǎn", "meanings": ["Gentle", "Gracious", "Tactful"], "element": "火", "theme": "gentle", "emoji": "🌷", "gender": "F", "notes": "Gentle and gracious. Classic feminine virtue in names."}, "温": {"pinyin": "wēn", "meanings": ["Warm", "Gentle", "Tender"], "element": "水", "theme": "gentle", "emoji": "🌡️", "gender": "F", "notes": "Warmth and gentleness. Suggests a warm personality."}, "暖": {"pinyin": "nuǎn", "meanings": ["Warm", "Cozy", "Caring"], "element": "火", "theme": "gentle", "emoji": "☀️", "gender": "F", "notes": "Warmth and coziness. Modern gentle name."}, "惠": {"pinyin": "huì", "meanings": ["Kind", "Benevolent", "Gracious"], "element": "水", "theme": "gentle", "emoji": "🎁", "gender": "F", "notes": "Kindness and benevolence. Classical feminine virtue."}, "爱": {"pinyin": "ài", "meanings": ["Love", "Affection", "Cherish"], "element": "火", "theme": "gentle", "emoji": "❤️", "gender": "F", "notes": "Love."}, "心": {"pinyin": "xīn", "meanings": ["Heart", "Mind", "Soul"], "element": "火", "theme": "gentle", "emoji": "💖", "gender": "unisex", "notes": "Heart. Expresses heartfelt sincerity and compassion."}, "欣": {"pinyin": "xīn", "meanings": ["Joyful", "Glad", "Happy"], "element": "木", "theme": "gentle", "emoji": "😊", "gender": "F", "notes": "Joy and happiness."}, "悦": {"pinyin": "yuè", "meanings": ["Delighted", "Joyful", "Pleased"], "element": "金", "theme": "gentle", "emoji": "😃", "gender": "F", "notes": "Joy and delight."}, "怡": {"pinyin": "yí", "meanings": ["Joyful", "Harmonious", "Cheerful"], "element": "土", "theme": "gentle", "emoji": "😌", "gender": "F", "notes": "Joy and harmony. Gentle, pleasant character for girls."}, "可": {"pinyin": "kě", "meanings": ["Adorable", "Can", "Worthy"], "element": "木", "theme": "gentle", "emoji": "🥰", "gender": "F", "notes": "Adorable and worthy. Used in compound names."}, "甜": {"pinyin": "tián", "meanings": ["Sweet", "Honey", "Lovely"], "element": "火", "theme": "gentle", "emoji": "🍯", "gender": "F", "notes": "Sweetness. Modern affectionate name for girls."}, "张": {"pinyin": "zhāng", "meanings": ["Draw bow", "Spread", "Expand"], "element": "火", "theme": "surname", "emoji": "🏹", "gender": "unisex", "notes": "Very common Chinese surname. The surname itself means to draw a bow."}, "王": {"pinyin": "wáng", "meanings": ["King", "Royal", "Monarch"], "element": "土", "theme": "surname", "emoji": "👑", "gender": "unisex", "notes": "Very common surname meaning 'king'. Also used in given names."}, "李": {"pinyin": "lǐ", "meanings": ["Plum", "Plum Tree"], "element": "木", "theme": "surname", "emoji": "🍒", "gender": "unisex", "notes": "One of the most common Chinese surnames. Also means plum."}, "赵": {"pinyin": "zhào", "meanings": ["Zhao (state name)", "Ancient"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname from the State of Zhao. Historically noble."}, "刘": {"pinyin": "liú", "meanings": ["Kill", "Destroy", "Liu"], "element": "金", "theme": "surname", "emoji": "⚔️", "gender": "unisex", "notes": "Very common surname. The imperial surname of the Han Dynasty."}, "陈": {"pinyin": "chén", "meanings": ["Exhibit", "Old", "Chen"], "element": "火", "theme": "surname", "emoji": "🏛️", "gender": "unisex", "notes": "Common surname. Also means to display or arrange."}, "杨": {"pinyin": "yáng", "meanings": ["Poplar", "Willow"], "element": "木", "theme": "surname", "emoji": "🌳", "gender": "unisex", "notes": "Common surname. Also means poplar tree."}, "黄": {"pinyin": "huáng", "meanings": ["Yellow", "Golden"], "element": "土", "theme": "surname", "emoji": "💛", "gender": "unisex", "notes": "Common surname meaning yellow. Also used in given names."}, "吴": {"pinyin": "wú", "meanings": ["Wu (state/region)"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname from the State of Wu."}, "周": {"pinyin": "zhōu", "meanings": ["Circumference", "Cycle", "Zhou"], "element": "土", "theme": "surname", "emoji": "🔄", "gender": "unisex", "notes": "Ancient surname from the Zhou Dynasty."}, "徐": {"pinyin": "xú", "meanings": ["Slow", "Gentle", "Xu"], "element": "木", "theme": "surname", "emoji": "🐢", "gender": "unisex", "notes": "Common surname meaning slow and gentle."}, "马": {"pinyin": "mǎ", "meanings": ["Horse"], "element": "火", "theme": "surname", "emoji": "🐴", "gender": "unisex", "notes": "Common surname meaning horse."}, "朱": {"pinyin": "zhū", "meanings": ["Vermilion", "Red"], "element": "火", "theme": "surname", "emoji": "🔴", "gender": "unisex", "notes": "Common surname meaning vermilion red."}, "胡": {"pinyin": "hú", "meanings": ["Beard", "Foreign", "Hu"], "element": "土", "theme": "surname", "emoji": "🧔", "gender": "unisex", "notes": "Common surname. Also means barbarian/non-Han."}, "何": {"pinyin": "hé", "meanings": ["What", "How", "Why"], "element": "水", "theme": "surname", "emoji": "❓", "gender": "unisex", "notes": "Common surname."}, "高": {"pinyin": "gāo", "meanings": ["Tall", "High", "Noble"], "element": "木", "theme": "strength", "emoji": "📈", "gender": "M", "notes": "Tall and lofty."}, "梁": {"pinyin": "liáng", "meanings": ["Bridge", "Beam", "Roof"], "element": "木", "theme": "surname", "emoji": "🌉", "gender": "unisex", "notes": "Common surname meaning bridge or beam."}, "宋": {"pinyin": "sòng", "meanings": ["Song (dynasty)"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname from the Song Dynasty."}, "郑": {"pinyin": "zhèng", "meanings": ["Zheng (state)", "Serious"], "element": "火", "theme": "surname", "emoji": "🎯", "gender": "unisex", "notes": "Common surname. Also means serious/grave."}, "谢": {"pinyin": "xiè", "meanings": ["Thank", "Apologize", "Decline"], "element": "金", "theme": "surname", "emoji": "🙏", "gender": "unisex", "notes": "Common surname meaning to thank."}, "唐": {"pinyin": "táng", "meanings": ["Tang (dynasty)", "Bold"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname from the Tang Dynasty."}, "韩": {"pinyin": "hán", "meanings": ["Han (state)", "Korea"], "element": "水", "theme": "surname", "emoji": "🇰🇷", "gender": "unisex", "notes": "Common surname from the State of Han."}, "曹": {"pinyin": "cáo", "meanings": ["Cao (state)", "Group"], "element": "火", "theme": "surname", "emoji": "🏛️", "gender": "unisex", "notes": "Ancient surname."}, "许": {"pinyin": "xǔ", "meanings": ["Allow", "Promise", "Xu"], "element": "金", "theme": "surname", "emoji": "🤝", "gender": "unisex", "notes": "Common surname meaning to allow or promise."}, "邓": {"pinyin": "dèng", "meanings": ["Deng (ancient state)"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname."}, "冯": {"pinyin": "féng", "meanings": ["Gallop", "Feng"], "element": "水", "theme": "surname", "emoji": "🏇", "gender": "unisex", "notes": "Common surname."}, "程": {"pinyin": "chéng", "meanings": ["Regulation", "Journey", "Process"], "element": "木", "theme": "surname", "emoji": "📋", "gender": "unisex", "notes": "Common surname meaning rule or journey."}, "蔡": {"pinyin": "cài", "meanings": ["Cai (ancient state)", "Turtle"], "element": "木", "theme": "surname", "emoji": "🐢", "gender": "unisex", "notes": "Ancient surname from the State of Cai."}, "彭": {"pinyin": "péng", "meanings": ["Peng (ancient state)"], "element": "火", "theme": "surname", "emoji": "🥁", "gender": "unisex", "notes": "Ancient surname."}, "潘": {"pinyin": "pān", "meanings": ["Pan (state)", "Rice water"], "element": "水", "theme": "surname", "emoji": "🌊", "gender": "unisex", "notes": "Ancient surname."}, "袁": {"pinyin": "yuán", "meanings": ["Yuan (state)", "Long robe"], "element": "土", "theme": "surname", "emoji": "👘", "gender": "unisex", "notes": "Ancient surname."}, "于": {"pinyin": "yú", "meanings": ["In", "At", "By"], "element": "土", "theme": "surname", "emoji": "📍", "gender": "unisex", "notes": "Common surname."}, "董": {"pinyin": "dǒng", "meanings": ["Direct", "Supervise", "Dong"], "element": "木", "theme": "surname", "emoji": "👀", "gender": "unisex", "notes": "Common surname meaning to supervise."}, "余": {"pinyin": "yú", "meanings": ["I", "Surplus"], "element": "土", "theme": "surname", "emoji": "➕", "gender": "unisex", "notes": "Surname meaning surplus."}, "苏": {"pinyin": "sū", "meanings": ["Revive", "Su (state)"], "element": "木", "theme": "surname", "emoji": "🌱", "gender": "unisex", "notes": "Common surname meaning to revive."}, "叶": {"pinyin": "yè", "meanings": ["Leaf", "Page"], "element": "木", "theme": "surname", "emoji": "🍃", "gender": "unisex", "notes": "Surname meaning leaf."}, "吕": {"pinyin": "lǚ", "meanings": ["Lu (state)", "Pitch pipes"], "element": "火", "theme": "surname", "emoji": "🎵", "gender": "unisex", "notes": "Ancient surname."}, "魏": {"pinyin": "wèi", "meanings": ["Wei (state)", "Grand"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname from the State of Wei."}, "蒋": {"pinyin": "jiǎng", "meanings": ["Jiang (state)", "Reed"], "element": "木", "theme": "surname", "emoji": "🌾", "gender": "unisex", "notes": "Ancient surname."}, "田": {"pinyin": "tián", "meanings": ["Field", "Farmland"], "element": "土", "theme": "surname", "emoji": "🌾", "gender": "unisex", "notes": "Surname meaning field."}, "杜": {"pinyin": "dù", "meanings": ["Stop", "Block", "Pear tree"], "element": "木", "theme": "surname", "emoji": "🍐", "gender": "unisex", "notes": "Common surname. Also means pear tree."}, "丁": {"pinyin": "dīng", "meanings": ["Nail", "Male adult", "Tiny"], "element": "火", "theme": "surname", "emoji": "🔩", "gender": "unisex", "notes": "Common surname. Also means nail or male."}, "沈": {"pinyin": "shěn", "meanings": ["Sink", "Shen (state)"], "element": "水", "theme": "surname", "emoji": "🌊", "gender": "unisex", "notes": "Common surname meaning to sink."}, "任": {"pinyin": "rèn", "meanings": ["Duty", "Assign", "Allow"], "element": "金", "theme": "virtue", "emoji": "🤝", "gender": "M", "notes": "Responsibility and duty."}, "姚": {"pinyin": "yáo", "meanings": ["Yao (sage king)"], "element": "火", "theme": "surname", "emoji": "👑", "gender": "unisex", "notes": "Ancient noble surname."}, "卢": {"pinyin": "lú", "meanings": ["Lu (state)", "Black"], "element": "水", "theme": "surname", "emoji": "⚫", "gender": "unisex", "notes": "Ancient surname."}, "傅": {"pinyin": "fù", "meanings": ["Teacher", "Tutor", "Attach"], "element": "水", "theme": "surname", "emoji": "👨‍🏫", "gender": "unisex", "notes": "Common surname meaning teacher."}, "钟": {"pinyin": "zhōng", "meanings": ["Bell", "Clock"], "element": "金", "theme": "surname", "emoji": "🔔", "gender": "unisex", "notes": "Surname meaning bell."}, "崔": {"pinyin": "cuī", "meanings": ["High", "Towering"], "element": "山", "theme": "surname", "emoji": "⛰️", "gender": "unisex", "notes": "Surname meaning high."}, "汪": {"pinyin": "wāng", "meanings": ["Pond", "Vast"], "element": "水", "theme": "surname", "emoji": "🌊", "gender": "unisex", "notes": "Surname meaning pond."}, "范": {"pinyin": "fàn", "meanings": ["Pattern", "Mold"], "element": "木", "theme": "surname", "emoji": "📐", "gender": "unisex", "notes": "Surname meaning pattern."}, "方": {"pinyin": "fāng", "meanings": ["Square", "Direction"], "element": "火", "theme": "surname", "emoji": "⬜", "gender": "unisex", "notes": "Surname meaning square."}, "廖": {"pinyin": "liào", "meanings": ["Liao (state)"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname."}, "熊": {"pinyin": "xióng", "meanings": ["Bear", "Heroic"], "element": "火", "theme": "surname", "emoji": "🐻", "gender": "unisex", "notes": "Surname meaning bear."}, "陆": {"pinyin": "lù", "meanings": ["Land", "Six"], "element": "土", "theme": "surname", "emoji": "🗺️", "gender": "unisex", "notes": "Surname meaning land."}, "毛": {"pinyin": "máo", "meanings": ["Hair", "Feather"], "element": "水", "theme": "surname", "emoji": "🪶", "gender": "unisex", "notes": "Surname meaning hair."}, "赖": {"pinyin": "lài", "meanings": ["Rely", "Depend"], "element": "火", "theme": "surname", "emoji": "🤲", "gender": "unisex", "notes": "Surname meaning rely."}, "萧": {"pinyin": "xiāo", "meanings": ["Desolate", "Xiao", "Xiaoxiao"], "element": "木", "theme": "surname", "emoji": "🌬️", "gender": "unisex", "notes": "Ancient surname."}, "谭": {"pinyin": "tán", "meanings": ["Talk", "Discuss"], "element": "火", "theme": "surname", "emoji": "💬", "gender": "unisex", "notes": "Surname meaning talk."}, "曾": {"pinyin": "zēng", "meanings": ["Previously", "Zeng (state)"], "element": "火", "theme": "surname", "emoji": "🕰️", "gender": "unisex", "notes": "Ancient surname meaning previously/once."}, "龙": {"pinyin": "lóng", "meanings": ["Dragon"], "element": "水", "theme": "surname", "emoji": "🐉", "gender": "unisex", "notes": "Surname meaning dragon."}, "凤": {"pinyin": "fèng", "meanings": ["Phoenix", "Feng"], "element": "火", "theme": "beauty", "emoji": "🦚", "gender": "F", "notes": "Mythical phoenix."}, "翔": {"pinyin": "xiáng", "meanings": ["Soar", "Glide", "Circle"], "element": "木", "theme": "strength", "emoji": "🦅", "gender": "M", "notes": "Soaring like a bird. Expresses freedom."}, "飞": {"pinyin": "fēi", "meanings": ["Fly", "Swift", "Soaring"], "element": "火", "theme": "strength", "emoji": "✈️", "gender": "M", "notes": "To fly."}, "腾": {"pinyin": "téng", "meanings": ["Gallop", "Rise", "Soar"], "element": "火", "theme": "strength", "emoji": "🐎", "gender": "M", "notes": "Galloping or rising rapidly. Suggests dynamic progress."}, "跃": {"pinyin": "yuè", "meanings": ["Leap", "Jump", "Bound"], "element": "火", "theme": "strength", "emoji": "🐇", "gender": "M", "notes": "Leaping forward. Symbolizes progress and advancement."}, "超": {"pinyin": "chāo", "meanings": ["Surpass", "Exceed", "Ultra"], "element": "金", "theme": "strength", "emoji": "🚀", "gender": "M", "notes": "To surpass or exceed. Expresses ambition to excel."}, "越": {"pinyin": "yuè", "meanings": ["Exceed", "Surpass", "Cross over"], "element": "火", "theme": "strength", "emoji": "⛰️", "gender": "M", "notes": "To exceed and cross over. Implies overcoming challenges."}, "进": {"pinyin": "jìn", "meanings": ["Advance", "Enter", "Progress"], "element": "火", "theme": "strength", "emoji": "➡️", "gender": "M", "notes": "To advance and make progress."}, "前": {"pinyin": "qián", "meanings": ["Forward", "Future", "Front"], "element": "火", "theme": "strength", "emoji": "🔜", "gender": "M", "notes": "Forward and future-oriented. Optimistic name element."}, "尚": {"pinyin": "shàng", "meanings": ["Esteem", "Still", "Upward"], "element": "金", "theme": "virtue", "emoji": "⬆️", "gender": "unisex", "notes": "To esteem and value. Implies high principles."}, "崇": {"pinyin": "chóng", "meanings": ["Revere", "Worship", "Lofty"], "element": "山", "theme": "virtue", "emoji": "⛰️", "gender": "M", "notes": "To revere and hold in high esteem. Lofty ideals."}, "尊": {"pinyin": "zūn", "meanings": ["Respect", "Honor", "Noble"], "element": "火", "theme": "virtue", "emoji": "👑", "gender": "M", "notes": "Respect and honor. Expresses noble character."}, "敬": {"pinyin": "jìng", "meanings": ["Respect", "Revere", "Honor"], "element": "木", "theme": "virtue", "emoji": "🙏", "gender": "M", "notes": "Deep respect and reverence. Classic virtue name."}, "辉": {"pinyin": "huī", "meanings": ["Brightness", "Radiance", "Luster"], "element": "火", "theme": "nature", "emoji": "✨", "gender": "M", "notes": "Bright radiance and splendor. Popular in boys' names."}, "煌": {"pinyin": "huáng", "meanings": ["Brilliant", "Glowing", "Grand"], "element": "火", "theme": "nature", "emoji": "🔆", "gender": "M", "notes": "Brilliant and grand. Amplified brightness."}, "耀": {"pinyin": "yào", "meanings": ["Shine", "Illuminate", "Glory"], "element": "火", "theme": "nature", "emoji": "💫", "gender": "M", "notes": "To shine brilliantly. Expresses radiant glory."}, "昭": {"pinyin": "zhāo", "meanings": ["Bright", "Clear", "Manifest"], "element": "火", "theme": "nature", "emoji": "☀️", "gender": "M", "notes": "Bright and clear. Implies obvious virtue."}, "旭": {"pinyin": "xù", "meanings": ["Rising Sun", "Brilliant", "New Day"], "element": "火", "theme": "nature", "emoji": "🌅", "gender": "M", "notes": "Rising sun. Symbol of new beginnings and bright future."}, "晨": {"pinyin": "chén", "meanings": ["Morning", "Dawn", "New Day"], "element": "火", "theme": "nature", "emoji": "🌄", "gender": "unisex", "notes": "Morning and dawn. Symbol of freshness and new beginnings."}, "曦": {"pinyin": "xī", "meanings": ["Sunlight", "Morning Light", "Dawn"], "element": "火", "theme": "nature", "emoji": "🌤️", "gender": "unisex", "notes": "Morning sunlight. Poetic and warm."}, "岚": {"pinyin": "lán", "meanings": ["Mist", "Fog", "Mountain Vapor"], "element": "水", "theme": "nature", "emoji": "🌫️", "gender": "F", "notes": "Mountain mist. Poetic and ethereal."}, "峰": {"pinyin": "fēng", "meanings": ["Peak", "Summit", "High Point"], "element": "山", "theme": "nature", "emoji": "⛰️", "gender": "M", "notes": "Mountain peak. Expresses ambition to reach the top."}, "岭": {"pinyin": "lǐng", "meanings": ["Mountain Ridge", "Peak"], "element": "山", "theme": "nature", "emoji": "🏔️", "gender": "M", "notes": "Mountain ridge. Natural scenery name."}, "岳": {"pinyin": "yuè", "meanings": ["High Mountain", "Peak"], "element": "山", "theme": "nature", "emoji": "🗻", "gender": "M", "notes": "High, sacred mountain. Majestic and grand."}, "岩": {"pinyin": "yán", "meanings": ["Cliff", "Rock", "Crag"], "element": "山", "theme": "nature", "emoji": "🪨", "gender": "M", "notes": "Cliff and rock. Sturdy and unyielding."}, "涛": {"pinyin": "tāo", "meanings": ["Great Wave", "Billow", "Surge"], "element": "水", "theme": "nature", "emoji": "🌊", "gender": "M", "notes": "Great waves. Powerful and dynamic natural imagery."}, "浪": {"pinyin": "làng", "meanings": ["Wave", "Bold", "Unrestrained"], "element": "水", "theme": "nature", "emoji": "🏄", "gender": "M", "notes": "Wave. Suggests boldness and free spirit."}, "渊": {"pinyin": "yuān", "meanings": ["Deep pool", "Profound", "Deep"], "element": "水", "theme": "nature", "emoji": "🌌", "gender": "M", "notes": "Deep pool. Implies profound depth of knowledge."}, "瀚": {"pinyin": "hàn", "meanings": ["Vast", "Expansive", "Ocean"], "element": "水", "theme": "nature", "emoji": "🌊", "gender": "M", "notes": "Vast and expansive like the ocean. Grand scale."}, "浩": {"pinyin": "hào", "meanings": ["Vast", "Grand", "Powerful"], "element": "水", "theme": "nature", "emoji": "🌊", "gender": "M", "notes": "Vast and powerful."}, "洋": {"pinyin": "yáng", "meanings": ["Ocean", "Foreign", "Vast"], "element": "水", "theme": "nature", "emoji": "🌊", "gender": "M", "notes": "Ocean. Vast and international."}, "波": {"pinyin": "bō", "meanings": ["Wave", "Ripple", "Fluctuate"], "element": "水", "theme": "nature", "emoji": "🌊", "gender": "M", "notes": "Wave/ripple. Gentle yet dynamic."}, "溪": {"pinyin": "xī", "meanings": ["Stream", "Brook", "Creek"], "element": "水", "theme": "nature", "emoji": "🏞️", "gender": "F", "notes": "Small stream. Gentle and peaceful water imagery."}, "泉": {"pinyin": "quán", "meanings": ["Spring", "Fountain", "Source"], "element": "水", "theme": "nature", "emoji": "⛲", "gender": "unisex", "notes": "Spring of water. Source of life and purity."}, "源": {"pinyin": "yuán", "meanings": ["Source", "Origin", "Headwater"], "element": "水", "theme": "nature", "emoji": "💧", "gender": "M", "notes": "Source of water. Implies origin and continuous flow."}, "永": {"pinyin": "yǒng", "meanings": ["Eternal", "Forever", "Always"], "element": "水", "theme": "virtue", "emoji": "♾️", "gender": "M", "notes": "Eternal and forever."}, "远": {"pinyin": "yuǎn", "meanings": ["Far", "Distant"], "element": "土", "theme": "strength", "emoji": "🎯", "gender": "M", "notes": "Far-reaching."}, "长": {"pinyin": "cháng", "meanings": ["Long", "Length", "Eternal"], "element": "木", "theme": "virtue", "emoji": "📏", "gender": "M", "notes": "Long-lasting."}, "青": {"pinyin": "qīng", "meanings": ["Green", "Youthful", "Nature"], "element": "木", "theme": "nature", "emoji": "🌿", "gender": "unisex", "notes": "Green/blue. Symbol of youth, nature, and vitality."}, "蓝": {"pinyin": "lán", "meanings": ["Blue", "Sky", "Vast"], "element": "木", "theme": "nature", "emoji": "🔵", "gender": "unisex", "notes": "Blue. Sky and ocean color. Modern name element."}, "紫": {"pinyin": "zǐ", "meanings": ["Purple", "Noble", "Mystical"], "element": "火", "theme": "beauty", "emoji": "🟣", "gender": "F", "notes": "Purple. Imperial color, noble and mystical."}, "红": {"pinyin": "hóng", "meanings": ["Red", "Popular", "Vibrant"], "element": "火", "theme": "beauty", "emoji": "🔴", "gender": "F", "notes": "Red. Auspicious and vibrant. Very popular in names."}, "碧": {"pinyin": "bì", "meanings": ["Jade Green", "Clear Blue"], "element": "水", "theme": "beauty", "emoji": "💚", "gender": "F", "notes": "Jade green. Clear, precious, and beautiful."}, "翠": {"pinyin": "cuì", "meanings": ["Emerald", "Jade Green", "Vivid"], "element": "金", "theme": "beauty", "emoji": "🟢", "gender": "F", "notes": "Emerald green/jade. Vivid and precious."}, "丹": {"pinyin": "dān", "meanings": ["Vermilion", "Sincere", "Alchemy"], "element": "火", "theme": "beauty", "emoji": "🔴", "gender": "unisex", "notes": "Vermilion red. Also implies sincerity (red heart)."}, "彤": {"pinyin": "tóng", "meanings": ["Red", "Vermilion", "Bright"], "element": "火", "theme": "beauty", "emoji": "🟥", "gender": "F", "notes": "Bright red. Warm and vibrant name color."}, "彦": {"pinyin": "yàn", "meanings": ["Virtuous", "Elegant", "Learned"], "element": "木", "theme": "virtue", "emoji": "🎓", "gender": "M", "notes": "Virtuous and learned. Classic scholar name."}, "彬": {"pinyin": "bīn", "meanings": ["Refined", "Cultured", "Elegant"], "element": "木", "theme": "virtue", "emoji": "🎩", "gender": "M", "notes": "Refined and cultured. Implies elegant manners and learning."}, "焕": {"pinyin": "huàn", "meanings": ["Shining", "Glowing", "Luminous"], "element": "火", "theme": "nature", "emoji": "💡", "gender": "M", "notes": "Shining and luminous. Expresses radiance."}, "煜": {"pinyin": "yù", "meanings": ["Bright", "Radiant", "Shining"], "element": "火", "theme": "nature", "emoji": "☀️", "gender": "M", "notes": "Bright and shining. Amplified radiance."}, "炜": {"pinyin": "wěi", "meanings": ["Bright", "Glowing", "Luminous"], "element": "火", "theme": "nature", "emoji": "✨", "gender": "M", "notes": "Bright and glowing. Warm radiance."}, "灿": {"pinyin": "càn", "meanings": ["Brilliant", "Dazzling", "Splendid"], "element": "火", "theme": "nature", "emoji": "🌟", "gender": "M", "notes": "Brilliant and dazzling. Expresses splendid achievement."}, "鸿": {"pinyin": "hóng", "meanings": ["Wild swan", "Grand", "Vast"], "element": "水", "theme": "nature", "emoji": "🦢", "gender": "M", "notes": "Wild swan. Symbol of grand ambition and vast achievement."}, "鹏": {"pinyin": "péng", "meanings": ["Roc", "Mythical Bird", "Grand"], "element": "水", "theme": "strength", "emoji": "🦅", "gender": "M", "notes": "The roc — a gigantic mythical bird. Symbol of immense potential."}, "鲲": {"pinyin": "kūn", "meanings": ["Mythical Fish", "Leviathan"], "element": "水", "theme": "strength", "emoji": "🐋", "gender": "M", "notes": "A mythical giant fish from Zhuangzi. Symbol of vast potential for transformation."}, "薇": {"pinyin": "wēi", "meanings": ["Rose", "Blooming", "Graceful"], "element": "木", "theme": "beauty", "emoji": "🌹", "gender": "F", "notes": "Rose/small flowering plant. Delicate and graceful."}, "蕾": {"pinyin": "lěi", "meanings": ["Bud", "Blooming", "Flower Bud"], "element": "木", "theme": "beauty", "emoji": "🌷", "gender": "F", "notes": "Flower bud. Symbol of potential and budding beauty."}, "蕊": {"pinyin": "ruǐ", "meanings": ["Stamen", "Bloom", "Flower Heart"], "element": "木", "theme": "beauty", "emoji": "🌸", "gender": "F", "notes": "Flower stamen. Delicate, innermost beauty."}, "萌": {"pinyin": "méng", "meanings": ["Sprout", "Budding", "Adorable"], "element": "木", "theme": "beauty", "emoji": "🌱", "gender": "F", "notes": "Sprouting/budding. Cute and full of potential. Very modern."}, "诺": {"pinyin": "nuò", "meanings": ["Promise", "Commitment", "Yes"], "element": "金", "theme": "virtue", "emoji": "🤝", "gender": "unisex", "notes": "Promise and commitment. Modern virtue name."}, "凡": {"pinyin": "fán", "meanings": ["Ordinary", "Common", "Every"], "element": "水", "theme": "virtue", "emoji": "🌿", "gender": "unisex", "notes": "Ordinary. Finding beauty in simplicity."}, "一": {"pinyin": "yī", "meanings": ["One", "First", "Unity"], "element": "水", "theme": "virtue", "emoji": "1️⃣", "gender": "unisex", "notes": "One/unity. Simple and profound. Implies being first or unique."}, "成": {"pinyin": "chéng", "meanings": ["Achieve", "Success", "Become"], "element": "金", "theme": "prosperity", "emoji": "🏆", "gender": "M", "notes": "Achievement and success. One of the most common name characters."}, "功": {"pinyin": "gōng", "meanings": ["Achievement", "Merit", "Success"], "element": "火", "theme": "prosperity", "emoji": "🎖️", "gender": "M", "notes": "Merit and achievement. Implies successful accomplishment."}, "建": {"pinyin": "jiàn", "meanings": ["Build", "Establish"], "element": "木", "theme": "strength", "emoji": "🏗️", "gender": "M", "notes": "To build."}, "立": {"pinyin": "lì", "meanings": ["Stand", "Establish", "Set up"], "element": "火", "theme": "strength", "emoji": "📐", "gender": "M", "notes": "To stand and establish oneself. Independence and strength."}, "志": {"pinyin": "zhì", "meanings": ["Aspiration", "Will", "Ambition"], "element": "火", "theme": "strength", "emoji": "🎯", "gender": "M", "notes": "Aspiration and willpower. Expresses determined ambition."}, "意": {"pinyin": "yì", "meanings": ["Idea", "Meaning", "Intent"], "element": "火", "theme": "wisdom", "emoji": "💡", "gender": "unisex", "notes": "Idea and intent. Expresses thoughtful intention."}, "念": {"pinyin": "niàn", "meanings": ["Thought", "Memory", "Read"], "element": "火", "theme": "wisdom", "emoji": "📖", "gender": "unisex", "notes": "Thought and remembrance. Expresses mindfulness."}, "如": {"pinyin": "rú", "meanings": ["Like", "As", "If"], "element": "木", "theme": "beauty", "emoji": "💫", "gender": "F", "notes": "Like/as. Often used in compound names expressing wishes (e.g., 'like jade')."}, "若": {"pinyin": "ruò", "meanings": ["Like", "Seem", "If"], "element": "木", "theme": "beauty", "emoji": "🌿", "gender": "F", "notes": "Like/as if. Poetic name character for girls."}, "之": {"pinyin": "zhī", "meanings": ["Of", "It", "Go"], "element": "火", "theme": "virtue", "emoji": "➡️", "gender": "unisex", "notes": "Classical Chinese character. Used in sophisticated names."}, "以": {"pinyin": "yǐ", "meanings": ["Use", "By", "According to"], "element": "火", "theme": "wisdom", "emoji": "✏️", "gender": "unisex", "notes": "Classical function word."}, "亦": {"pinyin": "yì", "meanings": ["Also", "Too", "Likewise"], "element": "火", "theme": "virtue", "emoji": "➕", "gender": "unisex", "notes": "Also/likewise. Subtle and sophisticated name element."}, "小": {"pinyin": "xiǎo", "meanings": ["Small", "Little", "Young"], "element": "水", "theme": "gentle", "emoji": "👶", "gender": "unisex", "notes": "Small/little. Endearing nickname character also used in formal names."}, "大": {"pinyin": "dà", "meanings": ["Big", "Great", "Adult"], "element": "火", "theme": "strength", "emoji": "🌏", "gender": "M", "notes": "Great and big."}, "中": {"pinyin": "zhōng", "meanings": ["Middle", "Center", "Central"], "element": "土", "theme": "virtue", "emoji": "🎯", "gender": "M", "notes": "Center. Balance and harmony."}, "正": {"pinyin": "zhèng", "meanings": ["Right", "Correct", "Upright"], "element": "火", "theme": "virtue", "emoji": "✅", "gender": "M", "notes": "Upright and correct. Expresses integrity and honesty."}, "直": {"pinyin": "zhí", "meanings": ["Straight", "Honest", "Direct"], "element": "木", "theme": "virtue", "emoji": "📏", "gender": "M", "notes": "Straightforward and honest. Simple virtue name."}, "恒": {"pinyin": "héng", "meanings": ["Constant", "Persistent", "Eternal"], "element": "水", "theme": "virtue", "emoji": "♾️", "gender": "M", "notes": "Constancy and persistence. Expresses enduring commitment."}, "维": {"pinyin": "wéi", "meanings": ["Maintain", "Sustain", "Link"], "element": "木", "theme": "virtue", "emoji": "🔗", "gender": "M", "notes": "To maintain and sustain. Expresses preserving important values."}, "坚": {"pinyin": "jiān", "meanings": ["Firm", "Strong", "Hard"], "element": "土", "theme": "strength", "emoji": "⛰️", "gender": "M", "notes": "Firm and unyielding. Expresses resolute character."}, "厚": {"pinyin": "hòu", "meanings": ["Thick", "Generous", "Kind"], "element": "土", "theme": "virtue", "emoji": "🛡️", "gender": "M", "notes": "Generous and kind. Implies depth of character."}, "实": {"pinyin": "shí", "meanings": ["Solid", "True", "Fruitful"], "element": "金", "theme": "virtue", "emoji": "🎯", "gender": "M", "notes": "Solid and true. Expresses honesty and substance."}, "容": {"pinyin": "róng", "meanings": ["Tolerant", "Appearance", "Contain"], "element": "土", "theme": "virtue", "emoji": "🤗", "gender": "unisex", "notes": "Tolerance and包容. Broad-minded virtue name."}, "易": {"pinyin": "yì", "meanings": ["Easy", "Change"], "element": "火", "theme": "surname", "emoji": "🔄", "gender": "unisex", "notes": "Surname meaning change."}, "白": {"pinyin": "bái", "meanings": ["White", "Pure"], "element": "金", "theme": "surname", "emoji": "⚪", "gender": "unisex", "notes": "Surname meaning white."}, "万": {"pinyin": "wàn", "meanings": ["Ten thousand"], "element": "水", "theme": "surname", "emoji": "💯", "gender": "unisex", "notes": "Surname meaning ten thousand."}, "千": {"pinyin": "qiān", "meanings": ["Thousand", "Many", "Countless"], "element": "金", "theme": "prosperity", "emoji": "🔢", "gender": "unisex", "notes": "Thousand. Expresses multiplicity and abundance."}, "百": {"pinyin": "bǎi", "meanings": ["Hundred", "Many", "All"], "element": "火", "theme": "prosperity", "emoji": "💯", "gender": "unisex", "notes": "Hundred. Implies completeness and multitude."}, "兆": {"pinyin": "zhào", "meanings": ["Omen", "Sign", "Trillion"], "element": "火", "theme": "prosperity", "emoji": "🔮", "gender": "M", "notes": "Auspicious omen."}, "亨": {"pinyin": "hēng", "meanings": ["Smooth", "Prosperous", "Go smoothly"], "element": "火", "theme": "prosperity", "emoji": "🍀", "gender": "M", "notes": "Smooth progress. From the I Ching, meaning success."}, "利": {"pinyin": "lì", "meanings": ["Sharp", "Benefit", "Profit"], "element": "金", "theme": "prosperity", "emoji": "💰", "gender": "M", "notes": "Benefit and profit. Sharp wit and advantage."}, "同": {"pinyin": "tóng", "meanings": ["Same", "Together", "Unite"], "element": "火", "theme": "virtue", "emoji": "🤝", "gender": "unisex", "notes": "Unity and togetherness. Expresses solidarity."}, "新": {"pinyin": "xīn", "meanings": ["New", "Fresh", "Renew"], "element": "金", "theme": "prosperity", "emoji": "🆕", "gender": "unisex", "notes": "New. Fresh start."}, "兴": {"pinyin": "xīng", "meanings": ["Rise", "Flourish", "Thrive"], "element": "水", "theme": "prosperity", "emoji": "📈", "gender": "M", "notes": "Rise and flourish. Expresses upward trajectory."}, "民": {"pinyin": "mín", "meanings": ["People", "Nation", "Citizen"], "element": "水", "theme": "family", "emoji": "👥", "gender": "M", "notes": "The people. Expresses connection to community and nation."}, "庆": {"pinyin": "qìng", "meanings": ["Celebrate", "Congratulate"], "element": "火", "theme": "prosperity", "emoji": "🎉", "gender": "M", "notes": "Celebration."}, "东": {"pinyin": "dōng", "meanings": ["East", "Eastern", "Spring"], "element": "木", "theme": "nature", "emoji": "🌅", "gender": "M", "notes": "East — direction of sunrise and spring. Auspicious."}, "南": {"pinyin": "nán", "meanings": ["South", "Southern", "Warm"], "element": "火", "theme": "nature", "emoji": "🔥", "gender": "M", "notes": "South. Associated with warmth and summer."}, "西": {"pinyin": "xī", "meanings": ["West", "Western", "Autumn"], "element": "金", "theme": "nature", "emoji": "🌇", "gender": "M", "notes": "West. Associated with autumn and metal element."}, "北": {"pinyin": "běi", "meanings": ["North", "Northern", "Winter"], "element": "水", "theme": "nature", "emoji": "❄️", "gender": "M", "notes": "North. Associated with winter and water element."}, "汉": {"pinyin": "hàn", "meanings": ["Chinese", "Man", "River"], "element": "水", "theme": "family", "emoji": "🏯", "gender": "M", "notes": "Han Chinese. Strong identity."}, "宇": {"pinyin": "yǔ", "meanings": ["Universe", "Space", "House"], "element": "土", "theme": "nature", "emoji": "🌌", "gender": "M", "notes": "Universe/cosmos. Grand and expansive."}, "宙": {"pinyin": "zhòu", "meanings": ["Universe", "Time", "Eternal"], "element": "土", "theme": "nature", "emoji": "⏳", "gender": "M", "notes": "Time and universe. Paired with 宇 for cosmic names."}, "辰": {"pinyin": "chén", "meanings": ["Morning", "Celestial", "Time"], "element": "土", "theme": "nature", "emoji": "⭐", "gender": "M", "notes": "Celestial time. Also the dragon zodiac sign."}, "奕": {"pinyin": "yì", "meanings": ["Grand", "Abundant", "Radiant"], "element": "火", "theme": "strength", "emoji": "✨", "gender": "M", "notes": "Grand and radiant. Implies abundant energy."}, "君": {"pinyin": "jūn", "meanings": ["Monarch", "Lord", "Noble"], "element": "木", "theme": "virtue", "emoji": "👑", "gender": "unisex", "notes": "Noble ruler/superior. Common in both male and female names."}, "臣": {"pinyin": "chén", "meanings": ["Minister", "Official", "Loyal"], "element": "金", "theme": "virtue", "emoji": "👔", "gender": "M", "notes": "Loyal minister. Implies service and duty."}, "伯": {"pinyin": "bó", "meanings": ["Uncle", "Elder", "Count"], "element": "火", "theme": "family", "emoji": "👨", "gender": "M", "notes": "Elder uncle or count (noble)."}, "仲": {"pinyin": "zhòng", "meanings": ["Second", "Middle"], "element": "木", "theme": "family", "emoji": "2️⃣", "gender": "M", "notes": "Second-born."}, "叔": {"pinyin": "shū", "meanings": ["Uncle", "Third", "Elder"], "element": "金", "theme": "family", "emoji": "👨‍🦳", "gender": "M", "notes": "Younger uncle. Traditional birth-order name."}, "季": {"pinyin": "jì", "meanings": ["Season", "Youngest", "Last"], "element": "木", "theme": "family", "emoji": "4️⃣", "gender": "M", "notes": "Youngest-born. Traditional birth-order name."}, "绍": {"pinyin": "shào", "meanings": ["Continue", "Carry on", "Connect"], "element": "金", "theme": "family", "emoji": "🔗", "gender": "M", "notes": "To continue the family legacy."}, "继": {"pinyin": "jì", "meanings": ["Continue", "Succeed", "Follow"], "element": "木", "theme": "family", "emoji": "➡️", "gender": "M", "notes": "To continue and succeed. Expresses carrying on tradition."}, "承": {"pinyin": "chéng", "meanings": ["Receive", "Bear", "Continue"], "element": "金", "theme": "family", "emoji": "🤲", "gender": "M", "notes": "To receive and continue family legacy."}, "传": {"pinyin": "chuán", "meanings": ["Pass down", "Spread", "Legend"], "element": "火", "theme": "family", "emoji": "📜", "gender": "unisex", "notes": "To pass down through generations."}, "佳": {"pinyin": "jiā", "meanings": ["Excellent", "Beautiful", "Good"], "element": "木", "theme": "beauty", "emoji": "👍", "gender": "F", "notes": "Excellent. Very popular in girls' names."}, "依": {"pinyin": "yī", "meanings": ["Depend", "Comply", "According to"], "element": "火", "theme": "gentle", "emoji": "🌿", "gender": "F", "notes": "To depend on. Soft and gentle."}, "雾": {"pinyin": "wù", "meanings": ["Fog", "Mist", "Veiled"], "element": "水", "theme": "nature", "emoji": "🌫️", "gender": "F", "notes": "Fog/mist. Mysterious and poetic."}, "亮": {"pinyin": "liàng", "meanings": ["Bright", "Shining", "Clear"], "element": "火", "theme": "nature", "emoji": "🔆", "gender": "M", "notes": "Bright and shining."}, "日": {"pinyin": "rì", "meanings": ["Sun", "Day", "Daily"], "element": "火", "theme": "nature", "emoji": "☀️", "gender": "M", "notes": "Sun. Source of light and life."}, "阴": {"pinyin": "yīn", "meanings": ["Shadow", "Negative", "Female"], "element": "水", "theme": "nature", "emoji": "🌑", "gender": "F", "notes": "Shade and moon. Yin energy."}, "午": {"pinyin": "wǔ", "meanings": ["Noon", "Horse", "Midday"], "element": "火", "theme": "nature", "emoji": "🐴", "gender": "M", "notes": "Noon. The horse in Chinese zodiac."}, "时": {"pinyin": "shí", "meanings": ["Time", "Era", "Opportunity"], "element": "火", "theme": "wisdom", "emoji": "⏰", "gender": "unisex", "notes": "Time and season. Implies timeliness."}, "元": {"pinyin": "yuán", "meanings": ["First", "Yuan", "Dollar"], "element": "木", "theme": "prosperity", "emoji": "1️⃣", "gender": "M", "notes": "First and origin."}, "太": {"pinyin": "tài", "meanings": ["Grand", "Extreme", "Supreme"], "element": "火", "theme": "strength", "emoji": "👑", "gender": "M", "notes": "Grand and supreme. Superlative."}, "夫": {"pinyin": "fū", "meanings": ["Man", "Husband", "Laborer"], "element": "火", "theme": "family", "emoji": "👨", "gender": "M", "notes": "Adult male. Implies responsibility."}, "士": {"pinyin": "shì", "meanings": ["Scholar", "Gentleman", "Officer"], "element": "金", "theme": "wisdom", "emoji": "🎓", "gender": "M", "notes": "Scholar/warrior. Noble class."}, "俊": {"pinyin": "jùn", "meanings": ["Handsome", "Outstanding"], "element": "火", "theme": "beauty", "emoji": "😎", "gender": "M", "notes": "Handsome and talented."}, "帅": {"pinyin": "shuài", "meanings": ["Handsome", "Commander", "Leader"], "element": "金", "theme": "strength", "emoji": "💂", "gender": "M", "notes": "Handsome leader. Modern favorite."}, "英": {"pinyin": "yīng", "meanings": ["Heroic", "Flower", "England"], "element": "木", "theme": "strength", "emoji": "🌺", "gender": "M", "notes": "Heroic and outstanding. Also means flower petal."}, "界": {"pinyin": "jiè", "meanings": ["World", "Boundary", "Realm"], "element": "土", "theme": "nature", "emoji": "🌐", "gender": "M", "notes": "Boundary/world."}, "上": {"pinyin": "shàng", "meanings": ["Above", "Up", "Superior"], "element": "金", "theme": "strength", "emoji": "⬆️", "gender": "M", "notes": "Upward and superior."}, "下": {"pinyin": "xià", "meanings": ["Below", "Down", "Under"], "element": "水", "theme": "virtue", "emoji": "⬇️", "gender": "M", "notes": "Below. Expresses humility in classical names."}, "左": {"pinyin": "zuǒ", "meanings": ["Left", "East", "Support"], "element": "木", "theme": "virtue", "emoji": "👈", "gender": "M", "notes": "Left side. Also a surname."}, "右": {"pinyin": "yòu", "meanings": ["Right", "West", "Honor"], "element": "金", "theme": "virtue", "emoji": "👉", "gender": "M", "notes": "Right side. Traditionally honored position."}, "古": {"pinyin": "gǔ", "meanings": ["Ancient", "Old", "Classical"], "element": "木", "theme": "virtue", "emoji": "🏛️", "gender": "M", "notes": "Ancient. Respect for tradition."}, "今": {"pinyin": "jīn", "meanings": ["Now", "Present", "Current"], "element": "火", "theme": "wisdom", "emoji": "🕐", "gender": "unisex", "notes": "The present moment."}, "先": {"pinyin": "xiān", "meanings": ["First", "Before", "Pioneer"], "element": "金", "theme": "strength", "emoji": "🥇", "gender": "M", "notes": "First. Pioneer and leader."}, "后": {"pinyin": "hòu", "meanings": ["After", "Behind", "Queen"], "element": "水", "theme": "family", "emoji": "👸", "gender": "F", "notes": "After/queen. Also means empress."}, "全": {"pinyin": "quán", "meanings": ["Complete", "Whole", "Total"], "element": "火", "theme": "prosperity", "emoji": "✅", "gender": "M", "notes": "Complete and whole."}, "定": {"pinyin": "dìng", "meanings": ["Stable", "Fixed", "Decided"], "element": "火", "theme": "virtue", "emoji": "📌", "gender": "M", "notes": "Stability and certainty."}, "动": {"pinyin": "dòng", "meanings": ["Move", "Action", "Dynamic"], "element": "火", "theme": "strength", "emoji": "🏃", "gender": "M", "notes": "Movement and action. Active."}, "清": {"pinyin": "qīng", "meanings": ["Clear", "Pure", "Clean"], "element": "水", "theme": "virtue", "emoji": "💧", "gender": "unisex", "notes": "Clear and pure. High moral integrity."}, "洁": {"pinyin": "jié", "meanings": ["Clean", "Pure", "Pristine"], "element": "水", "theme": "virtue", "emoji": "✨", "gender": "F", "notes": "Clean and pure. Moral purity."}, "净": {"pinyin": "jìng", "meanings": ["Clean", "Pure", "Net"], "element": "水", "theme": "virtue", "emoji": "🧹", "gender": "unisex", "notes": "Clean and pure."}, "旧": {"pinyin": "jiù", "meanings": ["Old", "Former", "Used"], "element": "木", "theme": "family", "emoji": "📦", "gender": "M", "notes": "Old/traditional. Respect for heritage."}, "初": {"pinyin": "chū", "meanings": ["First", "Beginning", "Early"], "element": "火", "theme": "wisdom", "emoji": "🌱", "gender": "unisex", "notes": "Beginning. Fresh start and new beginnings."}, "早": {"pinyin": "zǎo", "meanings": ["Early", "Morning", "Soon"], "element": "火", "theme": "nature", "emoji": "🌄", "gender": "unisex", "notes": "Early morning. Freshness."}, "晚": {"pinyin": "wǎn", "meanings": ["Evening", "Late", "Night"], "element": "水", "theme": "nature", "emoji": "🌆", "gender": "F", "notes": "Evening. Poetic and calm."}, "夜": {"pinyin": "yè", "meanings": ["Night", "Dark", "Evening"], "element": "水", "theme": "nature", "emoji": "🌃", "gender": "F", "notes": "Night. Mysterious and quiet."}, "梦": {"pinyin": "mèng", "meanings": ["Dream", "Vision", "Imagination"], "element": "木", "theme": "wisdom", "emoji": "💤", "gender": "F", "notes": "Dream. Aspirations and imagination."}, "想": {"pinyin": "xiǎng", "meanings": ["Think", "Want", "Imagine"], "element": "火", "theme": "wisdom", "emoji": "🤔", "gender": "unisex", "notes": "Thought and aspiration."}, "情": {"pinyin": "qíng", "meanings": ["Emotion", "Feeling", "Love"], "element": "火", "theme": "gentle", "emoji": "💕", "gender": "F", "notes": "Emotion and feeling. Romantic."}, "欢": {"pinyin": "huān", "meanings": ["Happy", "Joyful", "Merry"], "element": "水", "theme": "gentle", "emoji": "🎉", "gender": "unisex", "notes": "Joy and happiness."}, "喜": {"pinyin": "xǐ", "meanings": ["Happy", "Joyful", "Delight"], "element": "火", "theme": "prosperity", "emoji": "😁", "gender": "unisex", "notes": "Happiness and delight. Auspicious character."}, "祥": {"pinyin": "xiáng", "meanings": ["Auspicious", "Lucky", "Blessing"], "element": "火", "theme": "prosperity", "emoji": "🍀", "gender": "M", "notes": "Auspicious and lucky."}, "瑞": {"pinyin": "ruì", "meanings": ["Auspicious", "Fortunate", "Lucky Omen"], "element": "金", "theme": "prosperity", "emoji": "🎊", "gender": "unisex", "notes": "Auspicious sign. Very popular."}, "吉": {"pinyin": "jí", "meanings": ["Lucky", "Fortunate", "Auspicious"], "element": "木", "theme": "prosperity", "emoji": "🍀", "gender": "M", "notes": "Lucky and auspicious. Simple and powerful."}, "贺": {"pinyin": "hè", "meanings": ["Congratulate"], "element": "火", "theme": "surname", "emoji": "🎊", "gender": "unisex", "notes": "Surname meaning congratulate."}, "祝": {"pinyin": "zhù", "meanings": ["Wish", "Pray", "Bless"], "element": "火", "theme": "prosperity", "emoji": "🙏", "gender": "M", "notes": "Wish and blessing."}, "木": {"pinyin": "mù", "meanings": ["Tree", "Wood", "Simple"], "element": "木", "theme": "nature", "emoji": "🌳", "gender": "M", "notes": "Wood/tree. Simple and natural."}, "本": {"pinyin": "běn", "meanings": ["Root", "Origin", "Book"], "element": "木", "theme": "wisdom", "emoji": "📚", "gender": "M", "notes": "Root and origin. Foundation."}, "根": {"pinyin": "gēn", "meanings": ["Root", "Origin", "Foundation"], "element": "木", "theme": "family", "emoji": "🌱", "gender": "M", "notes": "Root. Deeply grounded."}, "果": {"pinyin": "guǒ", "meanings": ["Fruit", "Result", "Determined"], "element": "木", "theme": "prosperity", "emoji": "🍎", "gender": "M", "notes": "Fruit and result. Achievement."}, "草": {"pinyin": "cǎo", "meanings": ["Grass", "Plant", "Humble"], "element": "木", "theme": "nature", "emoji": "🌿", "gender": "F", "notes": "Grass. Humble and resilient."}, "秦": {"pinyin": "qín", "meanings": ["Qin Dynasty"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Qin Dynasty surname."}, "薛": {"pinyin": "xuē", "meanings": ["Xue (state)", "Wormwood"], "element": "木", "theme": "surname", "emoji": "🌿", "gender": "unisex", "notes": "Ancient surname."}, "阎": {"pinyin": "yán", "meanings": ["Yan (state)", "Gate"], "element": "火", "theme": "surname", "emoji": "🚪", "gender": "unisex", "notes": "Ancient surname."}, "戴": {"pinyin": "dài", "meanings": ["Wear", "Respect", "Dai"], "element": "火", "theme": "surname", "emoji": "🎩", "gender": "unisex", "notes": "Surname meaning to wear."}, "姜": {"pinyin": "jiāng", "meanings": ["Ginger", "Jiang"], "element": "火", "theme": "surname", "emoji": "🫚", "gender": "unisex", "notes": "Ancient surname."}, "邹": {"pinyin": "zōu", "meanings": ["Zou (state)"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname."}, "郝": {"pinyin": "hǎo", "meanings": ["Hao (state)"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname."}, "孔": {"pinyin": "kǒng", "meanings": ["Hole", "Confucius"], "element": "水", "theme": "surname", "emoji": "🎓", "gender": "unisex", "notes": "Confucius' surname."}, "邱": {"pinyin": "qiū", "meanings": ["Mound", "Hill"], "element": "土", "theme": "surname", "emoji": "⛰️", "gender": "unisex", "notes": "Surname meaning hill."}, "史": {"pinyin": "shǐ", "meanings": ["History", "History Official"], "element": "火", "theme": "surname", "emoji": "📜", "gender": "unisex", "notes": "Surname meaning history."}, "陶": {"pinyin": "táo", "meanings": ["Pottery", "Cultivate"], "element": "火", "theme": "surname", "emoji": "🏺", "gender": "unisex", "notes": "Surname meaning pottery."}, "顾": {"pinyin": "gù", "meanings": ["Look after", "Consider"], "element": "木", "theme": "surname", "emoji": "👀", "gender": "unisex", "notes": "Surname meaning to look after."}, "侯": {"pinyin": "hóu", "meanings": ["Marquis", "Noble"], "element": "水", "theme": "surname", "emoji": "👑", "gender": "unisex", "notes": "Surname meaning marquis."}, "邵": {"pinyin": "shào", "meanings": ["Shao (state)"], "element": "火", "theme": "surname", "emoji": "🏯", "gender": "unisex", "notes": "Ancient surname."}, "孟": {"pinyin": "mèng", "meanings": ["First month", "Elder"], "element": "水", "theme": "surname", "emoji": "1️⃣", "gender": "unisex", "notes": "Surname meaning eldest."}, "段": {"pinyin": "duàn", "meanings": ["Segment", "Section"], "element": "火", "theme": "surname", "emoji": "📏", "gender": "unisex", "notes": "Surname meaning segment."}, "钱": {"pinyin": "qián", "meanings": ["Money", "Wealth"], "element": "金", "theme": "surname", "emoji": "💰", "gender": "unisex", "notes": "Surname meaning money."}, "汤": {"pinyin": "tāng", "meanings": ["Soup", "Hot water"], "element": "水", "theme": "surname", "emoji": "🍲", "gender": "unisex", "notes": "Surname meaning soup."}, "尹": {"pinyin": "yǐn", "meanings": ["Govern", "Administer"], "element": "土", "theme": "surname", "emoji": "📋", "gender": "unisex", "notes": "Surname meaning to govern."}, "黎": {"pinyin": "lí", "meanings": ["Black", "Dawn", "Many"], "element": "火", "theme": "surname", "emoji": "🌅", "gender": "unisex", "notes": "Surname meaning dawn/many."}, "常": {"pinyin": "cháng", "meanings": ["Often", "Constant", "Ordinary"], "element": "火", "theme": "surname", "emoji": "🔄", "gender": "unisex", "notes": "Surname meaning constant."}, "乔": {"pinyin": "qiáo", "meanings": ["Tall", "Disguise"], "element": "木", "theme": "surname", "emoji": "🌳", "gender": "unisex", "notes": "Surname meaning tall."}, "龚": {"pinyin": "gōng", "meanings": ["Respectful", "Gong"], "element": "火", "theme": "surname", "emoji": "🙇", "gender": "unisex", "notes": "Surname."}, "弘": {"pinyin": "hóng", "meanings": ["Broad", "Grand", "Expand"], "element": "水", "theme": "strength", "emoji": "🌊", "gender": "M", "notes": "Grand and expansive."}, "扬": {"pinyin": "yáng", "meanings": ["Raise", "Spread", "Praise"], "element": "火", "theme": "strength", "emoji": "📣", "gender": "M", "notes": "To raise and spread."}, "拓": {"pinyin": "tuò", "meanings": ["Expand", "Pioneer", "Open up"], "element": "火", "theme": "strength", "emoji": "🚀", "gender": "M", "notes": "To pioneer and expand."}, "开": {"pinyin": "kāi", "meanings": ["Open", "Begin", "Start"], "element": "木", "theme": "strength", "emoji": "🔓", "gender": "M", "notes": "To open and begin."}, "创": {"pinyin": "chuàng", "meanings": ["Create", "Initiate", "Start"], "element": "金", "theme": "strength", "emoji": "💡", "gender": "M", "notes": "To create and innovate."}, "首": {"pinyin": "shǒu", "meanings": ["Head", "First", "Leader"], "element": "金", "theme": "strength", "emoji": "🥇", "gender": "M", "notes": "Head and leader."}, "领": {"pinyin": "lǐng", "meanings": ["Lead", "Collar", "Understand"], "element": "火", "theme": "strength", "emoji": "👔", "gender": "M", "notes": "To lead."}, "导": {"pinyin": "dǎo", "meanings": ["Guide", "Direct", "Lead"], "element": "火", "theme": "wisdom", "emoji": "🧭", "gender": "M", "notes": "To guide and direct."}, "教": {"pinyin": "jiào", "meanings": ["Teach", "Religion", "Instruct"], "element": "木", "theme": "wisdom", "emoji": "📚", "gender": "unisex", "notes": "To teach and educate."}, "育": {"pinyin": "yù", "meanings": ["Nurture", "Educate", "Raise"], "element": "火", "theme": "wisdom", "emoji": "🌱", "gender": "unisex", "notes": "To nurture and educate."}, "培": {"pinyin": "péi", "meanings": ["Cultivate", "Nurture", "Foster"], "element": "土", "theme": "wisdom", "emoji": "🌻", "gender": "unisex", "notes": "To cultivate talent."}, "养": {"pinyin": "yǎng", "meanings": ["Nourish", "Raise", "Support"], "element": "火", "theme": "family", "emoji": "🍼", "gender": "unisex", "notes": "To nourish and raise."}, "生": {"pinyin": "shēng", "meanings": ["Life", "Birth", "Raw"], "element": "木", "theme": "family", "emoji": "🌱", "gender": "unisex", "notes": "Life and birth."}, "活": {"pinyin": "huó", "meanings": ["Live", "Active", "Alive"], "element": "水", "theme": "family", "emoji": "💃", "gender": "unisex", "notes": "Alive and active."}, "存": {"pinyin": "cún", "meanings": ["Exist", "Keep", "Save"], "element": "木", "theme": "virtue", "emoji": "💾", "gender": "M", "notes": "To exist and endure."}, "有": {"pinyin": "yǒu", "meanings": ["Have", "Exist", "Possess"], "element": "火", "theme": "prosperity", "emoji": "✅", "gender": "M", "notes": "To have and possess."}, "无": {"pinyin": "wú", "meanings": ["Nothing", "Without", "None"], "element": "水", "theme": "wisdom", "emoji": "❌", "gender": "M", "notes": "Nothingness. Daoist concept."}, "多": {"pinyin": "duō", "meanings": ["Many", "Much", "Multiple"], "element": "火", "theme": "prosperity", "emoji": "📦", "gender": "M", "notes": "Many and abundant."}, "少": {"pinyin": "shǎo", "meanings": ["Few", "Young", "Little"], "element": "水", "theme": "family", "emoji": "👶", "gender": "M", "notes": "Young and few."}, "重": {"pinyin": "zhòng", "meanings": ["Heavy", "Important", "Repeat"], "element": "土", "theme": "virtue", "emoji": "⚖️", "gender": "M", "notes": "Important and weighty."}, "轻": {"pinyin": "qīng", "meanings": ["Light", "Easy", "Gentle"], "element": "木", "theme": "gentle", "emoji": "🕊️", "gender": "F", "notes": "Light and gentle."}, "短": {"pinyin": "duǎn", "meanings": ["Short", "Brief"], "element": "火", "theme": "nature", "emoji": "📏", "gender": "M", "notes": "Short and brief."}, "低": {"pinyin": "dī", "meanings": ["Low", "Humble", "Deep"], "element": "水", "theme": "virtue", "emoji": "⬇️", "gender": "M", "notes": "Low and humble."}, "深": {"pinyin": "shēn", "meanings": ["Deep", "Profound", "Dark"], "element": "水", "theme": "wisdom", "emoji": "🌊", "gender": "unisex", "notes": "Deep and profound."}, "浅": {"pinyin": "qiǎn", "meanings": ["Shallow", "Light"], "element": "水", "theme": "virtue", "emoji": "💧", "gender": "unisex", "notes": "Shallow and light."}, "宽": {"pinyin": "kuān", "meanings": ["Wide", "Broad", "Tolerant"], "element": "木", "theme": "virtue", "emoji": "🌐", "gender": "M", "notes": "Broad-minded and tolerant."}, "广": {"pinyin": "guǎng", "meanings": ["Wide", "Broad", "Extensive"], "element": "木", "theme": "strength", "emoji": "🌐", "gender": "M", "notes": "Broad and extensive."}, "近": {"pinyin": "jìn", "meanings": ["Near", "Recent", "Close"], "element": "土", "theme": "family", "emoji": "👫", "gender": "unisex", "notes": "Near and close."}, "通": {"pinyin": "tōng", "meanings": ["Through", "Connect", "Know"], "element": "火", "theme": "wisdom", "emoji": "🔗", "gender": "M", "notes": "To connect and understand."}, "顺": {"pinyin": "shùn", "meanings": ["Smooth", "Obedient", "Favorable"], "element": "金", "theme": "virtue", "emoji": "👍", "gender": "M", "notes": "Smooth and favorable."}, "道": {"pinyin": "dào", "meanings": ["Way", "Path", "Say"], "element": "火", "theme": "wisdom", "emoji": "🛤️", "gender": "M", "notes": "The Way. Daoist philosophy."}, "路": {"pinyin": "lù", "meanings": ["Road", "Way", "Path"], "element": "土", "theme": "nature", "emoji": "🛣️", "gender": "M", "notes": "Road and path."}, "行": {"pinyin": "xíng", "meanings": ["Walk", "Do", "Capable"], "element": "火", "theme": "strength", "emoji": "🚶", "gender": "M", "notes": "To walk and act."}, "设": {"pinyin": "shè", "meanings": ["Set up", "Establish", "Design"], "element": "木", "theme": "wisdom", "emoji": "📐", "gender": "M", "notes": "To design and establish."}, "发": {"pinyin": "fā", "meanings": ["Emit", "Develop", "Hair"], "element": "水", "theme": "strength", "emoji": "🚀", "gender": "M", "notes": "To develop and emit."}, "展": {"pinyin": "zhǎn", "meanings": ["Expand", "Exhibit", "Develop"], "element": "木", "theme": "strength", "emoji": "📊", "gender": "M", "notes": "To expand and develop."}, "仰": {"pinyin": "yǎng", "meanings": ["Look up", "Admire", "Respect"], "element": "木", "theme": "virtue", "emoji": "🙏", "gender": "M", "notes": "To admire and respect."}, "伊": {"pinyin": "yī", "meanings": ["He", "She", "That"], "element": "水", "theme": "beauty", "emoji": "👤", "gender": "F", "notes": "Classical pronoun, used in elegant names."}, "伍": {"pinyin": "wǔ", "meanings": ["Five", "Company", "Squad"], "element": "土", "theme": "family", "emoji": "5️⃣", "gender": "M", "notes": "Five. Also a surname."}, "什": {"pinyin": "shén", "meanings": ["What", "Ten", "Various"], "element": "金", "theme": "wisdom", "emoji": "❓", "gender": "unisex", "notes": "Various/miscellaneous."}, "介": {"pinyin": "jiè", "meanings": ["Introduce", "Shell", "Upright"], "element": "木", "theme": "virtue", "emoji": "🛡️", "gender": "M", "notes": "Upright and honest."}, "仍": {"pinyin": "réng", "meanings": ["Still", "Yet", "Continue"], "element": "金", "theme": "virtue", "emoji": "🔄", "gender": "unisex", "notes": "Persistent and continuing."}, "仔": {"pinyin": "zǐ", "meanings": ["Child", "Young", "Detailed"], "element": "水", "theme": "family", "emoji": "👶", "gender": "M", "notes": "Young child."}, "他": {"pinyin": "tā", "meanings": ["He", "Him", "Other"], "element": "火", "theme": "family", "emoji": "👤", "gender": "M", "notes": "Third person masculine pronoun."}, "仙": {"pinyin": "xiān", "meanings": ["Immortal", "Celestial", "Fairy"], "element": "水", "theme": "beauty", "emoji": "🧚", "gender": "F", "notes": "Immortal/celestial being."}, "代": {"pinyin": "dài", "meanings": ["Generation", "Replace", "Era"], "element": "火", "theme": "family", "emoji": "📅", "gender": "M", "notes": "Generation and era."}, "令": {"pinyin": "lìng", "meanings": ["Order", "Command", "Excellent"], "element": "火", "theme": "strength", "emoji": "📜", "gender": "M", "notes": "To command. Also means excellent."}, "仪": {"pinyin": "yí", "meanings": ["Ceremony", "Apparatus", "Manner"], "element": "火", "theme": "virtue", "emoji": "🎩", "gender": "unisex", "notes": "Ceremony and proper manner."}, "们": {"pinyin": "men", "meanings": ["Plural suffix"], "element": "水", "theme": "family", "emoji": "👥", "gender": "unisex", "notes": "Plural marker for people."}, "价": {"pinyin": "jià", "meanings": ["Price", "Value", "Worth"], "element": "金", "theme": "prosperity", "emoji": "💰", "gender": "M", "notes": "Value and price."}, "休": {"pinyin": "xiū", "meanings": ["Rest", "Stop", "Retire"], "element": "水", "theme": "gentle", "emoji": "😌", "gender": "unisex", "notes": "Rest and relaxation."}, "伤": {"pinyin": "shāng", "meanings": ["Hurt", "Injure", "Sad"], "element": "金", "theme": "gentle", "emoji": "😢", "gender": "unisex", "notes": "Sorrow. Used poetically."}, "估": {"pinyin": "gū", "meanings": ["Estimate", "Appraise", "Value"], "element": "木", "theme": "wisdom", "emoji": "📊", "gender": "M", "notes": "To estimate and evaluate."}, "伴": {"pinyin": "bàn", "meanings": ["Companion", "Partner", "Accompany"], "element": "火", "theme": "family", "emoji": "👫", "gender": "unisex", "notes": "Companion and friend."}, "佛": {"pinyin": "fó", "meanings": ["Buddha", "Buddhist", "Enlightened"], "element": "水", "theme": "wisdom", "emoji": "☸️", "gender": "unisex", "notes": "Buddha. Spiritual enlightenment."}, "作": {"pinyin": "zuò", "meanings": ["Make", "Do", "Work"], "element": "火", "theme": "strength", "emoji": "🔨", "gender": "M", "notes": "To do and create."}, "你": {"pinyin": "nǐ", "meanings": ["You (singular)"], "element": "火", "theme": "family", "emoji": "👤", "gender": "unisex", "notes": "Second person pronoun."}, "供": {"pinyin": "gòng", "meanings": ["Supply", "Offer", "Provide"], "element": "火", "theme": "prosperity", "emoji": "🎁", "gender": "M", "notes": "To supply and provide."}, "侠": {"pinyin": "xiá", "meanings": ["Knight-errant", "Chivalry", "Hero"], "element": "金", "theme": "strength", "emoji": "⚔️", "gender": "M", "notes": "Chivalrous hero. Martial arts ideal."}, "侣": {"pinyin": "lǚ", "meanings": ["Companion", "Partner", "Mate"], "element": "火", "theme": "family", "emoji": "💑", "gender": "unisex", "notes": "Life partner and companion."}, "便": {"pinyin": "biàn", "meanings": ["Convenient", "Then", "Even if"], "element": "水", "theme": "wisdom", "emoji": "🔄", "gender": "unisex", "notes": "Convenience and adaptability."}, "俏": {"pinyin": "qiào", "meanings": ["Pretty", "Charming", "Sleek"], "element": "木", "theme": "beauty", "emoji": "💁", "gender": "F", "notes": "Pretty and charming."}, "保": {"pinyin": "bǎo", "meanings": ["Protect", "Guarantee", "Keep"], "element": "水", "theme": "virtue", "emoji": "🛡️", "gender": "M", "notes": "To protect and safeguard."}, "修": {"pinyin": "xiū", "meanings": ["Cultivate", "Repair", "Study"], "element": "金", "theme": "wisdom", "emoji": "📚", "gender": "M", "notes": "Self-cultivation and refinement."}, "仓": {"pinyin": "cāng", "meanings": ["Storehouse", "Barn"], "element": "金", "theme": "prosperity", "emoji": "🏪", "gender": "M", "notes": "Granary."}, "伦": {"pinyin": "lún", "meanings": ["Ethics", "Order"], "element": "火", "theme": "virtue", "emoji": "⚖️", "gender": "M", "notes": "Human relationships."}, "俸": {"pinyin": "fèng", "meanings": ["Salary", "Stipend", "Pay"], "element": "金", "theme": "prosperity", "emoji": "💰", "gender": "M", "notes": "Official salary."}, "傲": {"pinyin": "ào", "meanings": ["Proud", "Arrogant", "Noble"], "element": "金", "theme": "strength", "emoji": "🦚", "gender": "M", "notes": "Pride and noble bearing."}, "儒": {"pinyin": "rú", "meanings": ["Confucian", "Scholar", "Learned"], "element": "水", "theme": "wisdom", "emoji": "🎓", "gender": "M", "notes": "Confucian scholar. Learned and refined."}, "充": {"pinyin": "chōng", "meanings": ["Fill", "Sufficient", "Full"], "element": "土", "theme": "prosperity", "emoji": "📦", "gender": "M", "notes": "Full and sufficient."}, "共": {"pinyin": "gòng", "meanings": ["Together", "Common", "Share"], "element": "土", "theme": "family", "emoji": "🤝", "gender": "unisex", "notes": "Togetherness and sharing."}, "具": {"pinyin": "jù", "meanings": ["Tool", "Have", "Prepare"], "element": "木", "theme": "talent", "emoji": "🔧", "gender": "M", "notes": "Tool and ability."}, "典": {"pinyin": "diǎn", "meanings": ["Classic", "Standard", "Ceremony"], "element": "火", "theme": "wisdom", "emoji": "📜", "gender": "unisex", "notes": "Classic and standard."}, "冲": {"pinyin": "chōng", "meanings": ["Rush", "Charge", "Pour"], "element": "水", "theme": "strength", "emoji": "💨", "gender": "M", "notes": "To charge forward."}, "决": {"pinyin": "jué", "meanings": ["Decide", "Determine", "Resolute"], "element": "水", "theme": "strength", "emoji": "🎯", "gender": "M", "notes": "Decisive and resolute."}, "冶": {"pinyin": "yě", "meanings": ["Smelt", "Refine", "Seductive"], "element": "火", "theme": "talent", "emoji": "🔥", "gender": "F", "notes": "To refine. Also seductive beauty."}, "冷": {"pinyin": "lěng", "meanings": ["Cold", "Cool", "Unfeeling"], "element": "水", "theme": "nature", "emoji": "🥶", "gender": "unisex", "notes": "Cold and cool."}, "凝": {"pinyin": "níng", "meanings": ["Condense", "Focus"], "element": "水", "theme": "wisdom", "emoji": "💎", "gender": "unisex", "notes": "Concentration."}, "凯": {"pinyin": "kǎi", "meanings": ["Victory", "Triumph", "Melody"], "element": "木", "theme": "strength", "emoji": "🏆", "gender": "M", "notes": "Victory and triumph."}, "央": {"pinyin": "yāng", "meanings": ["Center", "Entreat", "End"], "element": "土", "theme": "virtue", "emoji": "🎯", "gender": "unisex", "notes": "Center. Balance and centrality."}, "失": {"pinyin": "shī", "meanings": ["Lose", "Miss", "Error"], "element": "金", "theme": "wisdom", "emoji": "❌", "gender": "unisex", "notes": "To lose. Used philosophically."}, "头": {"pinyin": "tóu", "meanings": ["Head", "Top", "First"], "element": "火", "theme": "strength", "emoji": "👤", "gender": "M", "notes": "Head and leader."}, "夺": {"pinyin": "duó", "meanings": ["Seize", "Capture", "Strive"], "element": "火", "theme": "strength", "emoji": "🏆", "gender": "M", "notes": "To strive and achieve."}, "夸": {"pinyin": "kuā", "meanings": ["Praise", "Boast", "Extol"], "element": "火", "theme": "strength", "emoji": "👏", "gender": "M", "notes": "To praise and extol."}, "夹": {"pinyin": "jiā", "meanings": ["Clip", "Press", "Lining"], "element": "木", "theme": "family", "emoji": "📎", "gender": "unisex", "notes": "To press together."}, "奉": {"pinyin": "fèng", "meanings": ["Offer", "Respect"], "element": "木", "theme": "virtue", "emoji": "🙏", "gender": "M", "notes": "To offer respectfully."}, "奋": {"pinyin": "fèn", "meanings": ["Strive", "Exert", "Rise up"], "element": "火", "theme": "strength", "emoji": "💪", "gender": "M", "notes": "To strive and exert oneself."}, "奔": {"pinyin": "bēn", "meanings": ["Run fast", "Flee"], "element": "火", "theme": "strength", "emoji": "🏃", "gender": "M", "notes": "To rush ahead."}, "奇": {"pinyin": "qí", "meanings": ["Strange", "Wonder"], "element": "木", "theme": "wisdom", "emoji": "🌟", "gender": "unisex", "notes": "Extraordinary."}, "奈": {"pinyin": "nài", "meanings": ["How", "Endure", "Cope"], "element": "火", "theme": "virtue", "emoji": "💪", "gender": "unisex", "notes": "To endure and cope."}, "契": {"pinyin": "qì", "meanings": ["Contract", "Agree", "Engrave"], "element": "金", "theme": "virtue", "emoji": "📝", "gender": "M", "notes": "Contract and covenant."}, "奥": {"pinyin": "ào", "meanings": ["Mysterious", "Profound", "Austria"], "element": "土", "theme": "wisdom", "emoji": "🔮", "gender": "unisex", "notes": "Mysterious and profound."}, "妮": {"pinyin": "nī", "meanings": ["Girl", "Lass", "Niece"], "element": "火", "theme": "beauty", "emoji": "👧", "gender": "F", "notes": "Young girl. Modern name character."}, "妹": {"pinyin": "mèi", "meanings": ["Younger sister", "Girl"], "element": "火", "theme": "family", "emoji": "👧", "gender": "F", "notes": "Younger sister."}, "妻": {"pinyin": "qī", "meanings": ["Wife", "Spouse"], "element": "火", "theme": "family", "emoji": "💑", "gender": "F", "notes": "Wife. Family character."}, "姑": {"pinyin": "gū", "meanings": ["Aunt", "Maiden", "Temporarily"], "element": "火", "theme": "family", "emoji": "👩", "gender": "F", "notes": "Aunt or maiden."}, "姐": {"pinyin": "jiě", "meanings": ["Older sister", "Young woman"], "element": "火", "theme": "family", "emoji": "👩", "gender": "F", "notes": "Older sister."}, "姓": {"pinyin": "xìng", "meanings": ["Surname", "Family name"], "element": "火", "theme": "family", "emoji": "📛", "gender": "unisex", "notes": "Family name."}, "娃": {"pinyin": "wá", "meanings": ["Baby", "Child", "Doll"], "element": "水", "theme": "family", "emoji": "👶", "gender": "F", "notes": "Baby and child."}, "姨": {"pinyin": "yí", "meanings": ["Aunt", "Mother's sister"], "element": "火", "theme": "family", "emoji": "👩", "gender": "F", "notes": "Maternal aunt."}, "姻": {"pinyin": "yīn", "meanings": ["Marriage", "Relation by marriage"], "element": "水", "theme": "family", "emoji": "💍", "gender": "F", "notes": "Marriage and matrimony."}, "娟": {"pinyin": "juān", "meanings": ["Beautiful", "Graceful"], "element": "水", "theme": "beauty", "emoji": "🌙", "gender": "F", "notes": "Graceful and beautiful."}}</script>
+
+</body>
+</html>
