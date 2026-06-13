@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BaZi Academy — Pitch Deck</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',-apple-system,sans-serif;background:#1a1a2e;color:#fff;overflow:hidden;height:100vh}
+.slides{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);height:100vh}
+.slide{min-width:100vw;height:100vh;display:flex;flex-direction:column;justify-content:center;padding:5vw 8vw;position:relative;overflow-y:auto}
+.slide::-webkit-scrollbar{width:4px}
+.slide::-webkit-scrollbar-thumb{background:rgba(255,255,255,.2);border-radius:2px}
+
+/* Nav */
+.nav{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:100}
+.nav-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.25);cursor:pointer;transition:.3s;border:none}
+.nav-dot.active{background:var(--accent,#c9a43e);width:28px;border-radius:5px}
+.nav-arrows{position:fixed;bottom:30px;right:30px;display:flex;gap:8px;z-index:100}
+.nav-arrows button{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:18px;transition:.3s}
+.nav-arrows button:hover{background:var(--accent,#c9a43e);border-color:var(--accent,#c9a43e)}
+.slide-num{position:fixed;bottom:32px;left:30px;font-size:13px;color:rgba(255,255,255,.4);z-index:100;font-weight:600}
+
+/* Keyboard */
+.key-hint{position:fixed;top:16px;right:16px;font-size:11px;color:rgba(255,255,255,.2);z-index:100}
+
+/* Theme */
+:root{--accent:#c9a43e;--accent2:#8d6e2a}
+.bg-1{background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)}
+.bg-2{background:linear-gradient(135deg,#1a1a2e 0%,#2d1b3d 50%,#4a1942 100%)}
+.bg-3{background:linear-gradient(135deg,#0f0c29 0%,#1a1a2e 50%,#24243e 100%)}
+.bg-4{background:linear-gradient(135deg,#16213e 0%,#1a3a3a 50%,#0f3460 100%)}
+.bg-5{background:linear-gradient(135deg,#1a1a2e 0%,#3d1a1a 50%,#0f3460 100%)}
+.bg-6{background:linear-gradient(135deg,#1a1a2e 0%,#1a2d1a 50%,#0f3460 100%)}
+.bg-7{background:linear-gradient(135deg,#0f3460 0%,#1a1a2e 50%,#16213e 100%)}
+.bg-8{background:linear-gradient(135deg,#2d1b3d 0%,#1a1a2e 50%,#16213e 100%)}
+.bg-9{background:linear-gradient(135deg,#1a1a2e 0%,#0f3460 50%,#1a3a3a 100%)}
+
+h1{font-size:clamp(28px,4vw,56px);font-weight:800;line-height:1.15;margin-bottom:8px}
+h2{font-size:clamp(20px,2.5vw,36px);font-weight:700;margin-bottom:16px;color:var(--accent)}
+h3{font-size:clamp(16px,1.5vw,22px);font-weight:600;margin-bottom:12px;color:rgba(255,255,255,.9)}
+p{font-size:clamp(14px,1.2vw,18px);line-height:1.6;color:rgba(255,255,255,.75);margin-bottom:12px}
+.sub{color:var(--accent);font-weight:600;font-size:clamp(12px,1vw,16px);text-transform:uppercase;letter-spacing:3px;margin-bottom:6px}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,2vw,30px);margin:16px 0}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,1.5vw,24px);margin:16px 0}
+
+.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:clamp(12px,2vw,28px);backdrop-filter:blur(10px);transition:.3s}
+.card:hover{background:rgba(255,255,255,.1);border-color:var(--accent);transform:translateY(-2px)}
+.card .icon{font-size:clamp(24px,3vw,40px);margin-bottom:8px}
+.card h4{font-size:clamp(14px,1.2vw,18px);font-weight:600;margin-bottom:6px}
+.card p{font-size:clamp(12px,1vw,14px);margin:0;color:rgba(255,255,255,.65)}
+
+.big-num{font-size:clamp(32px,5vw,64px);font-weight:800;color:var(--accent);line-height:1}
+.big-num span{font-size:clamp(14px,1.2vw,20px);font-weight:400;color:rgba(255,255,255,.5);display:block}
+
+.tag{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:rgba(201,164,62,.2);color:var(--accent);margin:2px}
+
+.accent{color:var(--accent)}
+.bar-wrap{background:rgba(255,255,255,.08);border-radius:8px;height:28px;overflow:hidden;margin:8px 0;display:flex}
+.bar-fill{display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;transition:width .6s;min-width:0}
+.bar-fill.dev{background:#c9a43e}
+.bar-fill.prod{background:#e74c3c}
+.bar-fill.market{background:#3498db}
+.bar-fill.ops{background:#2ecc71}
+.bar-fill.post{background:#9b59b6}
+
+.timeline{position:relative;padding-left:24px;margin:12px 0}
+.timeline::before{content:'';position:absolute;left:6px;top:0;bottom:0;width:2px;background:rgba(255,255,255,.15)}
+.timeline-item{position:relative;padding:8px 0 8px 16px;border-left:2px solid var(--accent);margin-left:-24px;padding-left:28px}
+.timeline-item::before{content:'';position:absolute;left:-5px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.timeline-item h4{font-size:14px;margin-bottom:2px}
+.timeline-item p{font-size:12px;margin:0;color:rgba(255,255,255,.55)}
+
+@media(max-width:600px){
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .slide{padding:16vw 5vw 20vw}
+  .nav-arrows{right:16px;bottom:70px}
+  .nav{bottom:16px}
+  .slide-num{left:16px;bottom:18px}
+  .key-hint{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="slides" id="slides">
+  <!-- SLIDE 1: Title -->
+  <div class="slide bg-1">
+    <div class="sub">Pitch Deck · Seed Round</div>
+    <h1>🧿 BaZi Academy</h1>
+    <p style="font-size:clamp(16px,1.5vw,24px);color:rgba(255,255,255,.85);max-width:600px">Ancient Chinese wisdom, modern education — the first interactive platform for learning BaZi (八字) / Four Pillars of Destiny.</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+      <span class="tag">EdTech</span>
+      <span class="tag">Chinese Metaphysics</span>
+      <span class="tag">AI-Powered</span>
+      <span class="tag">Mobile-First</span>
+    </div>
+    <div style="margin-top:clamp(20px,3vw,48px)">
+      <p style="margin:0;color:rgba(255,255,255,.4);font-size:13px">Seed Round · $150,000 · Seeking Investment</p>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Problem & Solution -->
+  <div class="slide bg-2">
+    <div class="sub">Problem</div>
+    <h2>BaZi is 2000 years old — but learning it feels impossible</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="icon">📚</div>
+        <h4>Fragmented Knowledge</h4>
+        <p>Information scattered across dense Chinese texts, conflicting translations, and expensive paid courses. No single structured learning path.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔮</div>
+        <h4>High Barrier to Entry</h4>
+        <p>60-year cycles, 10 stems, 12 branches, hidden stems, 10 gods — learners give up before they reach practical application.</p>
+      </div>
+      <div class="card">
+        <div class="icon">💰</div>
+        <h4>Expensive Alternatives</h4>
+        <p>Private masters charge $200-500/hour. Online courses cost $1,000+. No affordable entry point exists.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🌐</div>
+        <h4>Language Gap</h4>
+        <p>80% of BaZi resources are in Chinese. English materials are incomplete, inconsistent, or inaccurate.</p>
+      </div>
+    </div>
+    <div class="sub" style="margin-top:8px">Solution</div>
+    <p><strong class="accent">BaZi Academy</strong> — the first bilingual, interactive, mobile-first platform that takes a beginner from zero to reading full destiny charts in 6 modules.</p>
+  </div>
+
+  <!-- SLIDE 3: Product -->
+  <div class="slide bg-3">
+    <div class="sub">Product</div>
+    <h2>What's already built</h2>
+    <div class="grid-3">
+      <div class="card">
+        <div class="icon">📖</div>
+        <h4>6 Interactive Modules</h4>
+        <p>Five Elements → Ten Gods → Chart Reading. Each with visualizations, quizzes, and progress tracking. Free + Premium tier.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🧮</div>
+        <h4>BaZi Chart Calculator</h4>
+        <p>Enter your birth date → see your Four Pillars, Day Master, Hidden Stems, Ten Gods, Luck Pillars, and Void Branches instantly.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📝</div>
+        <h4>Name Converter</h4>
+        <p>Chinese name → pinyin + meaning + element analysis + real English name. 388 characters in dictionary.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🐍</div>
+        <h4>Python Calculator</h4>
+        <p>Full CLI tool with 17 self-tests. Four Pillars, seasonal power, special patterns, Na Yin tones — production-ready.</p>
+      </div>
+      <div class="card">
+        <div class="icon">📄</div>
+        <h4>Research Handbook</h4>
+        <p>86-page master handbook consolidating all BaZi knowledge: fundamentals, interpretation, cheat sheets, glossary.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🌍</div>
+        <h4>Bilingual Content</h4>
+        <p>Every concept in English + Chinese characters + pinyin. Built from authoritative Chinese source materials.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Budget -->
+  <div class="slide bg-4">
+    <div class="sub">Budget Allocation</div>
+    <h2>$150,000 Seed Round</h2>
+    <div class="bar-wrap" style="height:36px;border-radius:10px;margin:16px 0 8px">
+      <div class="bar-fill dev" style="width:35%">Dev 35%</div>
+      <div class="bar-fill prod" style="width:20%">Content 20%</div>
+      <div class="bar-fill post" style="width:20%">Post-Prod 20%</div>
+      <div class="bar-fill market" style="width:15%">Marketing 15%</div>
+      <div class="bar-fill ops" style="width:10%">Ops 10%</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <h4>🛠️ Development — $52,500 (35%)</h4>
+        <p>Mobile app (Flutter iOS/Android), backend API for personalized readings, AI integration for chart interpretation, user accounts & social features.</p>
+      </div>
+      <div class="card">
+        <h4>📚 Content Production — $30,000 (20%)</h4>
+        <p>Professional video lessons (6 modules × 5 videos), downloadable PDF workbook, advanced module expansion (Luck Pillars, yearly forecasting, relationship compatibility).</p>
+      </div>
+      <div class="card">
+        <h4>🎬 Post-Production — $30,000 (20%)</h4>
+        <p>Voiceover recording (bilingual), video editing & animation, motion graphics for element visualizations, audio mastering, subtitle translation to 3 languages.</p>
+      </div>
+      <div class="card">
+        <h4>🚀 Marketing & Growth — $22,500 (15%)</h4>
+        <p>YouTube channel (BaZi explainers), TikTok/Shorts content, SEO content marketing, influencer partnerships, App Store optimization.</p>
+      </div>
+      <div class="card">
+        <h4>⚙️ Operations — $15,000 (10%)</h4>
+        <p>Legal (TOS, privacy), hosting & CDN, accounting, tools & subscriptions, reserve fund.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Post-Production -->
+  <div class="slide bg-5">
+    <div class="sub">Post-Production</div>
+    <h2>🎬 Content Production Pipeline</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h4>📹 Video Production</h4>
+        <p>30 professional video lessons (8-12 min each):</p>
+        <p style="font-size:13px;margin-top:4px">• Script writing & storyboarding — $5,000</p>
+        <p style="font-size:13px">• Animation & motion graphics — $12,000</p>
+        <p style="font-size:13px">• Screen recording & diagram rendering — $3,000</p>
+        <p style="font-size:13px">• Video editing & color grading — $6,000</p>
+      </div>
+      <div class="card">
+        <h4>🎙️ Audio & Voice</h4>
+        <p style="font-size:13px;margin-top:4px">• Professional voiceover (English, native speaker) — $4,000</p>
+        <p style="font-size:13px">• Chinese voiceover (Mandarin) — $3,000</p>
+        <p style="font-size:13px">• Audio mastering & noise reduction — $2,000</p>
+        <p style="font-size:13px">• Background score & sound design — $1,500</p>
+      </div>
+      <div class="card" style="grid-column:1/-1">
+        <h4>📱 App & Web Integration</h4>
+        <p>All video content embedded into the app with interactive transcript, clickable vocabulary, and quiz integration synced to video timestamps. Estimated: $7,500</p>
+      </div>
+    </div>
+    <p style="font-size:13px;color:rgba(255,255,255,.5);margin-top:8px">Total post-production budget: <strong class="accent">$30,000</strong> — 20% of seed round</p>
+  </div>
+
+  <!-- SLIDE 6: Development Roadmap -->
+  <div class="slide bg-6">
+    <div class="sub">Development Roadmap</div>
+    <h2>🛠️ From MVP to Platform</h2>
+    <div class="timeline">
+      <div class="timeline-item">
+        <h4>📱 Phase 1: Mobile App (Months 1-3)</h4>
+        <p>Flutter cross-platform app (iOS + Android). Offline mode, push notifications, progress sync. $20,000</p>
+      </div>
+      <div class="timeline-item">
+        <h4>🤖 Phase 2: AI Interpretation Engine (Months 4-6)</h4>
+        <p>Train/ fine-tune LLM on BaZi classical texts. Personalized chart readings in plain English. $15,000</p>
+      </div>
+      <div class="timeline-item">
+        <h4>👥 Phase 3: Community & Social (Months 6-8)</h4>
+        <p>User accounts, chart sharing, discussion forums, master Q&A. Leaderboards and achievements. $10,000</p>
+      </div>
+      <div class="timeline-item">
+        <h4>🌍 Phase 4: Expansion (Months 8-12)</h4>
+        <p>3 language translations (Spanish, French, Japanese). Advanced modules: Zi Wei Dou Shu, Feng Shui basics. Subscription billing (Stripe). $7,500</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7: Business Model -->
+  <div class="slide bg-7">
+    <div class="sub">Business Model</div>
+    <h2>💰 Revenue Streams</h2>
+    <div class="grid-3">
+      <div class="card">
+        <div class="big-num">$9.99<span>/month</span></div>
+        <h4>Premium Subscription</h4>
+        <p>Advanced modules, full chart calculator, personalized readings, no ads.</p>
+      </div>
+      <div class="card">
+        <div class="big-num">$49.99<span>/year</span></div>
+        <h4>Annual Plan</h4>
+        <p>58% discount vs monthly. Includes all future module updates.</p>
+      </div>
+      <div class="card">
+        <div class="big-num">$199<span>one-time</span></div>
+        <h4>Master Class</h4>
+        <p>Full video course bundle + 1-on-1 chart reading session with a certified master.</p>
+      </div>
+    </div>
+    <p style="margin-top:8px;max-width:500px">Target: <strong class="accent">10,000 paid users</strong> by month 18 = <strong class="accent">$600,000+</strong> ARR</p>
+  </div>
+
+  <!-- SLIDE 8: Market -->
+  <div class="slide bg-8">
+    <div class="sub">Market Opportunity</div>
+    <h2>📊 Growing Demand</h2>
+    <div class="grid-2">
+      <div class="card">
+        <div class="big-num">$1.2B<span>market size</span></div>
+        <p>Global Chinese metaphysics & astrology market (2024). Growing at 15.6% CAGR.</p>
+      </div>
+      <div class="card">
+        <div class="big-num">48M<span>monthly searches</span></div>
+        <p>Combined search volume for "BaZi", "Four Pillars", "八字" across Google + Baidu.</p>
+      </div>
+      <div class="card">
+        <div class="big-num">0<span>direct competitors</span></div>
+        <p>No interactive, bilingual, mobile-first BaZi learning platform exists today.</p>
+      </div>
+      <div class="card">
+        <div class="big-num">85%<span>English learners</span></div>
+        <p>Of BaZi students prefer English-language materials. Current supply is 80% Chinese.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 9: Ask -->
+  <div class="slide bg-9">
+    <div class="sub">The Ask</div>
+    <h1>$150,000</h1>
+    <p style="font-size:clamp(16px,1.5vw,22px);max-width:500px">Seed investment for <strong class="accent">10% equity</strong> in BaZi Academy</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin:16px 0">
+      <div style="flex:1;min-width:200px" class="card">
+        <h4>📱 Mobile App Launch</h4>
+        <p>Flutter iOS + Android with full offline course</p>
+      </div>
+      <div style="flex:1;min-width:200px" class="card">
+        <h4>🎬 30 Video Lessons</h4>
+        <p>Professional production, bilingual voiceover</p>
+      </div>
+      <div style="flex:1;min-width:200px" class="card">
+        <h4>🤖 AI Interpretation</h4>
+        <p>LLM-powered personalized chart readings</p>
+      </div>
+      <div style="flex:1;min-width:200px" class="card">
+        <h4>🌍 10,000 Users</h4>
+        <p>Target ARR of $600K+ by month 18</p>
+      </div>
+    </div>
+    <p style="margin-top:16px;color:rgba(255,255,255,.4);font-size:14px">Contact: dimatradingcompanyltd@gmail.com</p>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="slide-num" id="slideNum">01 / 09</div>
+<div class="nav" id="nav"></div>
+<div class="nav-arrows">
+  <button onclick="prevSlide()">←</button>
+  <button onclick="nextSlide()">→</button>
+</div>
+<div class="key-hint">← → or Space</div>
+
+<script>
+let current = 0;
+const total = 9;
+
+function renderDots(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = '';
+  for(let i=0;i<total;i++){
+    const dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i===current?' active':'');
+    dot.onclick = ()=>{goTo(i)};
+    nav.appendChild(dot);
+  }
+  document.getElementById('slideNum').textContent = String(current+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+}
+
+function goTo(n){
+  current = Math.max(0,Math.min(n,total-1));
+  document.getElementById('slides').style.transform = `translateX(-${current*100}vw)`;
+  renderDots();
+}
+
+function nextSlide(){goTo(current+1)}
+function prevSlide(){goTo(current-1)}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();nextSlide()}
+  if(e.key==='ArrowLeft'){e.preventDefault();prevSlide()}
+});
+
+// Touch support
+let touchStartX=0,touchEndX=0;
+document.addEventListener('touchstart',e=>{touchStartX=e.changedTouches[0].screenX});
+document.addEventListener('touchend',e=>{
+  touchEndX=e.changedTouches[0].screenX;
+  const diff=touchStartX-touchEndX;
+  if(Math.abs(diff)>50){diff>0?nextSlide():prevSlide()}
+});
+
+renderDots();
+</script>
+</body>
+</html>
