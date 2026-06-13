@@ -28,7 +28,7 @@ a:hover{text-decoration:underline}
 .sidebar-header span{font-size:.75rem;opacity:.7}
 .sidebar-nav{padding:.5rem 0;flex:1}
 .sidebar-nav a{display:flex;align-items:center;gap:.6rem;padding:.65rem 1rem;
-  color:rgba(255,255,255,.8);font-size:.9rem;transition:all .15s;border-left:3px solid transparent}
+  color:rgba(255,255,255,.8);font-size:.9rem;transition:all .15s;border-left:3px solid transparent;cursor:pointer}
 .sidebar-nav a:hover{background:rgba(255,255,255,.08);color:#fff;text-decoration:none}
 .sidebar-nav a.active{background:rgba(255,255,255,.12);color:var(--gold);border-left-color:var(--gold)}
 .sidebar-nav .nav-label{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;
@@ -206,21 +206,21 @@ a:hover{text-decoration:underline}
   </div>
   <div class="sidebar-nav">
     <div class="nav-label">📚 Learning</div>
-    <a href="#" class="active" data-page="home">🏠 Home</a>
-    <a href="#" data-page="module1">1. 五行 · Five Elements</a>
-    <a href="#" data-page="module2">2. 天干 · Heavenly Stems</a>
-    <a href="#" data-page="module3">3. 地支 · Earthly Branches</a>
-    <a href="#" data-page="module4" class="locked-nav">4. 藏干 · Hidden Stems 🔒</a>
-    <a href="#" data-page="module5" class="locked-nav">5. 十神 · Ten Gods 🔒</a>
-    <a href="#" data-page="module6" class="locked-nav">6. Chart Reading 🔒</a>
+    <a class="active" data-page="home">🏠 Home</a>
+    <a data-page="module1">1. 五行 · Five Elements</a>
+    <a data-page="module2">2. 天干 · Heavenly Stems</a>
+    <a data-page="module3">3. 地支 · Earthly Branches</a>
+    <a data-page="module4" class="locked-nav">4. 藏干 · Hidden Stems 🔒</a>
+    <a data-page="module5" class="locked-nav">5. 十神 · Ten Gods 🔒</a>
+    <a data-page="module6" class="locked-nav">6. Chart Reading 🔒</a>
 
     <div class="nav-label">🛠️ Tools</div>
-    <a href="#" data-page="calculator">🔢 Chart Calculator</a>
-    <a href="#" data-page="nameconverter">📝 Name Converter</a>
+    <a data-page="calculator">🔢 Chart Calculator</a>
+    <a data-page="nameconverter">📝 Name Converter</a>
 
     <div class="nav-label">⚙️ Account</div>
-    <a href="#" data-page="progress">📊 My Progress</a>
-    <a href="#" data-page="subscription">💎 Subscription</a>
+    <a data-page="progress">📊 My Progress</a>
+    <a data-page="subscription">💎 Subscription</a>
   </div>
   <div class="sidebar-footer">
     <div class="sub-status free" id="navSubStatus">🔓 Free Tier</div>
