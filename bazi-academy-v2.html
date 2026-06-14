@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BaZi Academy · 八字入门</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#faf3e6;--card:#fffbf0;--text:#3e2723;--text2:#6d4c41;--accent:#8d6e2a;--gold:#c9a43e;--wood:#4CAF50;--fire:#FF5722;--earth:#FFC107;--metal:#9E9E9E;--water:#2196F3;--radius:10px;--shadow:0 1px 6px rgba(62,39,35,.1)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+
+/* LAYOUT */
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.side{width:240px;background:#3e2723;color:#fff;display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100;transition:transform .3s}
+.side-h{padding:16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.side-h h1{font-size:16px;font-weight:700}
+.side-h span{font-size:11px;opacity:.7}
+.side-l{padding:6px 0;flex:1}
+.side-l button{display:flex;align-items:center;gap:8px;width:100%;padding:10px 16px;border:none;background:transparent;color:rgba(255,255,255,.8);font-size:13px;text-align:left;cursor:pointer;transition:.15s;border-left:3px solid transparent;font-family:inherit}
+.side-l button:hover{background:rgba(255,255,255,.08);color:#fff}
+.side-l button.act{background:rgba(255,255,255,.12);color:var(--gold);border-left-color:var(--gold)}
+.side-l .lb{font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:10px 16px 4px;color:rgba(255,255,255,.4)}
+.side-f{padding:12px 16px;border-top:1px solid rgba(255,255,255,.1);font-size:11px;text-align:center;color:rgba(255,255,255,.5)}
+
+/* MAIN */
+.main{flex:1;padding:20px 24px 40px;min-width:0;transition:margin-left .3s}
+.main h2{font-size:20px;margin-bottom:4px}
+.main h2 .cn{color:var(--accent);font-weight:400}
+.main h3{font-size:15px;margin:12px 0 6px;color:var(--text2)}
+
+/* HAMBURGER */
+.hamb{display:none;position:fixed;top:10px;left:10px;z-index:200;width:40px;height:40px;border:none;border-radius:10px;background:#3e2723;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.3);align-items:center;justify-content:center}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:99}
+
+/* PAGES */
+.pg{display:none}
+.pg.act{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:var(--shadow);border:1px solid rgba(201,164,62,.1)}
+.card p{font-size:13px;line-height:1.6;color:var(--text2);margin:4px 0}
+.card h4{font-size:14px;margin-bottom:6px}
+.btn{display:inline-flex;align-items:center;gap:4px;padding:7px 14px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+.btn-p{background:var(--accent);color:#fff}
+.btn-s{background:#e8ddd0;color:var(--text)}
+.btn-g{background:var(--gold);color:#3e2723}
+
+.el-b{display:inline-block;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:600;color:#fff;margin:1px}
+.el-木{background:var(--wood)}.el-火{background:var(--fire)}.el-土{background:var(--earth);color:#3e2723}.el-金{background:var(--metal);color:#3e2723}.el-水{background:var(--water)}
+
+.tbl{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
+.tbl th{background:#3e2723;color:#fff;padding:5px 6px;text-align:left}
+.tbl td{padding:4px 6px;border-bottom:1px solid #e8ddd0}
+.tbl tr:nth-child(even){background:rgba(201,164,62,.06)}
+
+.pbar{height:5px;background:#e8ddd0;border-radius:3px;overflow:hidden;margin:6px 0}
+.pbar .f{height:100%;background:var(--gold);border-radius:3px;transition:width .4s}
+
+.mod-l{display:flex;flex-direction:column;gap:6px}
+.mod-c{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid #e0d5c0;border-radius:var(--radius);cursor:pointer;transition:.15s}
+.mod-c:hover{border-color:var(--gold)}
+.mod-c .ico{font-size:22px;width:32px;text-align:center}
+.mod-c .info{flex:1}
+.mod-c .info .t{font-size:14px;font-weight:600}
+.mod-c .info .m{font-size:11px;color:var(--text2)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+
+.c-f{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:6px 0}
+.c-f label{font-size:11px;color:var(--text2);display:block;margin-bottom:2px}
+.c-f select,.c-f input{width:100%;padding:6px 8px;border:1px solid #ddd0c0;border-radius:6px;font-size:13px;background:#fff}
+
+.pil-g{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:8px 0}
+.pil-c{text-align:center;padding:8px 2px;border-radius:8px;background:var(--bg);border:1px solid #e0d5c0}
+.pil-c .lb{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
+.pil-c .st{font-size:18px;font-weight:700}
+.pil-c .br{font-size:18px;font-weight:700}
+
+.quiz label{display:block;padding:5px 6px;margin:2px 0;border-radius:6px;font-size:13px;cursor:pointer}
+.quiz input{margin-right:6px}
+.qf{padding:5px 8px;border-radius:6px;font-size:12px;margin-top:4px}
+.qf.ok{background:#e8f5e9;color:#2e7d32}
+.qf.bad{background:#ffebee;color:#c62828}
+
+.sub-o{display:flex;gap:6px;margin:6px 0}
+.sub-o>div{flex:1;text-align:center;padding:10px;border-radius:var(--radius);border:2px solid #e0d5c0;cursor:pointer}
+.sub-o>div.act{border-color:var(--gold);background:rgba(201,164,62,.08)}
+.sub-o .pr{font-size:20px;font-weight:700;color:var(--gold)}
+.sub-o .lb2{font-size:13px;font-weight:600;margin-bottom:4px}
+
+.bk{position:fixed;top:10px;left:56px;z-index:199;background:rgba(62,39,35,.85);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;backdrop-filter:blur(6px);display:none;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+
+@media(max-width:900px){
+  .side{position:fixed;left:0;top:0;bottom:0;transform:translateX(-100%)}
+  .side.open{transform:translateX(0)}
+  .overlay.open{display:block}
+  .hamb{display:flex}
+  .main{padding:52px 14px 24px}
+  .c-f{grid-template-columns:1fr 1fr}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<button class="hamb" id="hamb">☰</button>
+<div class="overlay" id="overlay"></div>
+<button class="bk" id="bk">← Back</button>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="side" id="side">
+    <div class="side-h"><h1>🧿 BaZi Academy</h1><span>八字入门</span></div>
+    <div class="side-l" id="sideL"></div>
+    <div class="side-f">BaZi Academy v2</div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main" id="main">
+    <div class="pg act" id="pg-home"></div>
+    <div class="pg" id="pg-lesson"></div>
+    <div class="pg" id="pg-calc"></div>
+    <div class="pg" id="pg-name"></div>
+    <div class="pg" id="pg-progress"></div>
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+
+const SECTIONS = [
+  {id:'home',label:'Home',ico:'🏠',group:'📚 Learning'},
+  {id:'m1',label:'1. 五行 · Five Elements',ico:'🌳',group:'📚 Learning',free:true},
+  {id:'m2',label:'2. 天干 · Heavenly Stems',ico:'☀️',group:'📚 Learning',free:true},
+  {id:'m3',label:'3. 地支 · Earthly Branches',ico:'🐉',group:'📚 Learning',free:true},
+  {id:'m4',label:'4. 藏干 · Hidden Stems',ico:'🔍',group:'📚 Learning',free:false},
+  {id:'m5',label:'5. 十神 · Ten Gods',ico:'🃏',group:'📚 Learning',free:false},
+  {id:'m6',label:'6. Chart Reading',ico:'📊',group:'📚 Learning',free:false},
+  {id:'calc',label:'Chart Calculator',ico:'🔢',group:'🛠️ Tools'},
+  {id:'name',label:'Name Converter',ico:'📝',group:'🛠️ Tools'},
+  {id:'progress',label:'My Progress',ico:'📊',group:'⚙️ Account'}
+];
+
+const MODS = [
+  {id:'m1',title:'Five Elements',cn:'五行',ico:'🌳',free:true,time:'20 min'},
+  {id:'m2',title:'Heavenly Stems',cn:'天干',ico:'☀️',free:true,time:'25 min'},
+  {id:'m3',title:'Earthly Branches',cn:'地支',ico:'🐉',free:true,time:'30 min'},
+  {id:'m4',title:'Hidden Stems',cn:'藏干',ico:'🔍',free:false,time:'20 min'},
+  {id:'m5',title:'Ten Gods',cn:'十神',ico:'🃏',free:false,time:'25 min'},
+  {id:'m6',title:'Chart Reading',cn:'综合解读',ico:'📊',free:false,time:'30 min'}
+];
+
+const LESSONS = {
+  m1:{html:`<h3>🏯 What are the Five Elements?</h3><p>The Five Elements (五行) are Wood (木), Fire (火), Earth (土), Metal (金), and Water (水). They interact through two cycles.</p><div style="display:flex;justify-content:center;gap:3px;flex-wrap:wrap;margin:8px 0;font-size:12px"><span style="background:#4CAF50;color:#fff;padding:6px 10px;border-radius:20px">🌳 Wood</span><span style="font-size:18px;color:var(--accent)">→</span><span style="background:#FF5722;color:#fff;padding:6px 10px;border-radius:20px">🔥 Fire</span><span style="font-size:18px;color:var(--accent)">→</span><span style="background:#FFC107;color:#3e2723;padding:6px 10px;border-radius:20px">⛰️ Earth</span><span style="font-size:18px;color:var(--accent)">→</span><span style="background:#9E9E9E;color:#3e2723;padding:6px 10px;border-radius:20px">⚙️ Metal</span><span style="font-size:18px;color:var(--accent)">→</span><span style="background:#2196F3;color:#fff;padding:6px 10px;border-radius:20px">💧 Water</span></div><p><strong>Generation (相生):</strong> Wood→Fire→Earth→Metal→Water→Wood</p><p><strong>Destruction (相克):</strong> Wood→Earth→Water→Fire→Metal→Wood</p>`},
+  m2:{html:`<h3>🏮 The Ten Heavenly Stems</h3><p>The Ten Heavenly Stems (天干) are yang/yin pairs of the Five Elements.</p>`},
+  m3:{html:`<h3>🐉 The Twelve Earthly Branches</h3><p>The Twelve Earthly Branches (地支) correspond to the 12 zodiac animals.</p>`},
+  m4:{html:`<h3>🔍 Hidden Stems (藏干)</h3><p>Each Earthly Branch contains hidden Heavenly Stems inside it.</p>`},
+  m5:{html:`<h3>🃏 Ten Gods (十神)</h3><p>The 10 spiritual relationships that define your chart dynamics.</p>`},
+  m6:{html:`<h3>📊 Chart Reading</h3><p>Putting it all together — read a complete BaZi chart.</p>`}
+};
+
+const QUIZZES = {
+  m1:[{q:"Which element generates Fire?",o:["💧 Water","⚙️ Metal","🌳 Wood","⛰️ Earth"],a:2},{q:"Metal is associated with which season?",o:["Spring","Summer","Autumn","Winter"],a:2},{q:"What does Earth control?",o:["🌳 Wood","🔥 Fire","⚙️ Metal","💧 Water"],a:3}]
+};
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+
+let curPage = 'home';
+let isPremium = localStorage.getItem('bazi_premium2') === 'true';
+let progress = JSON.parse(localStorage.getItem('bazi_progress2') || '{}');
+
+// ═══════════════════════════════════════════════
+// RENDER SIDEBAR
+// ═══════════════════════════════════════════════
+
+function renderSidebar(){
+  const l = document.getElementById('sideL');
+  let html = '', lastGroup = '';
+  SECTIONS.forEach(s=>{
+    if(s.group !== lastGroup){ html += `<div class="lb">${s.group}</div>`; lastGroup=s.group; }
+    const locked = !s.free && s.free!==undefined && !isPremium;
+    html += `<button class="${curPage===s.id?'act':''}" data-p="${s.id}">${locked?'🔒':s.ico} ${s.label}</button>`;
+  });
+  l.innerHTML = html;
+  // Attach click handlers
+  l.querySelectorAll('button').forEach(b=>{
+    b.onclick = function(){
+      const id = this.getAttribute('data-p');
+      const s = SECTIONS.find(x=>x.id===id);
+      if(s && s.free===false && !isPremium) { showUpgrade(); return; }
+      goTo(id);
+    };
+  });
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+
+function goTo(id){
+  curPage = id;
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('act'));
+  // Modules use pg-lesson, others use their own pg
+  const targetId = id.startsWith('m') ? 'lesson' : id;
+  const target = document.getElementById('pg-'+targetId);
+  if(target) target.classList.add('act');
+
+  renderSidebar();
+  renderPage(id);
+  closeSidebar();
+  updateBack(id);
+  window.scrollTo(0,0);
+}
+
+function closeSidebar(){
+  if(window.innerWidth<=900){
+    document.getElementById('side').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+  }
+}
+
+function updateBack(id){
+  const bk = document.getElementById('bk');
+  if(id!=='home' && window.innerWidth<=900){
+    bk.style.display = 'flex';
+    bk.onclick = ()=>{ goTo('home'); };
+  } else {
+    bk.style.display = 'none';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// HAMBURGER
+// ═══════════════════════════════════════════════
+
+document.getElementById('hamb').onclick = function(){
+  document.getElementById('side').classList.toggle('open');
+  document.getElementById('overlay').classList.toggle('open');
+};
+document.getElementById('overlay').onclick = function(){
+  document.getElementById('side').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+};
+
+// ═══════════════════════════════════════════════
+// RENDER PAGES
+// ═══════════════════════════════════════════════
+
+function renderPage(id){
+  if(id==='home') renderHome();
+  else if(id.startsWith('m')) renderLesson(id);
+  else if(id==='calc') renderCalc();
+  else if(id==='name') renderName();
+  else if(id==='progress') renderProgress();
+}
+
+function renderHome(){
+  const pg = document.getElementById('pg-home');
+  const done = MODS.filter(m=>progress[m.id]).length;
+  const pct = Math.round(done/6*100);
+  let html = `<div class="card"><p>Discover BaZi (八字) — a 2000-year-old system of destiny analysis. This course covers the Five Elements, Heavenly Stems, Earthly Branches, and how they form your destiny chart.</p></div>`;
+  html += `<div class="card"><h4>📊 Progress</h4><div class="pbar"><div class="f" style="width:${pct}%"></div></div><p style="font-size:12px">${done}/6 modules</p></div>`;
+  html += `<div class="mod-l">`;
+  MODS.forEach(m=>{
+    const d = progress[m.id];
+    const l = !m.free && !isPremium;
+    html += `<div class="mod-c" onclick="${l ? 'showUpgrade()' : "goTo('"+m.id+"')"}">`;
+    html += `<div class="ico">${l ? '🔒' : (d ? '✅' : m.ico)}</div>`;
+    html += `<div class="info"><div class="t">${m.ico} ${m.cn} — ${m.title}</div><div class="m">${d?'✅ Completed':(l?'🔒 Premium':'📖 '+m.time)}</div></div>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  pg.innerHTML = html;
+}
+
+function renderLesson(id){
+  const m = MODS.find(x=>x.id===id);
+  if(!m) return goTo('home');
+  const pg = document.getElementById('pg-lesson');
+  const ls = LESSONS[id];
+  let html = `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">`;
+  if(window.innerWidth<=900) html += `<button class="btn btn-s btn-sm" onclick="goTo('home')">← Back</button>`;
+  html += `<span style="font-weight:600;font-size:15px">${m.ico} ${m.cn} — ${m.title}</span></div>`;
+  if(ls && ls.html) html += `<div class="card">${ls.html}</div>`;
+  // Quiz
+  const qz = QUIZZES[id];
+  if(qz){
+    html += `<div class="card"><h4>📝 Quiz</h4>`;
+    qz.forEach((q,qi)=>{
+      html += `<div class="quiz"><p style="font-weight:600;font-size:13px;margin:6px 0 4px">${qi+1}. ${q.q}</p>`;
+      q.o.forEach((o,oi)=>{
+        html += `<label><input type="radio" name="q-${id}-${qi}" value="${oi}"> ${o}</label>`;
+      });
+      html += `<div class="qf" id="qf-${id}-${qi}" style="display:none"></div></div>`;
+    });
+    html += `<button class="btn btn-p btn-sm" onclick="checkQuiz('${id}')" style="margin-top:6px">✅ Check</button> `;
+    html += `<button class="btn btn-s btn-sm" onclick="resetQuiz('${id}')">🔄 Retake</button>`;
+    html += `</div>`;
+  }
+  pg.innerHTML = html;
+}
+
+function checkQuiz(id){
+  const qz = QUIZZES[id];
+  if(!qz) return;
+  let allOk = true;
+  qz.forEach((q,qi)=>{
+    const sel = document.querySelector(`input[name="q-${id}-${qi}"]:checked`);
+    const fb = document.getElementById(`qf-${id}-${qi}`);
+    if(!sel){ fb.className='qf bad'; fb.textContent='❌ Pick an answer'; fb.style.display='block'; allOk=false; return; }
+    if(parseInt(sel.value)===q.a){ fb.className='qf ok'; fb.textContent='✅ Correct!'; }
+    else { fb.className='qf bad'; fb.textContent='❌ Wrong'; allOk=false; }
+    fb.style.display='block';
+  });
+  if(allOk){ progress[id]=true; localStorage.setItem('bazi_progress2',JSON.stringify(progress)); renderHome(); }
+}
+
+function resetQuiz(id){
+  document.querySelectorAll(`[name^="q-${id}-"]`).forEach(r=>r.checked=false);
+  document.querySelectorAll(`[id^="qf-${id}-"]`).forEach(e=>e.style.display='none');
+}
+
+// CALC
+function renderCalc(){
+  const pg = document.getElementById('pg-calc');
+  pg.innerHTML = `<div class="card"><h4>🔢 BaZi Chart Calculator</h4><p style="font-size:12px">Enter your birth date</p>
+    <div class="c-f"><div><label>Name</label><input id="cN" placeholder="Name"></div>
+    <div><label>Year</label><select id="cY"></select></div>
+    <div><label>Month</label><select id="cM"></select></div>
+    <div><label>Day</label><select id="cD"></select></div>
+    <div><label>Hour</label><select id="cH"></select></div>
+    <div><label>Gender</label><select id="cG"><option value="m">Male</option><option value="f">Female</option></select></div></div>
+    <button class="btn btn-p" onclick="calcChart()" style="width:100%;justify-content:center">🔮 Calculate</button></div>
+    <div id="cR"></div>`;
+  // Fill selects
+  const y=document.getElementById('cY'),m=document.getElementById('cM'),d=document.getElementById('cD'),h=document.getElementById('cH');
+  for(let i=1920;i<=2030;i++){const o=document.createElement('option');o.value=i;o.textContent=i;if(i===1990)o.selected=true;y.appendChild(o)}
+  for(let i=1;i<=12;i++){const o=document.createElement('option');o.value=i;o.textContent=i;if(i===3)o.selected=true;m.appendChild(o)}
+  for(let i=1;i<=31;i++){const o=document.createElement('option');o.value=i;o.textContent=i;if(i===15)o.selected=true;d.appendChild(o)}
+  ['23-01 子','01-03 丑','03-05 寅','05-07 卯','07-09 辰','09-11 巳','11-13 午','13-15 未','15-17 申','17-19 酉','19-21 戌','21-23 亥'].forEach((s,i)=>{const o=document.createElement('option');o.value=i;o.textContent=s;if(i===6)o.selected=true;h.appendChild(o)});
+}
+
+const STEMS='甲乙丙丁戊己庚辛壬癸',BRANCHES='子丑寅卯辰巳午未申酉戌亥',STEM_E='木木火火土土金金水水',BR_E='水土木木土火火土金金土水';
+
+function calcChart(){
+  const yr=parseInt(document.getElementById('cY').value),mo=parseInt(document.getElementById('cM').value),da=parseInt(document.getElementById('cD').value),hr=parseInt(document.getElementById('cH').value);
+  const yS=(yr-4)%10,yB=(yr-4)%12,ref=new Date(1900,0,31),bth=new Date(yr,mo-1,da),dd=Math.round((bth-ref)/86400000),dS=((dd%10)+10)%10,dB=((dd%12)+12)%12,mS=((yr-4)*2+mo+2)%10,mB=(mo+1)%12,hS=(dS%5)*2+hr,hB=hr;
+  const pils=[{l:'Year',s:yS,b:yB},{l:'Month',s:mS,b:mB},{l:'Day',s:dS,b:dB},{l:'Hour',s:hS,b:hB}];
+  let html=`<div class="card"><h4>📊 Chart</h4><div class="pil-g">`;
+  pils.forEach(p=>{html+=`<div class="pil-c"><div class="lb">${p.l}</div><div class="st">${STEMS[p.s]}</div><div class="br">${BRANCHES[p.b]}</div></div>`});
+  html+=`</div><p style="font-size:13px;font-weight:600">Day Master: ${STEMS[dS]} (${STEM_E[dS]})</p></div>`;
+  document.getElementById('cR').innerHTML = html;
+}
+
+// NAME CONVERTER
+function renderName(){
+  const pg = document.getElementById('pg-name');
+  pg.innerHTML = `<div class="card"><h4>📝 Name Converter</h4><div style="display:flex;gap:6px;margin:6px 0">
+    <input id="nI" style="flex:1;padding:8px 10px;border:1px solid #ddd0c0;border-radius:8px;font-size:15px" placeholder="e.g. 张伟明">
+    <button class="btn btn-p" onclick="convName()">⟳</button></div><div id="nR"></div></div>`;
+  document.getElementById('nI').oninput = convName;
+}
+
+const NDICT={"伟":{"p":"wěi","m":["Great","Mighty"],"e":"土","emo":"✨"},"明":{"p":"míng","m":["Bright","Clear"],"e":"火","emo":"💡"},"慧":{"p":"huì","m":["Wise","Intelligent"],"e":"水","emo":"🦉"},"琳":{"p":"lín","m":["Jade","Gem"],"e":"木","emo":"💎"},"强":{"p":"qiáng","m":["Strong","Powerful"],"e":"金","emo":"💪"},"雅":{"p":"yǎ","m":["Elegant","Refined"],"e":"木","emo":"🎵"},"婷":{"p":"tíng","m":["Graceful","Elegant"],"e":"木","emo":"💃"},"志":{"p":"zhì","m":["Ambition","Will"],"e":"火","emo":"🎯"},"龙":{"p":"lóng","m":["Dragon","Noble"],"e":"水","emo":"🐉"},"美":{"p":"měi","m":["Beautiful"],"e":"水","emo":"🌸"},"丽":{"p":"lì","m":["Beautiful","Lovely"],"e":"火","emo":"💐"},"娜":{"p":"nà","m":["Elegant","Charming"],"e":"水","emo":"✨"},"杰":{"p":"jié","m":["Outstanding"],"e":"木","emo":"🌟"},"文":{"p":"wén","m":["Literary","Elegant"],"e":"水","emo":"📖"},"博":{"p":"bó","m":["Broad","Erudite"],"e":"水","emo":"🌐"},"睿":{"p":"ruì","m":["Astute","Wise"],"e":"金","emo":"🔮"},"英":{"p":"yīng","m":["Heroic","Brave"],"e":"木","emo":"🏆"},"勇":{"p":"yǒng","m":["Brave","Courageous"],"e":"火","emo":"🦁"},"毅":{"p":"yì","m":["Firm","Persevering"],"e":"木","emo":"🎯"},"健":{"p":"jiàn","m":["Healthy","Strong"],"e":"木","emo":"🏋️"},"海":{"p":"hǎi","m":["Ocean","Sea"],"e":"水","emo":"🌊"},"天":{"p":"tiān","m":["Heaven","Sky"],"e":"火","emo":"🌌"},"秀":{"p":"xiù","m":["Elegant","Graceful"],"e":"木","emo":"🌿"}};
+
+function convName(){
+  const i=document.getElementById('nI').value.trim(),r=document.getElementById('nR');
+  if(!i){r.innerHTML='';return;}
+  const ch=[...i];
+  let html=`<div style="text-align:center;font-size:20px;font-weight:700;margin-bottom:4px">${i}</div>`;
+  const py=ch.map(c=>NDICT[c]?NDICT[c].p:'').filter(Boolean).map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join(' ');
+  if(py) html+=`<div style="text-align:center;color:var(--text2);font-size:14px;margin-bottom:6px">${py}</div>`;
+  html+=`<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center">`;
+  ch.forEach(c=>{
+    const d=NDICT[c];
+    html+=`<div style="text-align:center;padding:6px 10px;background:var(--bg);border-radius:8px;border:1px solid #e0d5c0;min-width:60px">`;
+    html+=`<div style="font-size:20px;font-weight:700">${c}</div>`;
+    if(d) html+=`<div style="font-size:10px;color:var(--text2)">${d.emo} ${d.m.slice(0,2).join(' · ')}</div><span class="el-b el-${d.e}">${d.e}</span>`;
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+  r.innerHTML=html;
+}
+
+// PROGRESS
+function renderProgress(){
+  const pg = document.getElementById('pg-progress');
+  const done = MODS.filter(m=>progress[m.id]).length;
+  const pct = Math.round(done/6*100);
+  let html = `<div class="card"><h4>📊 Progress</h4><div class="pbar"><div class="f" style="width:${pct}%"></div></div>`;
+  html += `<p style="font-size:13px">${done}/6 modules completed</p></div>`;
+  html += `<div class="card"><h4>💎 Subscription</h4>`;
+  if(isPremium){
+    html += `<p style="font-size:13px">You are on <strong>Premium</strong> 🎉 All modules unlocked.</p>`;
+  } else {
+    html += `<p style="font-size:13px">Free tier: modules 1-3. Upgrade for full access.</p>`;
+    html += `<button class="btn btn-g" onclick="upgrade()" style="width:100%;justify-content:center;margin-top:6px">✨ Upgrade $9.99/mo</button>`;
+  }
+  html += `</div>`;
+  MODS.forEach(m=>{
+    const d=progress[m.id];
+    html+=`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid #f0ebe4;font-size:13px">
+      <span>${d?'✅':(m.free?'📖':'🔒')}</span><span>${m.ico} ${m.cn} — ${m.title}</span></div>`;
+  });
+  pg.innerHTML = html;
+}
+
+function showUpgrade(){ goTo('progress'); }
+function upgrade(){ isPremium=true; localStorage.setItem('bazi_premium2','true'); renderSidebar(); renderHome(); renderProgress(); }
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+
+renderSidebar();
+renderHome();
+
+// Close sidebar on resize to desktop
+window.addEventListener('resize',()=>{
+  if(window.innerWidth>900){
+    document.getElementById('side').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('bk').style.display='none';
+  }
+});
+</script>
+</body>
+</html>
