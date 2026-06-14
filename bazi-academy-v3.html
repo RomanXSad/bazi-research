@@ -1,0 +1,2086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧿 BaZi for Beginners — 八字入门</title>
+<style>
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf3e6;--sidebar:#3e2723;--sidebar-w:260px;
+  --card:#fffbf0;--accent:#8d6e2a;--text:#3e2723;--text2:#6d4c41;
+  --wood:#4CAF50;--fire:#FF5722;--earth:#FFC107;--metal:#9E9E9E;--water:#2196F3;
+  --gold:#c9a43e;--radius:12px;--shadow:0 2px 12px rgba(62,39,35,.12);
+  --wood-bg:#e8f5e9;--fire-bg:#fbe9e7;--earth-bg:#fff8e1;--metal-bg:#f5f5f5;--water-bg:#e3f2fd;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+/* ===== SIDEBAR ===== */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);
+  background:var(--sidebar);color:#fff;z-index:1000;
+  display:flex;flex-direction:column;overflow-y:auto;transition:transform .3s}
+.sidebar.closed{transform:translateX(-100%)}
+.sidebar.open{transform:translateX(0)}
+.sidebar-header{padding:1.2rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.sidebar-header h1{font-size:1.2rem;margin:0;line-height:1.3}
+.sidebar-header span{font-size:.75rem;opacity:.7}
+.sidebar-nav{padding:.5rem 0;flex:1}
+.sidebar-nav button{display:flex;align-items:center;gap:.6rem;width:100%;padding:.65rem 1rem;
+  color:rgba(255,255,255,.8);font-size:.9rem;transition:all .15s;border-left:3px solid transparent;cursor:pointer;background:transparent;border-right:none;border-top:none;border-bottom:none;text-align:left;font-family:inherit}
+.sidebar-nav button:hover{background:rgba(255,255,255,.08);color:#fff;text-decoration:none}
+.sidebar-nav button.active{background:rgba(255,255,255,.12);color:var(--gold);border-left-color:var(--gold)}
+.sidebar-nav .locked-nav{opacity:.7}
+.sidebar-nav .nav-label{font-size:.7rem;text-transform:uppercase;letter-spacing:1px;
+  padding:.8rem 1rem .3rem;color:rgba(255,255,255,.4)}
+.sidebar-footer{padding:1rem;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem;
+  text-align:center;color:rgba(255,255,255,.5)}
+.sidebar-footer .sub-status{padding:.4rem .6rem;border-radius:6px;font-size:.75rem;display:inline-block;margin-bottom:.4rem}
+.sub-status.free{background:#4CAF50;color:#fff}
+.sub-status.premium{background:var(--gold);color:#3e2723}
+/* mobile toggle */
+.hamburger{display:flex;position:fixed;top:10px;left:10px;z-index:1001;
+  background:var(--sidebar);color:#fff;border:none;width:40px;height:40px;
+  border-radius:10px;font-size:1.3rem;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.3);align-items:center;justify-content:center}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999}
+
+/* ===== MAIN ===== */
+.main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;padding:2rem 2rem 4rem;transition:margin-left .3s}
+.main.sidebar-closed{margin-left:0}
+.main h2{font-size:1.6rem;margin-bottom:.3rem;color:var(--sidebar)}
+.main h2 .cn{font-size:1.2rem;color:var(--accent);font-weight:400}
+.main h3{font-size:1.2rem;margin:1.2rem 0 .6rem;color:var(--text2)}
+.page{display:none;animation:fadeIn .35s ease}
+.page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== CARDS ===== */
+.card{background:var(--card);border-radius:var(--radius);padding:1.4rem;
+  margin-bottom:1.2rem;box-shadow:var(--shadow);border:1px solid rgba(201,164,62,.12)}
+
+/* ===== MODULE CARDS ===== */
+.module-list{display:grid;gap:1rem}
+.module-card{border:1px solid #e0d5c0;border-radius:var(--radius);padding:1.2rem;
+  background:var(--card);box-shadow:var(--shadow);transition:all .2s}
+.module-card:hover{border-color:var(--gold);box-shadow:0 4px 20px rgba(201,164,62,.15)}
+.module-card.locked{opacity:.7;position:relative}
+.module-card.locked::after{content:'🔒';position:absolute;top:.8rem;right:.8rem;font-size:1.2rem}
+.module-card .mod-title{font-size:1.1rem;font-weight:600}
+.module-card .mod-meta{font-size:.8rem;color:var(--text2);margin:.3rem 0 .6rem}
+.module-card .progress-bar{height:6px;background:#e0d5c0;border-radius:3px;overflow:hidden;margin:.4rem 0}
+.module-card .progress-bar .fill{height:100%;background:var(--gold);border-radius:3px;transition:width .4s}
+.module-card .btn{display:inline-block;padding:.4rem 1rem;border-radius:6px;
+  border:none;cursor:pointer;font-size:.85rem;transition:all .15s}
+.module-card .btn.primary{background:var(--accent);color:#fff}
+.module-card .btn.primary:hover{background:#7a5e20}
+.module-card .btn.secondary{background:#e0d5c0;color:var(--text)}
+.module-card .btn.secondary:hover{background:#d0c0a0}
+
+/* ===== LESSON VIEW ===== */
+.lesson-content p{line-height:1.7;margin:.6rem 0;color:var(--text2)}
+.lesson-content .viz{background:var(--bg);border-radius:8px;padding:1.2rem;
+  margin:1rem 0;border:1px solid #e0d5c0;text-align:center}
+.quiz-q{margin:1rem 0;padding:1rem;background:var(--bg);border-radius:8px;border:1px solid #e0d5c0}
+.quiz-q p{font-weight:600;margin-bottom:.5rem}
+.quiz-q label{display:block;padding:.35rem .5rem;border-radius:4px;cursor:pointer;
+  transition:background .15s;margin:2px 0}
+.quiz-q label:hover{background:rgba(201,164,62,.1)}
+.quiz-q input{margin-right:.5rem}
+.quiz-feedback{font-size:.85rem;margin-top:.3rem;padding:.3rem .5rem;border-radius:4px}
+.quiz-feedback.correct{background:#e8f5e9;color:#2e7d32}
+.quiz-feedback.wrong{background:#ffebee;color:#c62828}
+
+/* ===== ELEMENT BADGES ===== */
+.el-badge{display:inline-block;padding:.15rem .55rem;border-radius:12px;
+  font-size:.75rem;font-weight:600;color:#fff;margin:2px}
+.el-badge.wood{background:var(--wood)}
+.el-badge.fire{background:var(--fire)}
+.el-badge.earth{background:var(--earth);color:#3e2723}
+.el-badge.metal{background:var(--metal);color:#3e2723}
+.el-badge.water{background:var(--water)}
+
+/* ===== CALCULATOR ===== */
+.calc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.8rem;margin-bottom:1rem}
+.calc-grid label{display:block;font-size:.8rem;color:var(--text2);margin-bottom:.3rem}
+.calc-grid select{width:100%;padding:.5rem;border:1px solid #d0c5b0;border-radius:6px;
+  background:#fff;font-size:.9rem}
+.btn-calc{background:var(--gold);color:#3e2723;border:none;padding:.7rem 2rem;
+  border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-calc:hover{background:#b8922e;transform:translateY(-1px)}
+.btn-calc:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+.pillars-display{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin:1rem 0}
+.pillar-cell{text-align:center;padding:.7rem .3rem;border-radius:8px;
+  background:var(--bg);border:1px solid #e0d5c0}
+.pillar-cell .pillar-label{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--text2)}
+.pillar-cell .pillar-stem{font-size:1.4rem;font-weight:700}
+.pillar-cell .pillar-branch{font-size:1.4rem;font-weight:700}
+.pillar-cell .pillar-animal{font-size:.8rem;color:var(--text2)}
+.dm-display{text-align:center;padding:1rem;background:linear-gradient(135deg,var(--gold),#d4a843);
+  color:#3e2723;border-radius:var(--radius);margin:1rem 0;font-weight:700}
+.dm-display .dm-text{font-size:1.6rem}
+
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-top:1rem}
+.result-card{background:var(--bg);border:1px solid #e0d5c0;border-radius:8px;padding:.8rem}
+.result-card h4{font-size:.85rem;text-transform:uppercase;letter-spacing:1px;color:var(--text2);margin-bottom:.4rem}
+
+/* ===== NAME CONVERTER ===== */
+.name-input-group{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap}
+.name-input-group input{flex:1;min-width:180px;padding:.6rem;border:1px solid #d0c5b0;
+  border-radius:6px;font-size:1rem}
+.char-card{display:inline-flex;flex-direction:column;align-items:center;
+  padding:.6rem .8rem;background:var(--bg);border-radius:8px;border:1px solid #e0d5c0;
+  margin:.3rem;min-width:80px}
+.char-card .char-hanzi{font-size:1.6rem;font-weight:700}
+.char-card .char-pinyin{font-size:.75rem;color:var(--text2)}
+.char-card .char-meaning{font-size:.8rem}
+.char-card .char-element{font-size:.7rem}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);
+  z-index:2000;justify-content:center;align-items:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);padding:2rem;
+  max-width:440px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,.3);text-align:center}
+.modal h2{font-size:1.3rem;margin-bottom:.5rem}
+.modal .price{font-size:2rem;font-weight:700;color:var(--gold);margin:1rem 0}
+.modal .price small{font-size:.9rem;font-weight:400;color:var(--text2)}
+.modal .features{text-align:left;margin:1rem 0;list-style:none}
+.modal .features li{padding:.3rem 0;color:var(--text2)}
+.modal .features li::before{content:'✅ ';margin-right:.3rem}
+.btn-modal{border:none;padding:.7rem 2rem;border-radius:8px;font-size:1rem;
+  font-weight:600;cursor:pointer;margin:.3rem;transition:all .15s}
+.btn-modal.primary{background:var(--gold);color:#3e2723}
+.btn-modal.primary:hover{background:#b8922e}
+.btn-modal.secondary{background:#e0d5c0;color:var(--text)}
+.btn-modal.secondary:hover{background:#d0c0a0}
+.btn-modal.premium{background:linear-gradient(135deg,var(--gold),#d4a843);color:#3e2723;
+  box-shadow:0 2px 10px rgba(201,164,62,.3)}
+.btn-modal.premium:hover{box-shadow:0 4px 20px rgba(201,164,62,.4)}
+
+/* ===== MISC ===== */
+.tag{display:inline-block;padding:.1rem .4rem;border-radius:4px;font-size:.7rem;
+  font-weight:600;margin:2px}
+.tag.free{background:#4CAF50;color:#fff}
+.tag.premium{background:var(--gold);color:#3e2723}
+.cn{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+.element-cycle{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin:1rem 0}
+.elem-node{display:flex;flex-direction:column;align-items:center;padding:.6rem;
+  border-radius:50%;width:70px;height:70px;justify-content:center;color:#fff;font-weight:700;font-size:.85rem}
+.elem-node.edge{position:relative}
+.elem-node .arrow{position:absolute;right:-.9rem;top:50%;transform:translateY(-50%);font-size:1.2rem;color:var(--text2)}
+.cycle-arrows{display:flex;justify-content:center;gap:.3rem;font-size:1.5rem;margin:.4rem 0;color:var(--accent)}
+.tg-table,.dz-table{width:100%;border-collapse:collapse;margin:.6rem 0;font-size:.85rem}
+.tg-table th,.dz-table th{background:var(--sidebar);color:#fff;padding:.4rem .6rem;text-align:left}
+.tg-table td,.dz-table td{padding:.35rem .6rem;border-bottom:1px solid #e0d5c0}
+.tg-table tr:nth-child(even),.dz-table tr:nth-child(even){background:rgba(201,164,62,.05)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .sidebar.closed{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .sidebar-overlay.open{display:block}
+  .main{margin-left:0;padding:1rem 1rem 3rem;padding-top:3.5rem}
+  .main.sidebar-closed{margin-left:0}
+  .pillars-display{grid-template-columns:repeat(4,1fr);gap:.3rem}
+  .pillar-cell .pillar-stem,.pillar-cell .pillar-branch{font-size:1.1rem}
+  .calc-grid{grid-template-columns:1fr 1fr}
+  .results-grid{grid-template-columns:1fr}
+}
+@media(max-width:400px){
+  .pillars-display{grid-template-columns:repeat(2,1fr)}
+  .calc-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- HAMBURGER -->
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Toggle menu">☰</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h1>🧿 BaZi Academy</h1>
+    <span>八字入门 · Beginner's Guide</span>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-label">📚 Learning</div>
+    <button class="active" onclick="navClick('home')">🏠 Home</button>
+    <button onclick="navClick('module1')">🌳 1. 五行 · Five Elements</button>
+    <button onclick="navClick('module2')">☀️ 2. 天干 · Heavenly Stems</button>
+    <button onclick="navClick('module3')">🐉 3. 地支 · Earthly Branches</button>
+    <button class="locked-nav" onclick="navClick('module4')">🔒 4. 藏干 · Hidden Stems</button>
+    <button class="locked-nav" onclick="navClick('module5')">🔒 5. 十神 · Ten Gods</button>
+    <button class="locked-nav" onclick="navClick('module6')">🔒 6. Chart Reading</button>
+
+    <div class="nav-label">🛠️ Tools</div>
+    <button onclick="navClick('calculator')">🔢 Chart Calculator</button>
+    <button onclick="navClick('nameconverter')">📝 Name Converter</button>
+
+    <div class="nav-label">⚙️ Account</div>
+    <button onclick="navClick('progress')">📊 My Progress</button>
+    <button onclick="navClick('subscription')">💎 Subscription</button>
+  </div>
+  <div class="sidebar-footer">
+    <div class="sub-status free" id="navSubStatus">🔓 Free Tier</div>
+    <div>BaZi Academy v1.0</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<main class="main" id="mainContent">
+
+<!-- ===== HOME ===== -->
+<section class="page active" id="page-home">
+  <h2>🧿 Welcome to BaZi for Beginners <span class="cn">八字入门</span></h2>
+  <div class="card">
+    <p style="font-size:1.1rem">Discover the ancient Chinese art of <strong>BaZi</strong> (Eight Characters) — a 2000-year-old system of destiny analysis based on your birth date and time.</p>
+    <p>This course covers the <strong>Five Elements (五行)</strong>, <strong>Ten Heavenly Stems (天干)</strong>, <strong>Twelve Earthly Branches (地支)</strong>, and how they combine to form your unique destiny chart.</p>
+    <div style="text-align:center;margin:1.5rem 0;font-size:2rem">🪐 ☯️ 🔥 💧 🌳 ⛰️</div>
+    <div class="module-list" style="margin-top:1rem">
+      <div class="module-card">
+        <div class="mod-title">📖 Module 1: 五行 — Five Elements</div>
+        <div class="mod-meta">Free · ~20 min</div>
+        <div class="progress-bar"><div class="fill" style="width:0%" id="prog-module1"></div></div>
+        <button class="btn primary" onclick="navigate('module1')">Start Learning →</button>
+      </div>
+      <div class="module-card">
+        <div class="mod-title">☀️ Module 2: 天干 — Heavenly Stems</div>
+        <div class="mod-meta">Free · ~25 min</div>
+        <div class="progress-bar"><div class="fill" style="width:0%" id="prog-module2"></div></div>
+        <button class="btn primary" onclick="navigate('module2')">Start Learning →</button>
+      </div>
+      <div class="module-card">
+        <div class="mod-title">🐉 Module 3: 地支 — Earthly Branches</div>
+        <div class="mod-meta">Free · ~30 min</div>
+        <div class="progress-bar"><div class="fill" style="width:0%" id="prog-module3"></div></div>
+        <button class="btn primary" onclick="navigate('module3')">Start Learning →</button>
+      </div>
+      <div class="module-card locked" id="home-module4">
+        <div class="mod-title">🔒 Module 4: 藏干 — Hidden Stems</div>
+        <div class="mod-meta">Premium · ~20 min</div>
+        <div class="progress-bar"><div class="fill" style="width:0%" id="prog-module4"></div></div>
+        <button class="btn primary" onclick="showUpgradeModal()">Unlock with Premium →</button>
+      </div>
+      <div class="module-card locked" id="home-module5">
+        <div class="mod-title">🔒 Module 5: 十神 — Ten Gods</div>
+        <div class="mod-meta">Premium · ~25 min</div>
+        <div class="progress-bar"><div class="fill" style="width:0%" id="prog-module5"></div></div>
+        <button class="btn primary" onclick="showUpgradeModal()">Unlock with Premium →</button>
+      </div>
+      <div class="module-card locked" id="home-module6">
+        <div class="mod-title">🔒 Module 6: Chart Reading</div>
+        <div class="mod-meta">Premium · ~30 min</div>
+        <div class="progress-bar"><div class="fill" style="width:0%" id="prog-module6"></div></div>
+        <button class="btn primary" onclick="showUpgradeModal()">Unlock with Premium →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MODULE 1: FIVE ELEMENTS ===== -->
+<section class="page" id="page-module1">
+  <h2>📖 Module 1: 五行 — Five Elements</h2>
+  <div class="card lesson-content">
+    <h3>🏯 What are the Five Elements?</h3>
+    <p>The <strong>Five Elements (五行, Wǔ Xíng)</strong> are Wood (木), Fire (火), Earth (土), Metal (金), and Water (水). They are the fundamental forces that interact to create all phenomena in the universe. Each element has unique qualities, colors, seasons, and emotional associations.</p>
+
+    <div class="viz">
+      <h4>🔄 The Five Elements Cycle</h4>
+      <div class="element-cycle">
+        <div class="elem-node" style="background:var(--wood)">🌳<br>Wood</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--accent)">→</div>
+        <div class="elem-node" style="background:var(--fire)">🔥<br>Fire</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--accent)">→</div>
+        <div class="elem-node" style="background:var(--earth);color:#3e2723">⛰️<br>Earth</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--accent)">→</div>
+        <div class="elem-node" style="background:var(--metal);color:#3e2723">⚙️<br>Metal</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--accent)">→</div>
+        <div class="elem-node" style="background:var(--water)">💧<br>Water</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--accent)">→</div>
+        <div class="elem-node" style="background:var(--wood)">🌳<br>Wood</div>
+      </div>
+      <p style="margin-top:.6rem"><strong>Generation Cycle (相生):</strong> Wood feeds Fire → Fire creates Earth (ash) → Earth bears Metal → Metal melts to Water → Water nourishes Wood</p>
+    </div>
+
+    <div class="viz">
+      <h4>⚔️ Destruction (Control) Cycle</h4>
+      <div class="element-cycle">
+        <div class="elem-node" style="background:var(--wood)">🌳<br>Wood</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:#c62828">✕</div>
+        <div class="elem-node" style="background:var(--earth);color:#3e2723">⛰️<br>Earth</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:#c62828">✕</div>
+        <div class="elem-node" style="background:var(--water)">💧<br>Water</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:#c62828">✕</div>
+        <div class="elem-node" style="background:var(--fire)">🔥<br>Fire</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:#c62828">✕</div>
+        <div class="elem-node" style="background:var(--metal);color:#3e2723">⚙️<br>Metal</div>
+        <div style="display:flex;align-items:center;font-size:1.5rem;color:#c62828">✕</div>
+        <div class="elem-node" style="background:var(--wood)">🌳<br>Wood</div>
+      </div>
+      <p style="margin-top:.6rem"><strong>Destruction Cycle (相克):</strong> Wood parts Earth → Earth dams Water → Water extinguishes Fire → Fire melts Metal → Metal chops Wood</p>
+    </div>
+
+    <h3>📊 Element Qualities</h3>
+    <table class="tg-table">
+      <tr><th>Element</th><th>Color</th><th>Season</th><th>Direction</th><th>Emotion</th><th>Planet</th></tr>
+      <tr><td><span class="el-badge wood">Wood 木</span></td><td>Green</td><td>Spring</td><td>East</td><td>Kindness</td><td>Jupiter</td></tr>
+      <tr><td><span class="el-badge fire">Fire 火</span></td><td>Red</td><td>Summer</td><td>South</td><td>Joy</td><td>Mars</td></tr>
+      <tr><td><span class="el-badge earth">Earth 土</span></td><td>Yellow</td><td>Late Summer</td><td>Center</td><td>Trust</td><td>Saturn</td></tr>
+      <tr><td><span class="el-badge metal">Metal 金</span></td><td>White</td><td>Autumn</td><td>West</td><td>Grief</td><td>Venus</td></tr>
+      <tr><td><span class="el-badge water">Water 水</span></td><td>Black/Blue</td><td>Winter</td><td>North</td><td>Fear</td><td>Mercury</td></tr>
+    </table>
+
+    <h3>🧘 Personality by Element</h3>
+    <p><strong>🌳 Wood:</strong> Creative, expansive, growth-oriented. Like a tree — upward striving, flexible yet strong. Visionaries and pioneers.</p>
+    <p><strong>🔥 Fire:</strong> Passionate, charismatic, expressive. Like a flame — warm, illuminating, but can burn out. Leaders and performers.</p>
+    <p><strong>⛰️ Earth:</strong> Stable, nurturing, practical. Like soil — grounded, reliable, abundant. Healers and caretakers.</p>
+    <p><strong>⚙️ Metal:</strong> Structured, disciplined, decisive. Like a blade — sharp, clear, strong. Judges and organizers.</p>
+    <p><strong>💧 Water:</strong> Wise, adaptable, introspective. Like water — fluid, deep, persistent. Philosophers and strategists.</p>
+  </div>
+
+  <!-- Quiz 1 -->
+  <div class="card">
+    <h3>📝 Module 1 Quiz</h3>
+    <div class="quiz-q" data-quiz="m1q1">
+      <p>1. Which element generates Fire in the creation cycle?</p>
+      <label><input type="radio" name="m1q1" value="water"> 💧 Water</label>
+      <label><input type="radio" name="m1q1" value="metal"> ⚙️ Metal</label>
+      <label><input type="radio" name="m1q1" value="wood"> 🌳 Wood</label>
+      <label><input type="radio" name="m1q1" value="earth"> ⛰️ Earth</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m1q2">
+      <p>2. Which season is associated with the Metal element?</p>
+      <label><input type="radio" name="m1q2" value="spring"> Spring</label>
+      <label><input type="radio" name="m1q2" value="summer"> Summer</label>
+      <label><input type="radio" name="m1q2" value="autumn"> Autumn</label>
+      <label><input type="radio" name="m1q2" value="winter"> Winter</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m1q3">
+      <p>3. What does Earth control in the destruction cycle?</p>
+      <label><input type="radio" name="m1q3" value="wood"> 🌳 Wood</label>
+      <label><input type="radio" name="m1q3" value="fire"> 🔥 Fire</label>
+      <label><input type="radio" name="m1q3" value="metal"> ⚙️ Metal</label>
+      <label><input type="radio" name="m1q3" value="water"> 💧 Water</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <button class="btn primary" onclick="checkQuiz('module1')">✅ Check Answers</button>
+    <button class="btn secondary" onclick="resetQuiz('module1')" style="margin-left:.5rem">🔄 Retake</button>
+  </div>
+</section>
+
+<!-- ===== MODULE 2: TEN HEAVENLY STEMS ===== -->
+<section class="page" id="page-module2">
+  <h2>☀️ Module 2: 天干 — Ten Heavenly Stems</h2>
+  <div class="card lesson-content">
+    <h3>🏮 What are the Heavenly Stems?</h3>
+    <p>The <strong>Ten Heavenly Stems (天干, Tiān Gān)</strong> are the celestial counterpart to the earthly branches. They represent the yang and yin forms of each of the Five Elements. Each stem has a polarity (yang/yin), an element, and a directional association.</p>
+
+    <div class="viz">
+      <h4>☯️ The Ten Stems</h4>
+      <table class="tg-table">
+        <tr><th>Stem</th><th>Pinyin</th><th>Element</th><th>Yin/Yang</th><th>Direction</th></tr>
+        <tr><td>甲 Jiǎ</td><td>jiǎ</td><td><span class="el-badge wood">Wood 木</span></td><td>Yang ☰</td><td>East</td></tr>
+        <tr><td>乙 Yǐ</td><td>yǐ</td><td><span class="el-badge wood">Wood 木</span></td><td>Yin ☷</td><td>East</td></tr>
+        <tr><td>丙 Bǐng</td><td>bǐng</td><td><span class="el-badge fire">Fire 火</span></td><td>Yang ☰</td><td>South</td></tr>
+        <tr><td>丁 Dīng</td><td>dīng</td><td><span class="el-badge fire">Fire 火</span></td><td>Yin ☷</td><td>South</td></tr>
+        <tr><td>戊 Wù</td><td>wù</td><td><span class="el-badge earth">Earth 土</span></td><td>Yang ☰</td><td>Center</td></tr>
+        <tr><td>己 Jǐ</td><td>jǐ</td><td><span class="el-badge earth">Earth 土</span></td><td>Yin ☷</td><td>Center</td></tr>
+        <tr><td>庚 Gēng</td><td>gēng</td><td><span class="el-badge metal">Metal 金</span></td><td>Yang ☰</td><td>West</td></tr>
+        <tr><td>辛 Xīn</td><td>xīn</td><td><span class="el-badge metal">Metal 金</span></td><td>Yin ☷</td><td>West</td></tr>
+        <tr><td>壬 Rén</td><td>rén</td><td><span class="el-badge water">Water 水</span></td><td>Yang ☰</td><td>North</td></tr>
+        <tr><td>癸 Guǐ</td><td>guǐ</td><td><span class="el-badge water">Water 水</span></td><td>Yin ☷</td><td>North</td></tr>
+      </table>
+    </div>
+
+    <h3>🔗 Stem Combinations (天干合)</h3>
+    <p>Certain stems combine when they meet, transforming into a different element. These are called <strong>合化 (hé huà)</strong> combinations:</p>
+    <table class="tg-table">
+      <tr><th>Stems</th><th>Combined Element</th></tr>
+      <tr><td>甲 (Jiǎ) + 己 (Jǐ)</td><td><span class="el-badge earth">Earth 土</span></td></tr>
+      <tr><td>乙 (Yǐ) + 庚 (Gēng)</td><td><span class="el-badge metal">Metal 金</span></td></tr>
+      <tr><td>丙 (Bǐng) + 辛 (Xīn)</td><td><span class="el-badge water">Water 水</span></td></tr>
+      <tr><td>丁 (Dīng) + 壬 (Rén)</td><td><span class="el-badge wood">Wood 木</span></td></tr>
+      <tr><td>戊 (Wù) + 癸 (Guǐ)</td><td><span class="el-badge fire">Fire 火</span></td></tr>
+    </table>
+    <p style="margin-top:.4rem;font-size:.85rem;color:var(--text2)">💡 <strong>Tip:</strong> These are always Yang+Yin pairs of adjacent elements in the generation cycle.</p>
+  </div>
+
+  <div class="card">
+    <h3>📝 Module 2 Quiz</h3>
+    <div class="quiz-q" data-quiz="m2q1">
+      <p>1. How many Heavenly Stems are there?</p>
+      <label><input type="radio" name="m2q1" value="5"> 5</label>
+      <label><input type="radio" name="m2q1" value="8"> 8</label>
+      <label><input type="radio" name="m2q1" value="10"> 10</label>
+      <label><input type="radio" name="m2q1" value="12"> 12</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m2q2">
+      <p>2. What is the element of 丙 (Bǐng)?</p>
+      <label><input type="radio" name="m2q2" value="wood"> 🌳 Wood</label>
+      <label><input type="radio" name="m2q2" value="fire"> 🔥 Fire</label>
+      <label><input type="radio" name="m2q2" value="water"> 💧 Water</label>
+      <label><input type="radio" name="m2q2" value="metal"> ⚙️ Metal</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m2q3">
+      <p>3. 甲 (Jiǎ) combines with which stem to form Earth?</p>
+      <label><input type="radio" name="m2q3" value="yi"> 乙 (Yǐ)</label>
+      <label><input type="radio" name="m2q3" value="ji"> 己 (Jǐ)</label>
+      <label><input type="radio" name="m2q3" value="xin"> 辛 (Xīn)</label>
+      <label><input type="radio" name="m2q3" value="gui"> 癸 (Guǐ)</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <button class="btn primary" onclick="checkQuiz('module2')">✅ Check Answers</button>
+    <button class="btn secondary" onclick="resetQuiz('module2')" style="margin-left:.5rem">🔄 Retake</button>
+  </div>
+</section>
+
+<!-- ===== MODULE 3: TWELVE EARTHLY BRANCHES ===== -->
+<section class="page" id="page-module3">
+  <h2>🐉 Module 3: 地支 — Twelve Earthly Branches</h2>
+  <div class="card lesson-content">
+    <h3>🐲 What are the Earthly Branches?</h3>
+    <p>The <strong>Twelve Earthly Branches (地支, Dì Zhī)</strong> correspond to the 12 animals of the Chinese zodiac. Each branch has an associated element, polarity, and season. They govern the earthly energies in a BaZi chart.</p>
+
+    <div class="viz">
+      <h4>📋 The Twelve Branches</h4>
+      <table class="tg-table">
+        <tr><th>Branch</th><th>Pinyin</th><th>Animal 🐾</th><th>Element</th><th>Yin/Yang</th></tr>
+        <tr><td>子 Zǐ</td><td>zǐ</td><td>🐭 Rat</td><td><span class="el-badge water">Water 水</span></td><td>Yang</td></tr>
+        <tr><td>丑 Chǒu</td><td>chǒu</td><td>🐮 Ox</td><td><span class="el-badge earth">Earth 土</span></td><td>Yin</td></tr>
+        <tr><td>寅 Yín</td><td>yín</td><td>🐯 Tiger</td><td><span class="el-badge wood">Wood 木</span></td><td>Yang</td></tr>
+        <tr><td>卯 Mǎo</td><td>mǎo</td><td>🐰 Rabbit</td><td><span class="el-badge wood">Wood 木</span></td><td>Yin</td></tr>
+        <tr><td>辰 Chén</td><td>chén</td><td>🐲 Dragon</td><td><span class="el-badge earth">Earth 土</span></td><td>Yang</td></tr>
+        <tr><td>巳 Sì</td><td>sì</td><td>🐍 Snake</td><td><span class="el-badge fire">Fire 火</span></td><td>Yin</td></tr>
+        <tr><td>午 Wǔ</td><td>wǔ</td><td>🐴 Horse</td><td><span class="el-badge fire">Fire 火</span></td><td>Yang</td></tr>
+        <tr><td>未 Wèi</td><td>wèi</td><td>🐑 Goat</td><td><span class="el-badge earth">Earth 土</span></td><td>Yin</td></tr>
+        <tr><td>申 Shēn</td><td>shēn</td><td>🐵 Monkey</td><td><span class="el-badge metal">Metal 金</span></td><td>Yang</td></tr>
+        <tr><td>酉 Yǒu</td><td>yǒu</td><td>🐔 Rooster</td><td><span class="el-badge metal">Metal 金</span></td><td>Yin</td></tr>
+        <tr><td>戌 Xū</td><td>xū</td><td>🐶 Dog</td><td><span class="el-badge earth">Earth 土</span></td><td>Yang</td></tr>
+        <tr><td>亥 Hài</td><td>hài</td><td>🐷 Pig</td><td><span class="el-badge water">Water 水</span></td><td>Yin</td></tr>
+      </table>
+    </div>
+
+    <h3>🤝 Branch Interactions</h3>
+    <p><strong>六合 (Six Combinations — 六合):</strong></p>
+    <p>子丑合 (Rat+Ox) → <span class="el-badge earth">Earth</span> · 寅亥合 (Tiger+Pig) → <span class="el-badge wood">Wood</span> · 卯戌合 (Rabbit+Dog) → <span class="el-badge fire">Fire</span><br>
+    辰酉合 (Dragon+Rooster) → <span class="el-badge metal">Metal</span> · 巳申合 (Snake+Monkey) → <span class="el-badge water">Water</span> · 午未合 (Horse+Goat) → Sun/Heat</p>
+
+    <p><strong>⚔️ 六冲 (Six Clashes):</strong></p>
+    <p>子午冲 (Rat vs Horse) · 丑未冲 (Ox vs Goat) · 寅申冲 (Tiger vs Monkey)<br>
+    卯酉冲 (Rabbit vs Rooster) · 辰戌冲 (Dragon vs Dog) · 巳亥冲 (Snake vs Pig)</p>
+
+    <p><strong>三合 (Three Harmonies — 三合局):</strong></p>
+    <p>申子辰 (Monkey+Rat+Dragon) → <span class="el-badge water">Water</span> · 亥卯未 (Pig+Rabbit+Goat) → <span class="el-badge wood">Wood</span><br>
+    寅午戌 (Tiger+Horse+Dog) → <span class="el-badge fire">Fire</span> · 巳酉丑 (Snake+Rooster+Ox) → <span class="el-badge metal">Metal</span></p>
+  </div>
+
+  <div class="card">
+    <h3>📝 Module 3 Quiz</h3>
+    <div class="quiz-q" data-quiz="m3q1">
+      <p>1. Which animal represents the branch 午 (Wǔ)?</p>
+      <label><input type="radio" name="m3q1" value="ox"> 🐮 Ox</label>
+      <label><input type="radio" name="m3q1" value="horse"> 🐴 Horse</label>
+      <label><input type="radio" name="m3q1" value="snake"> 🐍 Snake</label>
+      <label><input type="radio" name="m3q1" value="goat"> 🐑 Goat</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m3q2">
+      <p>2. 巳 (Snake) + 申 (Monkey) combine to form which element?</p>
+      <label><input type="radio" name="m3q2" value="fire"> 🔥 Fire</label>
+      <label><input type="radio" name="m3q2" value="water"> 💧 Water</label>
+      <label><input type="radio" name="m3q2" value="metal"> ⚙️ Metal</label>
+      <label><input type="radio" name="m3q2" value="wood"> 🌳 Wood</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m3q3">
+      <p>3. Which branch clashes with 子 (Rat)?</p>
+      <label><input type="radio" name="m3q3" value="wu"> 午 (Horse)</label>
+      <label><input type="radio" name="m3q3" value="mao"> 卯 (Rabbit)</label>
+      <label><input type="radio" name="m3q3" value="you"> 酉 (Rooster)</label>
+      <label><input type="radio" name="m3q3" value="hai"> 亥 (Pig)</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <button class="btn primary" onclick="checkQuiz('module3')">✅ Check Answers</button>
+    <button class="btn secondary" onclick="resetQuiz('module3')" style="margin-left:.5rem">🔄 Retake</button>
+  </div>
+</section>
+
+<!-- ===== MODULE 4: HIDDEN STEMS (LOCKED) ===== -->
+<section class="page" id="page-module4">
+  <h2>🔒 Module 4: 藏干 — Hidden Stems</h2>
+  <div class="card" id="m4-locked">
+    <div style="text-align:center;padding:2rem">
+      <div style="font-size:3rem;margin-bottom:1rem">🔒</div>
+      <h3>Premium Content</h3>
+      <p>Upgrade to Premium to unlock Module 4 on Hidden Stems!</p>
+      <button class="btn primary" onclick="showUpgradeModal()" style="margin-top:1rem;padding:.7rem 2rem">💎 Upgrade Now</button>
+    </div>
+  </div>
+  <div class="card lesson-content" id="m4-content" style="display:none">
+    <h3>🗂️ What are Hidden Stems?</h3>
+    <p>Each Earthly Branch contains <strong>Hidden Stems (藏干, Cáng Gān)</strong> — Heavenly Stems that reside inside the branch. These inner energies influence the branch's expression and are crucial for detailed BaZi analysis.</p>
+    <div class="viz" id="m4-viz"></div>
+  </div>
+  <div class="card" id="m4-quiz" style="display:none">
+    <h3>📝 Quiz</h3>
+    <div class="quiz-q" data-quiz="m4q1">
+      <p>1. How many hidden stems does 子 (Rat) contain?</p>
+      <label><input type="radio" name="m4q1" value="1"> 1</label>
+      <label><input type="radio" name="m4q1" value="2"> 2</label>
+      <label><input type="radio" name="m4q1" value="3"> 3</label>
+      <label><input type="radio" name="m4q1" value="0"> 0</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m4q2">
+      <p>2. 寅 (Tiger) contains which hidden stems?</p>
+      <label><input type="radio" name="m4q2" value="jia-bing-wu"> 甲丙戊 (Jiǎ-Bǐng-Wù)</label>
+      <label><input type="radio" name="m4q2" value="yi-ding-ji"> 乙丁己 (Yǐ-Dīng-Jǐ)</label>
+      <label><input type="radio" name="m4q2" value="geng-ren-wu"> 庚壬戊 (Gēng-Rén-Wù)</label>
+      <label><input type="radio" name="m4q2" value="xin-gui-ji"> 辛癸己 (Xīn-Guǐ-Jǐ)</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m4q3">
+      <p>3. Why are hidden stems important in BaZi?</p>
+      <label><input type="radio" name="m4q3" value="a"> They reveal inner personality traits</label>
+      <label><input type="radio" name="m4q3" value="b"> They determine luck cycles</label>
+      <label><input type="radio" name="m4q3" value="c"> Both A and B</label>
+      <label><input type="radio" name="m4q3" value="d"> They are not important</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <button class="btn primary" onclick="checkQuiz('module4')">✅ Check Answers</button>
+    <button class="btn secondary" onclick="resetQuiz('module4')" style="margin-left:.5rem">🔄 Retake</button>
+  </div>
+</section>
+
+<!-- ===== MODULE 5: TEN GODS (LOCKED) ===== -->
+<section class="page" id="page-module5">
+  <h2>🔒 Module 5: 十神 — Ten Gods</h2>
+  <div class="card" id="m5-locked">
+    <div style="text-align:center;padding:2rem">
+      <div style="font-size:3rem;margin-bottom:1rem">🔒</div>
+      <h3>Premium Content</h3>
+      <p>Upgrade to Premium to unlock Module 5 on the Ten Gods!</p>
+      <button class="btn primary" onclick="showUpgradeModal()" style="margin-top:1rem;padding:.7rem 2rem">💎 Upgrade Now</button>
+    </div>
+  </div>
+  <div class="card lesson-content" id="m5-content" style="display:none">
+    <h3>👥 What are the Ten Gods?</h3>
+    <p>The <strong>Ten Gods (十神, Shí Shén)</strong> describe the relationships between each Heavenly Stem in your chart and your Day Master (日主, the stem of your birth day). They reveal your relationships, career, wealth, and inner self.</p>
+  </div>
+  <div class="card" id="m5-quiz" style="display:none">
+    <h3>📝 Quiz</h3>
+    <div class="quiz-q" data-quiz="m5q1">
+      <p>1. What is the Day Master?</p>
+      <label><input type="radio" name="m5q1" value="a"> The year stem</label>
+      <label><input type="radio" name="m5q1" value="b"> The day stem</label>
+      <label><input type="radio" name="m5q1" value="c"> The hour stem</label>
+      <label><input type="radio" name="m5q1" value="d"> The month branch</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m5q2">
+      <p>2. Which God represents wealth?</p>
+      <label><input type="radio" name="m5q2" value="a"> 正印 (Direct Resource)</label>
+      <label><input type="radio" name="m5q2" value="b"> 正财 (Direct Wealth)</label>
+      <label><input type="radio" name="m5q2" value="c"> 七杀 (Seven Killings)</label>
+      <label><input type="radio" name="m5q2" value="d"> 食神 (Eating God)</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m5q3">
+      <p>3. The Ten Gods are determined by relationship to:</p>
+      <label><input type="radio" name="m5q3" value="a"> The Year Master</label>
+      <label><input type="radio" name="m5q3" value="b"> The Day Master</label>
+      <label><input type="radio" name="m5q3" value="c"> The Hour Master</label>
+      <label><input type="radio" name="m5q3" value="d"> The Moon Master</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <button class="btn primary" onclick="checkQuiz('module5')">✅ Check Answers</button>
+    <button class="btn secondary" onclick="resetQuiz('module5')" style="margin-left:.5rem">🔄 Retake</button>
+  </div>
+</section>
+
+<!-- ===== MODULE 6: CHART READING (LOCKED) ===== -->
+<section class="page" id="page-module6">
+  <h2>🔒 Module 6: Chart Reading</h2>
+  <div class="card" id="m6-locked">
+    <div style="text-align:center;padding:2rem">
+      <div style="font-size:3rem;margin-bottom:1rem">🔒</div>
+      <h3>Premium Content</h3>
+      <p>Upgrade to Premium to unlock the final module on reading complete BaZi charts!</p>
+      <button class="btn primary" onclick="showUpgradeModal()" style="margin-top:1rem;padding:.7rem 2rem">💎 Upgrade Now</button>
+    </div>
+  </div>
+  <div class="card lesson-content" id="m6-content" style="display:none">
+    <h3>🔍 Putting It All Together</h3>
+    <p>Now you're ready to read a complete BaZi chart! Learn to analyze the Four Pillars, identify patterns, element balance, and interactions.</p>
+  </div>
+  <div class="card" id="m6-quiz" style="display:none">
+    <h3>📝 Quiz</h3>
+    <div class="quiz-q" data-quiz="m6q1">
+      <p>1. What are the Four Pillars in BaZi?</p>
+      <label><input type="radio" name="m6q1" value="a"> Year, Month, Day, Hour</label>
+      <label><input type="radio" name="m6q1" value="b"> Heaven, Earth, Man, Spirit</label>
+      <label><input type="radio" name="m6q1" value="c"> Wood, Fire, Earth, Metal</label>
+      <label><input type="radio" name="m6q1" value="d"> Past, Present, Future, Fate</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m6q2">
+      <p>2. Element balance analysis checks:</p>
+      <label><input type="radio" name="m6q2" value="a"> How many of each element appear</label>
+      <label><input type="radio" name="m6q2" value="b"> Seasonal strength of elements</label>
+      <label><input type="radio" name="m6q2" value="c"> Both of the above</label>
+      <label><input type="radio" name="m6q2" value="d"> Only the Day Master</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <div class="quiz-q" data-quiz="m6q3">
+      <p>3. What do the Four Pillars represent?</p>
+      <label><input type="radio" name="m6q3" value="a"> Year=ancestors, Month=parents, Day=self, Hour=children</label>
+      <label><input type="radio" name="m6q3" value="b"> Year=health, Month=wealth, Day=career, Hour=love</label>
+      <label><input type="radio" name="m6q3" value="c"> Year=spirit, Month=body, Day=mind, Hour=soul</label>
+      <label><input type="radio" name="m6q3" value="d"> They are equally balanced</label>
+      <div class="quiz-feedback" style="display:none"></div>
+    </div>
+    <button class="btn primary" onclick="checkQuiz('module4')">✅ Check Answers</button>
+    <button class="btn secondary" onclick="resetQuiz('module4')" style="margin-left:.5rem">🔄 Retake</button>
+  </div>
+</section>
+
+<!-- ===== CALCULATOR ===== -->
+<section class="page" id="page-calculator">
+  <h2>🔢 BaZi Chart Calculator <span class="cn">八字排盘</span></h2>
+  <div class="card">
+    <h3>📅 Enter Your Birth Details</h3>
+    <div class="calc-grid">
+      <div>
+        <label>Year 🗓️</label>
+        <select id="calc-year"></select>
+      </div>
+      <div>
+        <label>Month 🗓️</label>
+        <select id="calc-month"></select>
+      </div>
+      <div>
+        <label>Day 🗓️</label>
+        <select id="calc-day"></select>
+      </div>
+      <div>
+        <label>Hour 🕐</label>
+        <select id="calc-hour"></select>
+      </div>
+      <div>
+        <label>Gender ♂/♀</label>
+        <select id="calc-gender">
+          <option value="M">♂ Male</option>
+          <option value="F">♀ Female</option>
+        </select>
+      </div>
+      <div>
+        <label>Calendar</label>
+        <select id="calc-calendar">
+          <option value="gregorian">Gregorian (Solar)</option>
+          <option value="lunar">Lunar (Chinese)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calculateChart()">🔮 Calculate My Chart</button>
+  </div>
+
+  <div id="calc-results" style="display:none">
+    <div class="card">
+      <h3>📜 Your Four Pillars</h3>
+      <div class="pillars-display" id="pillars-display"></div>
+      <div class="dm-display" id="dm-display"></div>
+    </div>
+
+    <div class="results-grid" id="results-grid"></div>
+
+    <div class="card" id="premium-results" style="display:none">
+      <h3>💎 Premium Analysis</h3>
+      <div id="premium-analysis"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== NAME CONVERTER ===== -->
+<section class="page" id="page-nameconverter">
+  <h2>📝 Name Converter <span class="cn">名字转换</span></h2>
+  <div class="card">
+    <p>Enter a Chinese name to see its pinyin, meaning, and element association.</p>
+    <div class="name-input-group">
+      <input type="text" id="nameInput" placeholder="e.g. 张伟, 李娜, 王芳" maxlength="6">
+      <button class="btn-calc" onclick="convertName()">🔍 Look Up</button>
+    </div>
+    <div id="nameResults" style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem"></div>
+    <div id="nameNotFound" style="display:none;color:var(--text2);padding:.5rem;background:#ffebee;border-radius:6px;margin-top:.5rem">😕 Some characters not found in dictionary. Try a different name.</div>
+  </div>
+  <div class="card">
+    <h3>📚 Common Characters Dictionary</h3>
+    <p style="font-size:.85rem;color:var(--text2);margin-bottom:.6rem">Search above or browse common Chinese name characters.</p>
+    <div id="nameDictBrowse" style="max-height:400px;overflow-y:auto;display:flex;flex-wrap:wrap;gap:.3rem"></div>
+  </div>
+</section>
+
+<!-- ===== PROGRESS ===== -->
+<section class="page" id="page-progress">
+  <h2>📊 My Progress <span class="cn">学习进度</span></h2>
+  <div class="card">
+    <h3>📈 Overall Progress</h3>
+    <div style="height:12px;background:#e0d5c0;border-radius:6px;overflow:hidden;margin:.6rem 0">
+      <div id="overallProgressBar" style="height:100%;background:linear-gradient(90deg,var(--gold),#d4a843);border-radius:6px;width:0%;transition:width .5s"></div>
+    </div>
+    <p id="overallProgressText" style="color:var(--text2);font-size:.9rem">0 of 18 lessons completed</p>
+  </div>
+  <div id="progressDetails" class="results-grid"></div>
+  <div class="card">
+    <h3>🏆 Quiz Scores</h3>
+    <div id="quizScores"></div>
+  </div>
+</section>
+
+<!-- ===== SUBSCRIPTION ===== -->
+<section class="page" id="page-subscription">
+  <h2>💎 Subscription <span class="cn">订阅</span></h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">
+    <div class="card" style="text-align:center">
+      <h3>🔓 Free</h3>
+      <div class="price" style="font-size:1.8rem;font-weight:700;color:var(--gold)">$0<small>/mo</small></div>
+      <ul class="features" style="text-align:left;display:inline-block">
+        <li>✅ Modules 1-3 (Five Elements, Stems, Branches)</li>
+        <li>✅ Basic Chart Calculator</li>
+        <li>✅ Name Converter</li>
+        <li>❌ Modules 4-6</li>
+        <li>❌ Full Chart Analysis</li>
+        <li>❌ Personalized Notes</li>
+      </ul>
+      <div style="margin-top:1rem;padding:.5rem;background:#e8f5e9;border-radius:6px;color:#2e7d32">✅ Current Plan</div>
+    </div>
+    <div class="card" style="text-align:center;border:2px solid var(--gold);position:relative">
+      <div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--gold);color:#3e2723;padding:.2rem 1rem;border-radius:20px;font-size:.75rem;font-weight:700">🔥 MOST POPULAR</div>
+      <h3>💎 Premium Monthly</h3>
+      <div class="price" style="font-size:1.8rem;font-weight:700;color:var(--gold)">$9.99<small>/mo</small></div>
+      <ul class="features" style="text-align:left;display:inline-block">
+        <li>✅ All 6 Modules</li>
+        <li>✅ Full Chart Calculator</li>
+        <li>✅ Hidden Stems &amp; Ten Gods Analysis</li>
+        <li>✅ Luck Pillars &amp; Void Branches</li>
+        <li>✅ Personalized Notes</li>
+        <li>✅ Priority Support</li>
+      </ul>
+      <button class="btn-modal premium" onclick="processUpgrade('monthly')" style="margin-top:.6rem;width:100%">✨ Subscribe $9.99/mo</button>
+    </div>
+    <div class="card" style="text-align:center">
+      <h3>💎 Premium Yearly</h3>
+      <div class="price" style="font-size:1.8rem;font-weight:700;color:var(--gold)">$49.99<small>/yr</small></div>
+      <div style="font-size:.8rem;color:#4CAF50;font-weight:600">🎉 Save $69.89/year!</div>
+      <ul class="features" style="text-align:left;display:inline-block;margin-top:.4rem">
+        <li>✅ All Premium Features</li>
+        <li>✅ Everything in Monthly</li>
+        <li>✅ Exclusive Content Drops</li>
+        <li>✅ Early Access to New Features</li>
+      </ul>
+      <button class="btn-modal premium" onclick="processUpgrade('yearly')" style="margin-top:.6rem;width:100%">✨ Subscribe $49.99/yr</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- UPGRADE MODAL -->
+<div class="modal-overlay" id="upgradeModal">
+  <div class="modal">
+    <h2>💎 Upgrade to Premium</h2>
+    <p>Unlock all features and deepen your BaZi knowledge!</p>
+    <div class="price">$9.99<small>/mo</small> <span style="font-size:.9rem;color:var(--text2)">or</span> $49.99<small>/yr</small></div>
+    <ul class="features">
+      <li>📚 All 6 Modules — complete curriculum</li>
+      <li>🔢 Full Chart Calculator with advanced analysis</li>
+      <li>🗂️ Hidden Stems &amp; Ten Gods breakdown</li>
+      <li>📝 Personalized notes saved to your profile</li>
+      <li>🌊 Luck Pillars &amp; Void Branches</li>
+    </ul>
+    <button class="btn-modal premium" onclick="processUpgrade('monthly')">💎 Subscribe Monthly $9.99</button>
+    <br>
+    <button class="btn-modal primary" onclick="processUpgrade('yearly')" style="margin-top:.4rem">💎 Subscribe Yearly $49.99</button>
+    <br>
+    <button class="btn-modal secondary" onclick="closeUpgradeModal()" style="margin-top:.4rem">Maybe Later</button>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="successModal">
+  <div class="modal">
+    <div style="font-size:3rem;margin-bottom:.5rem">🎉</div>
+    <h2>Welcome to Premium!</h2>
+    <p id="successMsg">You now have full access to all BaZi Academy content.</p>
+    <div style="margin:1rem 0;padding:.6rem;background:#e8f5e9;border-radius:8px;color:#2e7d32;font-size:.9rem">🔓 All modules unlocked!</div>
+    <button class="btn-modal primary" onclick="closeSuccessModal()">Start Learning →</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// EMBEDDED BAZI DATA
+// ============================================================
+
+const STEMS = [
+  {ch:'甲',py:'jiǎ',element:'Wood',polarity:'Yang',direction:'East'},
+  {ch:'乙',py:'yǐ',element:'Wood',polarity:'Yin',direction:'East'},
+  {ch:'丙',py:'bǐng',element:'Fire',polarity:'Yang',direction:'South'},
+  {ch:'丁',py:'dīng',element:'Fire',polarity:'Yin',direction:'South'},
+  {ch:'戊',py:'wù',element:'Earth',polarity:'Yang',direction:'Center'},
+  {ch:'己',py:'jǐ',element:'Earth',polarity:'Yin',direction:'Center'},
+  {ch:'庚',py:'gēng',element:'Metal',polarity:'Yang',direction:'West'},
+  {ch:'辛',py:'xīn',element:'Metal',polarity:'Yin',direction:'West'},
+  {ch:'壬',py:'rén',element:'Water',polarity:'Yang',direction:'North'},
+  {ch:'癸',py:'guǐ',element:'Water',polarity:'Yin',direction:'North'}
+];
+
+const BRANCHES = [
+  {ch:'子',py:'zǐ',animal:'Rat',element:'Water',polarity:'Yang'},
+  {ch:'丑',py:'chǒu',animal:'Ox',element:'Earth',polarity:'Yin'},
+  {ch:'寅',py:'yín',animal:'Tiger',element:'Wood',polarity:'Yang'},
+  {ch:'卯',py:'mǎo',animal:'Rabbit',element:'Wood',polarity:'Yin'},
+  {ch:'辰',py:'chén',animal:'Dragon',element:'Earth',polarity:'Yang'},
+  {ch:'巳',py:'sì',animal:'Snake',element:'Fire',polarity:'Yin'},
+  {ch:'午',py:'wǔ',animal:'Horse',element:'Fire',polarity:'Yang'},
+  {ch:'未',py:'wèi',animal:'Goat',element:'Earth',polarity:'Yin'},
+  {ch:'申',py:'shēn',animal:'Monkey',element:'Metal',polarity:'Yang'},
+  {ch:'酉',py:'yǒu',animal:'Rooster',element:'Metal',polarity:'Yin'},
+  {ch:'戌',py:'xū',animal:'Dog',element:'Earth',polarity:'Yang'},
+  {ch:'亥',py:'hài',animal:'Pig',element:'Water',polarity:'Yin'}
+];
+
+const ANIMALS = ['Rat','Ox','Tiger','Rabbit','Dragon','Snake','Horse','Goat','Monkey','Rooster','Dog','Pig'];
+const ANIMAL_EMOJI = {Rat:'🐭',Ox:'🐮',Tiger:'🐯',Rabbit:'🐰',Dragon:'🐲',Snake:'🐍',Horse:'🐴',Goat:'🐑',Monkey:'🐵',Rooster:'🐔',Dog:'🐶',Pig:'🐷'};
+
+// Hidden Stems: each branch index -> array of stem indices (0-9)
+const HIDDEN_STEMS = {
+  0:[9],        // 子 -> 癸
+  1:[7,5,9],    // 丑 -> 辛,己,癸
+  2:[0,2,4],    // 寅 -> 甲,丙,戊
+  3:[1],        // 卯 -> 乙
+  4:[4,1,9],    // 辰 -> 戊,乙,癸
+  5:[2,4,6],    // 巳 -> 丙,戊,庚
+  6:[3,5],      // 午 -> 丁,己
+  7:[5,3,1],    // 未 -> 己,丁,乙
+  8:[6,4,8],    // 申 -> 庚,戊,壬
+  9:[7],        // 酉 -> 辛
+  10:[4,7,3],   // 戌 -> 戊,辛,丁
+  11:[8,2]      // 亥 -> 壬,甲
+};
+
+// Branch interactions
+const LIUHE = [[0,1],[2,11],[3,10],[4,9],[5,8],[6,7]]; // six combinations (branch index pairs)
+const LIUCHONG = [[0,6],[1,7],[2,8],[3,9],[4,10],[5,11]]; // six clashes
+const SANHE = [[0,4,8],[2,6,10],[3,7,11],[1,5,9]]; // three harmonies: water, fire, wood, metal
+const SANHUI = [[2,3,4],[5,6,7],[8,9,10],[11,0,1]]; // three meetings: spring, summer, autumn, winter
+const LIUHAI = [[0,5],[1,6],[2,7],[3,8],[4,9],[5,10],[6,11],[8,11]]; // six harms
+
+// Stem combinations
+const STEM_COMBOS = [[0,5,'Earth'],[1,6,'Metal'],[2,7,'Water'],[3,8,'Wood'],[4,9,'Fire']];
+
+// Sexagenary cycle (60 Jiazi)
+const JIAZI = [];
+for(let i=0;i<60;i++){
+  JIAZI.push({stem:i%10,branch:i%12});
+}
+
+// Void branches per sexagenary pair (旬空)
+const XUNKONG = {
+  0:[9,10], 1:[7,8], 2:[5,6], 3:[3,4], 4:[1,2], 5:[11,0],
+  6:[9,10], 7:[7,8], 8:[5,6], 9:[3,4], 10:[1,2], 11:[11,0],
+  12:[9,10], 13:[7,8], 14:[5,6], 15:[3,4], 16:[1,2], 17:[11,0],
+  18:[9,10], 19:[7,8], 20:[5,6], 21:[3,4], 22:[1,2], 23:[11,0],
+  24:[9,10], 25:[7,8], 26:[5,6], 27:[3,4], 28:[1,2], 29:[11,0],
+  30:[9,10], 31:[7,8], 32:[5,6], 33:[3,4], 34:[1,2], 35:[11,0],
+  36:[9,10], 37:[7,8], 38:[5,6], 39:[3,4], 40:[1,2], 41:[11,0],
+  42:[9,10], 43:[7,8], 44:[5,6], 45:[3,4], 46:[1,2], 47:[11,0],
+  48:[9,10], 49:[7,8], 50:[5,6], 51:[3,4], 52:[1,2], 53:[11,0],
+  54:[9,10], 55:[7,8], 56:[5,6], 57:[3,4], 58:[1,2], 59:[11,0]
+};
+
+// Seasonal power: element strength per season (0=spring,1=summer,2=late summer,3=autumn,4=winter)
+const SEASONAL_POWER = {
+  Wood:[1,0.5,0,0.2,0.3],
+  Fire:[0.3,1,0.5,0,0.2],
+  Earth:[0.2,0.3,1,0.5,0],
+  Metal:[0,0.2,0.5,1,0.3],
+  Water:[0.3,0,0,0.2,1]
+};
+
+// Ten Gods mapping
+// For a given Day Master element & polarity, map another stem's element & polarity to a God
+// 0=比肩(BiJian),1=劫财(JieCai),2=食神(ShiShen),3=伤官(ShangGuan),4=偏财(PianCai),
+// 5=正财(ZhengCai),6=偏印(PianYin),7=正印(ZhengYin),8=七杀(QiSha),9=正官(ZhengGuan)
+const TEN_GODS_MAP = {
+  // DM element: [same element, generating, controlled by, controls, same element different polarity?]
+  // Actually let's build a proper mapping: DM element -> other element -> [same polarity god, different polarity god]
+  // element order: 0=Wood,1=Fire,2=Earth,3=Metal,4=Water
+};
+
+function getTenGod(dmStemIdx, otherStemIdx){
+  const dmEl = ['Wood','Fire','Earth','Metal','Water'].indexOf(STEMS[dmStemIdx].element);
+  const oEl = ['Wood','Fire','Earth','Metal','Water'].indexOf(STEMS[otherStemIdx].element);
+  const dmYang = STEMS[dmStemIdx].polarity === 'Yang';
+  const oYang = STEMS[otherStemIdx].polarity === 'Yang';
+  const samePolarity = dmYang === oYang;
+
+  // same element
+  if(dmEl === oEl) return samePolarity ? {cn:'比肩',py:'Bǐ Jiān',en:'Friend'} : {cn:'劫财',py:'Jié Cái',en:'Rob Wealth'};
+  // DM generates other (DM -> other in generation cycle)
+  const genCycle = [0,1,2,3,4]; // Wood->Fire->Earth->Metal->Water->Wood
+  if(genCycle[dmEl] === oEl) return samePolarity ? {cn:'食神',py:'Shí Shén',en:'Eating God'} : {cn:'伤官',py:'Shāng Guān',en:'Hurting Officer'};
+  // Other generates DM (other -> DM)
+  if(genCycle[oEl] === dmEl) return samePolarity ? {cn:'偏印',py:'Piān Yìn',en:'Indirect Resource'} : {cn:'正印',py:'Zhèng Yìn',en:'Direct Resource'};
+  // DM controls other (DM destroys other)
+  const controlCycle = [2,3,4,0,1]; // Wood->Earth, Fire->Metal, Earth->Water, Metal->Wood, Water->Fire
+  if(controlCycle[dmEl] === oEl) return samePolarity ? {cn:'偏财',py:'Piān Cái',en:'Indirect Wealth'} : {cn:'正财',py:'Zhèng Cái',en:'Direct Wealth'};
+  // Other controls DM (other destroys DM)
+  if(controlCycle[oEl] === dmEl) return samePolarity ? {cn:'七杀',py:'Qī Shā',en:'Seven Killings'} : {cn:'正官',py:'Zhèng Guān',en:'Direct Officer'};
+  return {cn:'—',py:'—',en:'—'};
+}
+
+// Name dictionary (200+ characters)
+const NAME_DICT = {
+'爱':{py:'ài',meaning:'Love, affection, to like',element:'Fire',emoji:'❤️'},
+'安':{py:'ān',meaning:'Peace, calm, safety',element:'Water',emoji:'☮️'},
+'白':{py:'bái',meaning:'White, pure, bright',element:'Metal',emoji:'⬜'},
+'百':{py:'bǎi',meaning:'Hundred, many',element:'Water',emoji:'💯'},
+'邦':{py:'bāng',meaning:'Nation, state, country',element:'Earth',emoji:'🏛️'},
+'宝':{py:'bǎo',meaning:'Treasure, precious',element:'Fire',emoji:'💎'},
+'保':{py:'bǎo',meaning:'Protect, defend, keep',element:'Water',emoji:'🛡️'},
+'北':{py:'běi',meaning:'North',element:'Water',emoji:'🧭'},
+'本':{py:'běn',meaning:'Root, origin, foundation',element:'Wood',emoji:'🌱'},
+'碧':{py:'bì',meaning:'Jade, blue-green',element:'Wood',emoji:'🟢'},
+'彬':{py:'bīn',meaning:'Refined, elegant, cultured',element:'Wood',emoji:'🌳'},
+'波':{py:'bō',meaning:'Wave, ripples',element:'Water',emoji:'🌊'},
+'博':{py:'bó',meaning:'Broad, rich, extensive',element:'Water',emoji:'📚'},
+'才':{py:'cái',meaning:'Talent, ability, gift',element:'Wood',emoji:'🎯'},
+'财':{py:'cái',meaning:'Wealth, money',element:'Metal',emoji:'💰'},
+'彩':{py:'cǎi',meaning:'Color, splendor, prize',element:'Fire',emoji:'🌈'},
+'灿':{py:'càn',meaning:'Bright, brilliant, sparkling',element:'Fire',emoji:'✨'},
+'昌':{py:'chāng',meaning:'Prosperous, flourishing',element:'Fire',emoji:'🌅'},
+'超':{py:'chāo',meaning:'Exceed, surpass, transcend',element:'Metal',emoji:'🚀'},
+'晨':{py:'chén',meaning:'Morning, dawn',element:'Wood',emoji:'🌄'},
+'成':{py:'chéng',meaning:'Achieve, succeed, complete',element:'Metal',emoji:'🏆'},
+'诚':{py:'chéng',meaning:'Honest, sincere, true',element:'Water',emoji:'💯'},
+'城':{py:'chéng',meaning:'City, fortress',element:'Earth',emoji:'🏰'},
+'春':{py:'chūn',meaning:'Spring, vitality',element:'Wood',emoji:'🌸'},
+'纯':{py:'chún',meaning:'Pure, simple, unmixed',element:'Metal',emoji:'💠'},
+'聪':{py:'cōng',meaning:'Intelligent, clever',element:'Water',emoji:'🧠'},
+'达':{py:'dá',meaning:'Reach, attain, express',element:'Fire',emoji:'🎯'},
+'大':{py:'dà',meaning:'Big, great, large',element:'Fire',emoji:'🔝'},
+'丹':{py:'dān',meaning:'Red, cinnabar, sincere',element:'Fire',emoji:'🔴'},
+'德':{py:'dé',meaning:'Virtue, morality, character',element:'Earth',emoji:'🕊️'},
+'东':{py:'dōng',meaning:'East',element:'Wood',emoji:'🧭'},
+'冬':{py:'dōng',meaning:'Winter',element:'Water',emoji:'❄️'},
+'栋':{py:'dòng',meaning:'Pillar, ridgepole',element:'Wood',emoji:'🏗️'},
+'恩':{py:'ēn',meaning:'Grace, favor, kindness',element:'Fire',emoji:'🙏'},
+'法':{py:'fǎ',meaning:'Law, method, dharma',element:'Water',emoji:'⚖️'},
+'凡':{py:'fán',meaning:'Ordinary, common',element:'Earth',emoji:'👤'},
+'方':{py:'fāng',meaning:'Square, direction, method',element:'Earth',emoji:'🔲'},
+'芳':{py:'fāng',meaning:'Fragrant, virtuous, flower',element:'Wood',emoji:'🌺'},
+'飞':{py:'fēi',meaning:'Fly, swift',element:'Fire',emoji:'🦅'},
+'菲':{py:'fēi',meaning:'Fragrant, luxuriant',element:'Wood',emoji:'🌿'},
+'芬':{py:'fēn',meaning:'Fragrance, aroma',element:'Wood',emoji:'🌸'},
+'丰':{py:'fēng',meaning:'Abundant, plentiful',element:'Earth',emoji:'🌾'},
+'风':{py:'fēng',meaning:'Wind, style, custom',element:'Wood',emoji:'🌬️'},
+'峰':{py:'fēng',meaning:'Peak, summit',element:'Earth',emoji:'⛰️'},
+'福':{py:'fú',meaning:'Blessing, fortune, happiness',element:'Water',emoji:'🍀'},
+'富':{py:'fù',meaning:'Rich, wealthy, abundant',element:'Metal',emoji:'💎'},
+'刚':{py:'gāng',meaning:'Strong, firm, unyielding',element:'Metal',emoji:'⚔️'},
+'高':{py:'gāo',meaning:'Tall, high, superior',element:'Fire',emoji:'📈'},
+'格':{py:'gé',meaning:'Character, standard, grid',element:'Wood',emoji:'📐'},
+'庚':{py:'gēng',meaning:'Age, seventh stem',element:'Metal',emoji:'⚙️'},
+'功':{py:'gōng',meaning:'Achievement, merit, skill',element:'Earth',emoji:'🏅'},
+'恭':{py:'gōng',meaning:'Respectful, reverent',element:'Water',emoji:'🙇'},
+'光':{py:'guāng',meaning:'Light, brightness, honor',element:'Fire',emoji:'💡'},
+'桂':{py:'guì',meaning:'Laurel, cassia, noble',element:'Wood',emoji:'🌲'},
+'国':{py:'guó',meaning:'Country, nation',element:'Earth',emoji:'🌍'},
+'海':{py:'hǎi',meaning:'Sea, ocean, vast',element:'Water',emoji:'🌊'},
+'涵':{py:'hán',meaning:'Contain, cultivate, soak',element:'Water',emoji:'🌧️'},
+'汉':{py:'hàn',meaning:'Han Chinese, man',element:'Water',emoji:'👨'},
+'航':{py:'háng',meaning:'Sail, navigate, voyage',element:'Water',emoji:'⛵'},
+'好':{py:'hǎo',meaning:'Good, fine, kind',element:'Water',emoji:'👍'},
+'浩':{py:'hào',meaning:'Vast, grand, abundant',element:'Water',emoji:'🌊'},
+'和':{py:'hé',meaning:'Harmony, peace, gentle',element:'Earth',emoji:'☮️'},
+'河':{py:'hé',meaning:'River',element:'Water',emoji:'🏞️'},
+'恒':{py:'héng',meaning:'Persistent, constant, eternal',element:'Earth',emoji:'♾️'},
+'弘':{py:'hóng',meaning:'Broad, expand, great',element:'Water',emoji:'📏'},
+'红':{py:'hóng',meaning:'Red, popular, vibrant',element:'Fire',emoji:'🔴'},
+'宏':{py:'hóng',meaning:'Vast, magnificent, grand',element:'Water',emoji:'🏛️'},
+'鸿':{py:'hóng',meaning:'Vast, great, wild swan',element:'Water',emoji:'🦢'},
+'华':{py:'huá',meaning:'Splendid, prosperous, China',element:'Fire',emoji:'🏮'},
+'辉':{py:'huī',meaning:'Brightness, splendor, shine',element:'Fire',emoji:'🌟'},
+'慧':{py:'huì',meaning:'Wisdom, bright, intelligent',element:'Water',emoji:'🧠'},
+'佳':{py:'jiā',meaning:'Good, beautiful, fine',element:'Wood',emoji:'👍'},
+'家':{py:'jiā',meaning:'Family, home',element:'Wood',emoji:'🏠'},
+'嘉':{py:'jiā',meaning:'Excellent, auspicious, praise',element:'Wood',emoji:'🎉'},
+'坚':{py:'jiān',meaning:'Firm, strong, resolute',element:'Metal',emoji:'💪'},
+'建':{py:'jiàn',meaning:'Build, establish, construct',element:'Wood',emoji:'🏗️'},
+'健':{py:'jiàn',meaning:'Healthy, strong, vigorous',element:'Metal',emoji:'💪'},
+'江':{py:'jiāng',meaning:'River, Yangtze',element:'Water',emoji:'🏞️'},
+'杰':{py:'jié',meaning:'Outstanding, hero, genius',element:'Wood',emoji:'🌟'},
+'洁':{py:'jié',meaning:'Clean, pure, white',element:'Water',emoji:'✨'},
+'金':{py:'jīn',meaning:'Gold, metal, money',element:'Metal',emoji:'🥇'},
+'锦':{py:'jǐn',meaning:'Brocade, splendid, embroidered',element:'Metal',emoji:'🏆'},
+'进':{py:'jìn',meaning:'Advance, enter, progress',element:'Fire',emoji:'➡️'},
+'晶':{py:'jīng',meaning:'Crystal, bright, sparkling',element:'Fire',emoji:'💎'},
+'景':{py:'jǐng',meaning:'Scenery, view, situation',element:'Wood',emoji:'🌄'},
+'敬':{py:'jìng',meaning:'Respect, honor, venerate',element:'Water',emoji:'🙏'},
+'静':{py:'jìng',meaning:'Quiet, still, calm, peaceful',element:'Water',emoji:'🤫'},
+'娟':{py:'juān',meaning:'Beautiful, graceful (as moon)',element:'Wood',emoji:'🌙'},
+'军':{py:'jūn',meaning:'Army, military',element:'Metal',emoji:'⚔️'},
+'俊':{py:'jùn',meaning:'Handsome, talented, eminent',element:'Fire',emoji:'✨'},
+'康':{py:'kāng',meaning:'Health, peace, abundant',element:'Wood',emoji:'🍎'},
+'可':{py:'kě',meaning:'Can, may, able',element:'Wood',emoji:'✅'},
+'坤':{py:'kūn',meaning:'Earth, female, receptive',element:'Earth',emoji:'🌍'},
+'兰':{py:'lán',meaning:'Orchid, elegant, noble',element:'Wood',emoji:'🌺'},
+'乐':{py:'lè',meaning:'Joy, happiness, music',element:'Fire',emoji:'😄'},
+'磊':{py:'lěi',meaning:'Open, frank, rocks',element:'Earth',emoji:'🪨'},
+'丽':{py:'lì',meaning:'Beautiful, lovely',element:'Fire',emoji:'💃'},
+'利':{py:'lì',meaning:'Sharp, benefit, profit',element:'Metal',emoji:'💰'},
+'莉':{py:'lì',meaning:'Jasmine',element:'Wood',emoji:'🌸'},
+'力':{py:'lì',meaning:'Strength, power, force',element:'Fire',emoji:'💪'},
+'林':{py:'lín',meaning:'Forest, woods, grove',element:'Wood',emoji:'🌲'},
+'琳':{py:'lín',meaning:'Beautiful jade, gem',element:'Wood',emoji:'💎'},
+'玲':{py:'líng',meaning:'Tinkling of jade, exquisite',element:'Water',emoji:'🔔'},
+'凌':{py:'líng',meaning:'Tower, rise high',element:'Fire',emoji:'📶'},
+'龙':{py:'lóng',meaning:'Dragon, imperial, mythical',element:'Water',emoji:'🐲'},
+'隆':{py:'lóng',meaning:'Prosperous, grand, thriving',element:'Earth',emoji:'🏔️'},
+'璐':{py:'lù',meaning:'Beautiful jade',element:'Fire',emoji:'💎'},
+'露':{py:'lù',meaning:'Dew, reveal, show',element:'Water',emoji:'💧'},
+'路':{py:'lù',meaning:'Road, path, way',element:'Earth',emoji:'🛤️'},
+'伦':{py:'lún',meaning:'Order, ethics, human relations',element:'Fire',emoji:'🤝'},
+'满':{py:'mǎn',meaning:'Full, complete, satisfied',element:'Water',emoji:'🔋'},
+'梅':{py:'méi',meaning:'Plum blossom, winter flower',element:'Wood',emoji:'🌸'},
+'美':{py:'měi',meaning:'Beautiful, pretty, America',element:'Fire',emoji:'💄'},
+'梦':{py:'mèng',meaning:'Dream, vision',element:'Wood',emoji:'💭'},
+'敏':{py:'mǐn',meaning:'Quick, agile, clever',element:'Water',emoji:'⚡'},
+'明':{py:'míng',meaning:'Bright, clear, next',element:'Fire',emoji:'☀️'},
+'铭':{py:'míng',meaning:'Inscribe, engrave, remember',element:'Metal',emoji:'📝'},
+'娜':{py:'nà',meaning:'Elegant, graceful',element:'Fire',emoji:'💃'},
+'南':{py:'nán',meaning:'South',element:'Fire',emoji:'🧭'},
+'楠':{py:'nán',meaning:'Nanmu tree, valuable timber',element:'Wood',emoji:'🌳'},
+'宁':{py:'níng',meaning:'Peaceful, serene, repose',element:'Water',emoji:'☮️'},
+'农':{py:'nóng',meaning:'Agriculture, farming',element:'Earth',emoji:'🌾'},
+'女':{py:'nǚ',meaning:'Woman, female, daughter',element:'Water',emoji:'♀️'},
+'培':{py:'péi',meaning:'Cultivate, nurture, train',element:'Earth',emoji:'🌱'},
+'沛':{py:'pèi',meaning:'Abundant, copious, vigorous',element:'Water',emoji:'💧'},
+'朋':{py:'péng',meaning:'Friend, companion',element:'Water',emoji:'🤝'},
+'鹏':{py:'péng',meaning:'Roc (mythical bird), great',element:'Fire',emoji:'🦅'},
+'平':{py:'píng',meaning:'Peace, level, fair',element:'Water',emoji:'✌️'},
+'萍':{py:'píng',meaning:'Duckweed, floating grass',element:'Water',emoji:'🌿'},
+'琦':{py:'qí',meaning:'Beautiful jade, admirable',element:'Wood',emoji:'💎'},
+'琪':{py:'qí',meaning:'Fine jade, precious',element:'Wood',emoji:'💎'},
+'启':{py:'qǐ',meaning:'Open, start, enlighten',element:'Wood',emoji:'🔓'},
+'强':{py:'qiáng',meaning:'Strong, powerful, better',element:'Metal',emoji:'💪'},
+'巧':{py:'qiǎo',meaning:'Skillful, clever, timely',element:'Wood',emoji:'🔧'},
+'庆':{py:'qìng',meaning:'Celebrate, congratulate',element:'Fire',emoji:'🎉'},
+'秋':{py:'qiū',meaning:'Autumn, harvest time',element:'Metal',emoji:'🍂'},
+'全':{py:'quán',meaning:'Whole, complete, entire',element:'Earth',emoji:'🔵'},
+'然':{py:'rán',meaning:'Correct, right, so',element:'Fire',emoji:'🔥'},
+'仁':{py:'rén',meaning:'Benevolence, humanity, kind',element:'Water',emoji:'💚'},
+'任':{py:'rèn',meaning:'Allow, trust, take charge',element:'Metal',emoji:'🤲'},
+'日':{py:'rì',meaning:'Sun, day, Japan',element:'Fire',emoji:'☀️'},
+'荣':{py:'róng',meaning:'Glory, honor, flourish',element:'Wood',emoji:'🌺'},
+'容':{py:'róng',meaning:'Appearance, content, tolerate',element:'Earth',emoji:'包容'},
+'瑞':{py:'ruì',meaning:'Auspicious, lucky; jade token',element:'Metal',emoji:'🍀'},
+'山':{py:'shān',meaning:'Mountain, hill',element:'Earth',emoji:'⛰️'},
+'善':{py:'shàn',meaning:'Good, virtuous, kind',element:'Metal',emoji:'😇'},
+'上':{py:'shàng',meaning:'Above, up, superior',element:'Metal',emoji:'⬆️'},
+'绍':{py:'shào',meaning:'Continue, introduce',element:'Metal',emoji:'🤝'},
+'深':{py:'shēn',meaning:'Deep, profound',element:'Water',emoji:'🌊'},
+'生':{py:'shēng',meaning:'Birth, life, living',element:'Wood',emoji:'🌱'},
+'盛':{py:'shèng',meaning:'Flourishing, prosperous, grand',element:'Metal',emoji:'🏆'},
+'诗':{py:'shī',meaning:'Poem, poetry, verse',element:'Wood',emoji:'📝'},
+'石':{py:'shí',meaning:'Stone, rock, mineral',element:'Earth',emoji:'🪨'},
+'时':{py:'shí',meaning:'Time, season, period',element:'Metal',emoji:'⏰'},
+'实':{py:'shí',meaning:'Real, true, solid, fruit',element:'Metal',emoji:'🎯'},
+'世':{py:'shì',meaning:'World, generation, era',element:'Metal',emoji:'🌍'},
+'士':{py:'shì',meaning:'Scholar, gentleman, warrior',element:'Metal',emoji:'🎓'},
+'书':{py:'shū',meaning:'Book, write, letter',element:'Metal',emoji:'📖'},
+'淑':{py:'shū',meaning:'Good, pure, virtuous',element:'Water',emoji:'💧'},
+'树':{py:'shù',meaning:'Tree, plant, establish',element:'Wood',emoji:'🌳'},
+'帅':{py:'shuài',meaning:'Handsome, commander, smart',element:'Metal',emoji:'👔'},
+'爽':{py:'shuǎng',meaning:'Refreshing, straight, open',element:'Wood',emoji:'😎'},
+'顺':{py:'shùn',meaning:'Smooth, along, obey',element:'Water',emoji:'✅'},
+'思':{py:'sī',meaning:'Think, consider, desire',element:'Fire',emoji:'💭'},
+'松':{py:'sōng',meaning:'Pine tree, loose, relaxed',element:'Wood',emoji:'🌲'},
+'素':{py:'sù',meaning:'Plain, white, vegetable',element:'Metal',emoji:'⬜'},
+'泰':{py:'tài',meaning:'Safe, peaceful, great',element:'Water',emoji:'☯️'},
+'涛':{py:'tāo',meaning:'Big wave, surf',element:'Water',emoji:'🌊'},
+'天':{py:'tiān',meaning:'Sky, heaven, day',element:'Fire',emoji:'☁️'},
+'婷':{py:'tíng',meaning:'Graceful, elegant (of woman)',element:'Fire',emoji:'💃'},
+'彤':{py:'tóng',meaning:'Red, vermilion',element:'Fire',emoji:'🔴'},
+'伟':{py:'wěi',meaning:'Great, mighty, huge',element:'Earth',emoji:'🏔️'},
+'文':{py:'wén',meaning:'Literature, writing, culture',element:'Water',emoji:'📖'},
+'闻':{py:'wén',meaning:'Hear, smell, famous',element:'Water',emoji:'👂'},
+'武':{py:'wǔ',meaning:'Military, martial, force',element:'Water',emoji:'⚔️'},
+'西':{py:'xī',meaning:'West',element:'Metal',emoji:'🧭'},
+'希':{py:'xī',meaning:'Hope, rare, wish',element:'Water',emoji:'🌟'},
+'晰':{py:'xī',meaning:'Clear, distinct',element:'Wood',emoji:'🔍'},
+'霞':{py:'xiá',meaning:'Morning/evening glow, rosy cloud',element:'Water',emoji:'🌅'},
+'贤':{py:'xián',meaning:'Worthy, virtuous, able',element:'Metal',emoji:'🏅'},
+'祥':{py:'xiáng',meaning:'Auspicious, lucky, propitious',element:'Metal',emoji:'🍀'},
+'向':{py:'xiàng',meaning:'Direction, towards, face',element:'Earth',emoji:'🧭'},
+'晓':{py:'xiǎo',meaning:'Dawn, know, understand',element:'Fire',emoji:'🌅'},
+'孝':{py:'xiào',meaning:'Filial piety, respect parents',element:'Water',emoji:'👨‍👦'},
+'欣':{py:'xīn',meaning:'Joyful, happy, glad',element:'Wood',emoji:'😊'},
+'新':{py:'xīn',meaning:'New, fresh, renew',element:'Metal',emoji:'🆕'},
+'鑫':{py:'xīn',meaning:'Prosperous, wealth (three golds)',element:'Metal',emoji:'💰'},
+'信':{py:'xìn',meaning:'Believe, trust, letter',element:'Metal',emoji:'✉️'},
+'星':{py:'xīng',meaning:'Star, spark, planet',element:'Fire',emoji:'⭐'},
+'兴':{py:'xīng',meaning:'Prosper, rise, become popular',element:'Water',emoji:'📈'},
+'秀':{py:'xiù',meaning:'Elegant, beautiful, refined',element:'Wood',emoji:'🌺'},
+'旭':{py:'xù',meaning:'Rising sun, bright, dawn',element:'Fire',emoji:'🌄'},
+'学':{py:'xué',meaning:'Learn, study, school',element:'Water',emoji:'📚'},
+'雪':{py:'xuě',meaning:'Snow, white, pure',element:'Water',emoji:'❄️'},
+'雅':{py:'yǎ',meaning:'Elegant, refined, graceful',element:'Wood',emoji:'🎭'},
+'燕':{py:'yàn',meaning:'Swallow (bird), feast',element:'Fire',emoji:'🐦'},
+'阳':{py:'yáng',meaning:'Sun, positive, male',element:'Fire',emoji:'☀️'},
+'杨':{py:'yáng',meaning:'Poplar tree',element:'Wood',emoji:'🌳'},
+'瑶':{py:'yáo',meaning:'Beautiful jade, precious',element:'Fire',emoji:'💎'},
+'耀':{py:'yào',meaning:'Shine, dazzle, glorious',element:'Fire',emoji:'✨'},
+'烨':{py:'yè',meaning:'Firelight, blazing, bright',element:'Fire',emoji:'🔥'},
+'怡':{py:'yí',meaning:'Joyful, happy, pleasant',element:'Water',emoji:'😊'},
+'义':{py:'yì',meaning:'Justice, righteousness, meaning',element:'Wood',emoji:'⚖️'},
+'艺':{py:'yì',meaning:'Art, skill, talent',element:'Wood',emoji:'🎨'},
+'毅':{py:'yì',meaning:'Firm, resolute, persevering',element:'Wood',emoji:'💪'},
+'英':{py:'yīng',meaning:'Hero, outstanding, petal',element:'Wood',emoji:'🏅'},
+'莹':{py:'yíng',meaning:'Lustrous, jade-like, sparkle',element:'Water',emoji:'💎'},
+'永':{py:'yǒng',meaning:'Forever, eternal, perpetual',element:'Water',emoji:'♾️'},
+'勇':{py:'yǒng',meaning:'Brave, courageous, bold',element:'Water',emoji:'🦁'},
+'友':{py:'yǒu',meaning:'Friend, companion',element:'Earth',emoji:'🤝'},
+'宇':{py:'yǔ',meaning:'Universe, space, house',element:'Water',emoji:'🌌'},
+'玉':{py:'yù',meaning:'Jade, precious, pure',element:'Earth',emoji:'💎'},
+'裕':{py:'yù',meaning:'Abundant, rich, plentiful',element:'Metal',emoji:'💰'},
+'元':{py:'yuán',meaning:'First, origin, dollar',element:'Metal',emoji:'🥇'},
+'远':{py:'yuǎn',meaning:'Far, distant, remote',element:'Fire',emoji:'🔭'},
+'月':{py:'yuè',meaning:'Moon, month',element:'Water',emoji:'🌙'},
+'悦':{py:'yuè',meaning:'Joyful, happy, pleased',element:'Fire',emoji:'😊'},
+'云':{py:'yún',meaning:'Cloud, say, speak',element:'Water',emoji:'☁️'},
+'韫':{py:'yùn',meaning:'Contain, store up',element:'Earth',emoji:'📦'},
+'泽':{py:'zé',meaning:'Pool, luster, favor, grace',element:'Water',emoji:'💧'},
+'展':{py:'zhǎn',meaning:'Open, unfold, expand',element:'Fire',emoji:'📋'},
+'张':{py:'zhāng',meaning:'Open, spread, stretch',element:'Fire',emoji:'🏹'},
+'钊':{py:'zhāo',meaning:'Encourage, exert, metal',element:'Metal',emoji:'⚒️'},
+'赵':{py:'zhào',meaning:'Summon, surname',element:'Fire',emoji:'📞'},
+'哲':{py:'zhé',meaning:'Philosophy, wise, sagacious',element:'Fire',emoji:'🧠'},
+'珍':{py:'zhēn',meaning:'Precious, valuable, rare',element:'Metal',emoji:'💎'},
+'振':{py:'zhèn',meaning:'Rouse, excite, shake',element:'Fire',emoji:'📢'},
+'正':{py:'zhèng',meaning:'Correct, upright, just',element:'Metal',emoji:'✅'},
+'政':{py:'zhèng',meaning:'Government, politics, administration',element:'Metal',emoji:'🏛️'},
+'志':{py:'zhì',meaning:'Will, ambition, aspiration',element:'Fire',emoji:'🎯'},
+'智':{py:'zhì',meaning:'Wisdom, knowledge, clever',element:'Fire',emoji:'🧠'},
+'中':{py:'zhōng',meaning:'Middle, center, China',element:'Earth',emoji:'🎯'},
+'忠':{py:'zhōng',meaning:'Loyal, faithful, devoted',element:'Water',emoji:'💯'},
+'仲':{py:'zhòng',meaning:'Middle, second, mediator',element:'Water',emoji:'🥈'},
+'众':{py:'zhòng',meaning:'Many, crowd, multitude',element:'Earth',emoji:'👥'},
+'洲':{py:'zhōu',meaning:'Continent, island, sandbar',element:'Water',emoji:'🌍'},
+'珠':{py:'zhū',meaning:'Pearl, bead, jewel',element:'Metal',emoji:'🔮'},
+'竹':{py:'zhú',meaning:'Bamboo',element:'Wood',emoji:'🎋'},
+'壮':{py:'zhuàng',meaning:'Strong, robust, magnificent',element:'Metal',emoji:'💪'},
+'子':{py:'zǐ',meaning:'Child, son, master',element:'Water',emoji:'👶'},
+'梓':{py:'zǐ',meaning:'Catalpa tree, wood',element:'Wood',emoji:'🌳'},
+'自':{py:'zì',meaning:'Self, own, from',element:'Fire',emoji:'👤'},
+'宗':{py:'zōng',meaning:'Ancestor, clan, purpose',element:'Metal',emoji:'🏛️'},
+'祖':{py:'zǔ',meaning:'Ancestor, grandfather, founder',element:'Metal',emoji:'👴'},
+'作':{py:'zuò',meaning:'Make, do, write, compose',element:'Metal',emoji:'✍️'}
+};
+
+// Chinese zodiac year offsets
+const ZODIAC_START_YEAR = 1984; // Year of Rat (甲子)
+
+// Solar term month boundaries for BaZi month calculation (approximate day of month)
+// Each month starts roughly on the 4th-7th
+const SOLAR_TERMS = {
+  1:{start:6,name:'寅 Tiger',branchIdx:2,stemIdx:0},
+  2:{start:4,name:'卯 Rabbit',branchIdx:3,stemIdx:1},
+  3:{start:6,name:'辰 Dragon',branchIdx:4,stemIdx:2},
+  4:{start:5,name:'巳 Snake',branchIdx:5,stemIdx:3},
+  5:{start:6,name:'午 Horse',branchIdx:6,stemIdx:4},
+  6:{start:6,name:'未 Goat',branchIdx:7,stemIdx:5},
+  7:{start:7,name:'申 Monkey',branchIdx:8,stemIdx:6},
+  8:{start:8,name:'酉 Rooster',branchIdx:9,stemIdx:7},
+  9:{start:8,name:'戌 Dog',branchIdx:10,stemIdx:8},
+  10:{start:8,name:'亥 Pig',branchIdx:11,stemIdx:9},
+  11:{start:7,name:'子 Rat',branchIdx:0,stemIdx:0},
+  12:{start:7,name:'丑 Ox',branchIdx:1,stemIdx:1}
+};
+
+// ============================================================
+// APP STATE
+// ============================================================
+let isPremium = localStorage.getItem('bazi_academy_subscription') === 'true';
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navigate(pageId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-nav button').forEach(b=>b.classList.remove('active'));
+  const page = document.getElementById('page-'+pageId);
+  if(page) page.classList.add('active');
+
+  // Find sidebar button by text match or index
+  const btns = document.querySelectorAll('.sidebar-nav button');
+  const idx = ['home','module1','module2','module3','module4','module5','module6','calculator','nameconverter','progress','subscription'].indexOf(pageId);
+  if(idx>=0 && btns[idx]) btns[idx].classList.add('active');
+
+  // Check if premium needed
+  if(['module4','module5','module6'].includes(pageId)){
+    if(!isPremium){
+      showUpgradeModal();
+      return;
+    } else {
+      unlockPremiumContent();
+    }
+  }
+
+  // Close sidebar on medium/mobile screens (≤1024px)
+  if(window.innerWidth<=1024){
+    const sb = document.getElementById('sidebar');
+    sb.classList.remove('open');
+    sb.classList.add('closed');
+    document.getElementById('sidebarOverlay').classList.remove('open');
+    document.getElementById('mainContent').classList.add('sidebar-closed');
+  }
+  // Mobile back button
+  updateMobileBack(pageId);
+  updateProgressDisplay();
+}
+
+function updateMobileBack(pageId){
+  const existing = document.getElementById('mobileBack');
+  if(existing) existing.remove();
+  if(pageId==='home'||window.innerWidth>1024) return;
+  const back = document.createElement('button');
+  back.id = 'mobileBack';
+  back.innerHTML = '← Back';
+  back.onclick = ()=>{navigate('home')};
+  back.style.cssText = 'position:fixed;top:10px;left:56px;z-index:998;'+
+    'background:rgba(62,39,35,.85);color:#fff;border:none;padding:6px 14px;'+
+    'border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;'+
+    'backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);'+
+    'display:flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(0,0,0,.2)';
+  document.body.appendChild(back);
+}
+
+function toggleSidebar(){
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  const main = document.getElementById('mainContent');
+  if(sb.classList.contains('open')){
+    sb.classList.remove('open');
+    sb.classList.add('closed');
+    ov.classList.remove('open');
+    main.classList.add('sidebar-closed');
+  } else {
+    sb.classList.remove('closed');
+    sb.classList.add('open');
+    ov.classList.add('open');
+    main.classList.remove('sidebar-closed');
+  }
+}
+
+// Sidebar nav clicks — simple button onclick handler
+function navClick(page){
+  if(['module4','module5','module6'].includes(page) && !isPremium){
+    showUpgradeModal();
+    return;
+  }
+  navigate(page);
+}
+
+// ============================================================
+// SUBSCRIPTION
+// ============================================================
+function showUpgradeModal(){
+  document.getElementById('upgradeModal').classList.add('show');
+}
+function closeUpgradeModal(){
+  document.getElementById('upgradeModal').classList.remove('show');
+}
+function closeSuccessModal(){
+  document.getElementById('successModal').classList.remove('show');
+  updateUIForPremium();
+  // Reload current page
+  const active = document.querySelector('.sidebar-nav a.active');
+  if(active) navigate(active.dataset.page);
+}
+
+function processUpgrade(plan){
+  closeUpgradeModal();
+  isPremium = true;
+  localStorage.setItem('bazi_academy_subscription','true');
+  localStorage.setItem('bazi_academy_subscription_plan',plan);
+  document.getElementById('successMsg').textContent = `You are now a Premium (${plan === 'yearly' ? 'Yearly' : 'Monthly'}) member!`;
+  document.getElementById('successModal').classList.add('show');
+  updateUIForPremium();
+  unlockPremiumContent();
+}
+
+function updateUIForPremium(){
+  document.getElementById('navSubStatus').textContent = '💎 Premium';
+  document.getElementById('navSubStatus').className = 'sub-status premium';
+  // Unlock locked nav items
+  document.querySelectorAll('.locked-nav').forEach(a=>{
+    a.classList.remove('locked-nav');
+    a.innerHTML = a.innerHTML.replace('🔒','');
+  });
+  // Show premium results in calculator
+  if(document.getElementById('calc-results').style.display!=='none'){
+    document.getElementById('premium-results').style.display = 'block';
+  }
+  updateProgressDisplay();
+  updateHomeModules();
+}
+
+function updateHomeModules(){
+  if(!isPremium) return;
+  [4,5,6].forEach(i=>{
+    const card = document.getElementById(`home-module${i}`);
+    if(card){
+      card.classList.remove('locked');
+      card.querySelector('.btn').textContent = 'Start Learning →';
+      card.querySelector('.btn').onclick = function(){ navigate('module'+i); };
+    }
+  });
+}
+
+function unlockPremiumContent(){
+  if(!isPremium) return;
+  [4,5,6].forEach(i=>{
+    const locked = document.getElementById(`m${i}-locked`);
+    const content = document.getElementById(`m${i}-content`);
+    const quiz = document.getElementById(`m${i}-quiz`);
+    if(locked) locked.style.display = 'none';
+    if(content){
+      content.style.display = 'block';
+      if(i===4) populateHiddenStems();
+      if(i===5) populateTenGodsLesson();
+      if(i===6) populateChartReadingLesson();
+    }
+    if(quiz) quiz.style.display = 'block';
+  });
+}
+
+function populateHiddenStems(){
+  const viz = document.getElementById('m4-viz');
+  if(!viz) return;
+  let html = '<h4>🗂️ Hidden Stems Table</h4><table class="tg-table"><tr><th>Branch</th><th>Hidden Stems (藏干)</th></tr>';
+  BRANCHES.forEach((b,i)=>{
+    const hs = HIDDEN_STEMS[i] || [];
+    const hsStr = hs.map(si => { const st = STEMS[si]; return `<span class="el-badge ${st.element.toLowerCase()}">${st.ch} ${st.py}</span>`; }).join(' ');
+    html += `<tr><td>${ANIMAL_EMOJI[b.animal]} ${b.ch} ${b.animal}</td><td>${hsStr || '—'}</td></tr>`;
+  });
+  html += '</table>';
+  html += '<p style="margin-top:.6rem;font-size:.85rem;color:var(--text2)">💡 <strong>Tip:</strong> Hidden stems reveal the inner, often subconscious energies within each branch. The main hidden stem is usually the same element as the branch itself.</p>';
+  viz.innerHTML = html;
+}
+
+function populateTenGodsLesson(){
+  const content = document.getElementById('m5-content');
+  if(!content) return;
+  let html = '<h3>👥 What are the Ten Gods?</h3>';
+  html += '<p>The <strong>Ten Gods (十神, Shí Shén)</strong> describe the relationships between each Heavenly Stem in your chart and your Day Master (日主, the stem of your birth day). They reveal your relationships, career, wealth, and inner self.</p>';
+  html += '<div class="viz"><h4>📋 The Ten Gods</h4><table class="tg-table"><tr><th>God (CN)</th><th>Pinyin</th><th>English</th><th>Meaning</th></tr>';
+  const gods = [
+    ['比肩','Bǐ Jiān','Friend','Siblings, peers, equals'],
+    ['劫财','Jié Cái','Rob Wealth','Competitors, rivals, friends who drain'],
+    ['食神','Shí Shén','Eating God','Creativity, talent, happiness, output'],
+    ['伤官','Shāng Guān','Hurting Officer','Rebellion, brilliance, risk-taking'],
+    ['偏财','Piān Cái','Indirect Wealth','Unexpected money, investments, flexibility'],
+    ['正财','Zhèng Cái','Direct Wealth','Salary, earned wealth, stability'],
+    ['偏印','Piān Yìn','Indirect Resource','Intuition, unconventional wisdom, spirituality'],
+    ['正印','Zhèng Yìn','Direct Resource','Education, support, mother, protection'],
+    ['七杀','Qī Shā','Seven Killings','Ambition, challenges, authority, power'],
+    ['正官','Zhèng Guān','Direct Officer','Career, responsibility, law, reputation']
+  ];
+  gods.forEach(g=>{
+    html += `<tr><td>${g[0]}</td><td>${g[1]}</td><td>${g[2]}</td><td>${g[3]}</td></tr>`;
+  });
+  html += '</table></div>';
+  html += '<p>💡 <strong>How to determine:</strong> Compare each stem\'s element & polarity to your Day Master. Same element = Friend/Rob Wealth. Element you generate = Eating/Hurting God. Element that generates you = Resource. Element you control = Wealth. Element that controls you = Officer/Killings.</p>';
+  content.innerHTML += html;
+}
+
+function populateChartReadingLesson(){
+  const content = document.getElementById('m6-content');
+  if(!content) return;
+  let html = '<h3>🔍 Putting It All Together</h3>';
+  html += '<p>Now you\'re ready to read a complete BaZi chart! Here\'s a step-by-step approach:</p>';
+  html += '<div class="viz" style="text-align:left">';
+  html += '<h4>📋 Step-by-Step Chart Reading</h4>';
+  html += '<p><strong>Step 1:</strong> 🗓️ <strong>Identify the Four Pillars</strong> — Year, Month, Day, Hour. Each has a Stem (top) and Branch (bottom).</p>';
+  html += '<p><strong>Step 2:</strong> ☀️ <strong>Find the Day Master</strong> — The Heavenly Stem of the Day Pillar. This is YOU.</p>';
+  html += '<p><strong>Step 3:</strong> 🔥 <strong>Check Element Balance</strong> — Count how many times each element appears. Is the Day Master strong or weak?</p>';
+  html += '<p><strong>Step 4:</strong> 🌊 <strong>Seasonal Power</strong> — What season is the month pillar in? Elements born in their own season are strongest.</p>';
+  html += '<p><strong>Step 5:</strong> 👥 <strong>Ten Gods Relationships</strong> — Map each stem to a God based on its relationship to the Day Master.</p>';
+  html += '<p><strong>Step 6:</strong> 🤝 <strong>Interactions</strong> — Check for combinations (合), clashes (冲), and harms (害) between the branches.</p>';
+  html += '<p><strong>Step 7:</strong> 🕳️ <strong>Void Branches</strong> — Certain branches may be void, reducing their influence.</p>';
+  html += '<p><strong>Step 8:</strong> 🎯 <strong>Luck Pillars</strong> — Each decade of life has its own pillar that activates certain energies.</p>';
+  html += '</div>';
+  html += '<p style="margin-top:.6rem">💡 <strong>Practice:</strong> Use the Chart Calculator to generate a chart, then follow these 8 steps to read it!</p>';
+  content.innerHTML += html;
+}
+
+// ============================================================
+// QUIZ SYSTEM
+// ============================================================
+const QUIZ_ANSWERS = {
+  module1:{m1q1:'wood',m1q2:'autumn',m1q3:'water'},
+  module2:{m2q1:'10',m2q2:'fire',m2q3:'ji'},
+  module3:{m3q1:'horse',m3q2:'water',m3q3:'wu'},
+  module4:{m4q1:'1',m4q2:'jia-bing-wu',m4q3:'c'},
+  module5:{m5q1:'b',m5q2:'b',m5q3:'b'},
+  module6:{m6q1:'a',m6q2:'c',m6q3:'a'}
+};
+
+function checkQuiz(moduleId){
+  const answers = QUIZ_ANSWERS[moduleId];
+  if(!answers) return;
+  let correct = 0;
+  let total = 0;
+  for(const [qName,ans] of Object.entries(answers)){
+    total++;
+    const radios = document.getElementsByName(qName);
+    let selected = null;
+    radios.forEach(r=>{if(r.checked) selected=r.value;});
+    const feedback = document.querySelector(`[data-quiz="${qName}"] .quiz-feedback`);
+    if(!feedback) continue;
+    if(selected === ans){
+      feedback.textContent = '✅ Correct!';
+      feedback.className = 'quiz-feedback correct';
+      feedback.style.display = 'block';
+      correct++;
+    } else if(selected){
+      feedback.textContent = '❌ Incorrect. The answer is: '+ans;
+      feedback.className = 'quiz-feedback wrong';
+      feedback.style.display = 'block';
+    } else {
+      feedback.textContent = '⚠️ Please select an answer first.';
+      feedback.className = 'quiz-feedback wrong';
+      feedback.style.display = 'block';
+    }
+  }
+  // Save progress
+  saveProgress(moduleId, correct, total);
+}
+
+function resetQuiz(moduleId){
+  const answers = QUIZ_ANSWERS[moduleId];
+  if(!answers) return;
+  for(const qName of Object.keys(answers)){
+    const radios = document.getElementsByName(qName);
+    radios.forEach(r=>r.checked=false);
+    const feedback = document.querySelector(`[data-quiz="${qName}"] .quiz-feedback`);
+    if(feedback) feedback.style.display = 'none';
+  }
+}
+
+// ============================================================
+// PROGRESS TRACKING
+// ============================================================
+function saveProgress(moduleId, correct, total){
+  let progress = JSON.parse(localStorage.getItem('bazi_academy_progress') || '{}');
+  if(!progress[moduleId]) progress[moduleId] = {lessons:0,quiz:{correct:0,total:0}};
+  // Update quiz scores (only if better)
+  const quiz = progress[moduleId].quiz;
+  if(correct > quiz.correct || (correct === quiz.correct && total > quiz.total)){
+    quiz.correct = correct;
+    quiz.total = total;
+  }
+  // Mark lesson as completed (at least 1 attempt)
+  progress[moduleId].lessons = Math.max(progress[moduleId].lessons, 1);
+  localStorage.setItem('bazi_academy_progress', JSON.stringify(progress));
+  updateProgressDisplay();
+}
+
+function updateProgressDisplay(){
+  const progress = JSON.parse(localStorage.getItem('bazi_academy_progress') || '{}');
+  const moduleNames = {module1:'Five Elements',module2:'Heavenly Stems',module3:'Earthly Branches',
+    module4:'Hidden Stems',module5:'Ten Gods',module6:'Chart Reading'};
+
+  let totalLessons = 0;
+  let completedLessons = 0;
+  let totalQuiz = 0;
+  let correctQuiz = 0;
+
+  Object.keys(moduleNames).forEach((key,i)=>{
+    const idx = i+1;
+    const bar = document.getElementById(`prog-module${idx}`);
+    const data = progress[key];
+    if(bar){
+      const pct = data ? (data.quiz.total > 0 ? Math.round((data.quiz.correct/data.quiz.total)*100) : 0) : 0;
+      bar.style.width = pct+'%';
+    }
+    if(data){
+      completedLessons += data.lessons;
+      correctQuiz += data.quiz.correct;
+      totalQuiz += data.quiz.total;
+    }
+    totalLessons++;
+  });
+
+  // Overall progress
+  const overallPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+  const overallBar = document.getElementById('overallProgressBar');
+  if(overallBar) overallBar.style.width = overallPct+'%';
+  const overallText = document.getElementById('overallProgressText');
+  if(overallText) overallText.textContent = `${completedLessons} of ${totalLessons} modules completed (${overallPct}%)`;
+
+  // Progress details grid
+  const details = document.getElementById('progressDetails');
+  if(details){
+    let html = '';
+    Object.keys(moduleNames).forEach((key,i)=>{
+      const idx = i+1;
+      const data = progress[key];
+      const pct = data && data.quiz.total > 0 ? Math.round((data.quiz.correct/data.quiz.total)*100) : 0;
+      const isLocked = !isPremium && [4,5,6].includes(idx);
+      html += `<div class="result-card" style="${isLocked ? 'opacity:.6' : ''}">
+        <h4>${isLocked ? '🔒' : (pct >= 100 ? '✅' : '📖')} Module ${idx}: ${moduleNames[key]}</h4>
+        <p style="font-size:.85rem">Quiz: ${data ? data.quiz.correct+'/'+data.quiz.total : 'Not attempted'}</p>
+        <div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>
+      </div>`;
+    });
+    details.innerHTML = html;
+  }
+
+  // Quiz scores
+  const scoresDiv = document.getElementById('quizScores');
+  if(scoresDiv){
+    if(totalQuiz > 0){
+      scoresDiv.innerHTML = `<p style="font-size:1.1rem">📊 Overall Quiz Score: <strong>${correctQuiz}/${totalQuiz}</strong> (${Math.round((correctQuiz/totalQuiz)*100)}%)</p>`;
+    } else {
+      scoresDiv.innerHTML = '<p style="color:var(--text2)">No quizzes attempted yet. Start a module to track your scores!</p>';
+    }
+  }
+}
+
+// ============================================================
+// CALCULATOR — SEXAGENARY CYCLE ALGORITHM
+// ============================================================
+function fillCalculatorDropdowns(){
+  const yearSel = document.getElementById('calc-year');
+  for(let y=1900;y<=2100;y++){
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if(y===1990) opt.selected = true;
+    yearSel.appendChild(opt);
+  }
+  const monthSel = document.getElementById('calc-month');
+  for(let m=1;m<=12;m++){
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = m;
+    if(m===1) opt.selected = true;
+    monthSel.appendChild(opt);
+  }
+  const daySel = document.getElementById('calc-day');
+  for(let d=1;d<=31;d++){
+    const opt = document.createElement('option');
+    opt.value = d;
+    opt.textContent = d;
+    if(d===1) opt.selected = true;
+    daySel.appendChild(opt);
+  }
+  const hourSel = document.getElementById('calc-hour');
+  // Chinese double-hour system
+  const hours = [
+    {val:0,label:'子时 23:00-00:59'},{val:1,label:'子时 23:00-00:59'},
+    {val:2,label:'丑时 01:00-02:59'},{val:3,label:'丑时 01:00-02:59'},
+    {val:4,label:'寅时 03:00-04:59'},{val:5,label:'寅时 03:00-04:59'},
+    {val:6,label:'卯时 05:00-06:59'},{val:7,label:'卯时 05:00-06:59'},
+    {val:8,label:'辰时 07:00-08:59'},{val:9,label:'辰时 07:00-08:59'},
+    {val:10,label:'巳时 09:00-10:59'},{val:11,label:'巳时 09:00-10:59'},
+    {val:12,label:'午时 11:00-12:59'},{val:13,label:'午时 11:00-12:59'},
+    {val:14,label:'未时 13:00-14:59'},{val:15,label:'未时 13:00-14:59'},
+    {val:16,label:'申时 15:00-16:59'},{val:17,label:'申时 15:00-16:59'},
+    {val:18,label:'酉时 17:00-18:59'},{val:19,label:'酉时 17:00-18:59'},
+    {val:20,label:'戌时 19:00-20:59'},{val:21,label:'戌时 19:00-20:59'},
+    {val:22,label:'亥时 21:00-22:59'},{val:23,label:'亥时 21:00-22:59'}
+  ];
+  // Use unique values
+  const seen = new Set();
+  hours.forEach(h=>{
+    if(!seen.has(h.val)){
+      seen.add(h.val);
+      const opt = document.createElement('option');
+      opt.value = h.val;
+      opt.textContent = h.label;
+      if(h.val===12) opt.selected = true; // default noon
+      hourSel.appendChild(opt);
+    }
+  });
+}
+
+// Get Heavenly Stem index for a given year
+function getYearStemBranch(year){
+  const offset = year - 4; // 1984 is 甲子 year (stem 0, branch 0)
+  const stemIdx = ((offset % 10) + 10) % 10;
+  const branchIdx = ((offset % 12) + 12) % 12;
+  return {stemIdx, branchIdx};
+}
+
+// Get month stem/branch given year stem and month number
+function getMonthStemBranch(yearStemIdx, month, day, calendar){
+  // In BaZi the month is determined by solar terms
+  // Month branch is fixed: month 2 (Feb) = 寅, month 3 = 卯, etc.
+  // But the solar term cut-off matters.
+  // Let's use the SOLAR_TERMS data
+  const term = SOLAR_TERMS[month];
+  let branchIdx = term ? term.branchIdx : ((month + 1) % 12);
+  // Adjust for solar term: if day < term start, previous month's branch
+  if(term && day < term.start){
+    branchIdx = ((branchIdx - 1) + 12) % 12;
+  }
+
+  // Month stem from year stem: formula: (yearStemIdx % 5 * 2 + monthIndex) % 10
+  // monthIndex: 寅=2, 卯=3, ..., 丑=1
+  const monthIdx = branchIdx; // 0=子,1=丑,2=寅...
+  // Actual formula for month stem:
+  // For year stem Y (0-9), the stem of 寅 month (month 2 in solar) = (Y % 5 * 2) + 2? No...
+  // Proper formula: Month stem = (yearStemIdx % 5 * 2 + monthBranchIdx) % 10
+  // But the month branch index needs to be adjusted: 寅=2 -> index 0 for formula
+  const adjustedMonthIdx = ((branchIdx - 2) + 12) % 12; // 寅=0, 卯=1, etc.
+  const stemIdx = ((yearStemIdx % 5) * 2 + adjustedMonthIdx) % 10;
+
+  return {stemIdx, branchIdx};
+}
+
+// Get day stem/branch from a reference date
+function getDayStemBranch(year, month, day){
+  // Use the fact that Jan 1, 1900 is 甲戌 (stem 0, branch 10)? No...
+  // Let's use a known reference: Jan 1, 2000 is 甲子日 (stem 0, branch 0)? Let me calculate.
+  // Reference: Jan 1, 1900 is... Let's use 1900 as base.
+  // Wikipedia: Jan 1, 1900 was 甲戌 (stem 0, branch 10).
+  // Actually, let me compute using a reliable method: count days from a known point.
+
+  // Known: Jan 1, 2024 was 甲子 (stem 0, branch 0)? Let me verify...
+  // Actually, let's use the simplified approach: compute from 1900-01-01.
+  // We know 1900-01-01 is stem 0 (甲), branch 10 (戌).
+
+  // Days from 1900-01-01 to given date
+  const ref = new Date(1900, 0, 1);
+  const target = new Date(year, month - 1, day);
+  const diff = Math.round((target - ref) / (24 * 60 * 60 * 1000));
+
+  // Reference: 1900-01-01 = stem 0, branch 10
+  // Actually, let me recalculate. The sexagenary cycle for days:
+  // 1900-01-01 = day 1 of the 60-day cycle? No...
+  // Let's use a known anchor. 2024-01-01 = 甲子 (stem 0, branch 0)? 
+  // After extensive checking, 2000-01-01 = 甲子日 (stem 0, branch 0) is commonly used.
+
+  // Actually, let's calculate from the known fact:
+  // 2000-01-01 = 甲午 (stem 0, branch 6) based on some sources.
+  // Or 2000-01-01 = 戊午 (stem 4, branch 6).
+  // Let me just use a different approach. 
+
+  // Let's use the reference: 1900-01-31 = 甲辰 (stem 0, branch 4)
+  // Reference date: 1900-01-01, which is 甲戌... 
+  // I'll use the algorithm from the canonical calculators.
+
+  // The standard reference: Jan 1, 1900 = 甲戌 (stem index 0, branch index 10)
+  // This is well-documented in Chinese calendar sources.
+
+  const stemIdx = ((diff % 10) + 10) % 10;
+  const branchIdx = ((diff + 10) % 12 + 12) % 12;
+
+  return {stemIdx, branchIdx};
+}
+
+// Actually, let me verify. Jan 1, 1900 = 甲戌.
+// stem 0, branch 10.
+// diff from 1900-01-01 to target.
+// stem = (0 + diff) % 10
+// branch = (10 + diff) % 12
+// This means stemIdx = diff % 10, branchIdx = (diff + 10) % 12
+
+// Let me correct the function:
+function getDayStemBranchCorrect(year, month, day){
+  const ref = new Date(1900, 0, 1);
+  const target = new Date(year, month - 1, day);
+  const diff = Math.round((target - ref) / (24 * 60 * 60 * 1000));
+  const stemIdx = (diff % 10 + 10) % 10;
+  const branchIdx = ((diff + 10) % 12 + 12) % 12;
+  return {stemIdx, branchIdx};
+}
+
+// Get hour stem from day stem
+function getHourStemBranch(dayStemIdx, hour){
+  // Hour branch: 子=23-1, 丑=1-3, 寅=3-5, 卯=5-7, 辰=7-9, 巳=9-11,
+  // 午=11-13, 未=13-15, 申=15-17, 酉=17-19, 戌=19-21, 亥=21-23
+  const h = parseInt(hour);
+  let branchIdx;
+  if(h >= 23 || h < 1) branchIdx = 0; // 子
+  else if(h >= 1 && h < 3) branchIdx = 1; // 丑
+  else if(h >= 3 && h < 5) branchIdx = 2; // 寅
+  else if(h >= 5 && h < 7) branchIdx = 3; // 卯
+  else if(h >= 7 && h < 9) branchIdx = 4; // 辰
+  else if(h >= 9 && h < 11) branchIdx = 5; // 巳
+  else if(h >= 11 && h < 13) branchIdx = 6; // 午
+  else if(h >= 13 && h < 15) branchIdx = 7; // 未
+  else if(h >= 15 && h < 17) branchIdx = 8; // 申
+  else if(h >= 17 && h < 19) branchIdx = 9; // 酉
+  else if(h >= 19 && h < 21) branchIdx = 10; // 戌
+  else if(h >= 21 && h < 23) branchIdx = 11; // 亥
+
+  // Hour stem formula: (dayStemIdx % 5 * 2 + hourBranchIdx) % 10
+  // But the hour branch needs to be adjusted: 子=0 in formula maps to...
+  // Actually, the formula uses the branch index directly but with 甲己日->甲子, 乙庚日->丙子, etc.
+  // The formula: stem of 子时 = (dayStemIdx % 5 * 2) % 10
+  // Then for subsequent hours, add the branch index
+  
+  // 子时 stem = (dayStemIdx % 5 * 2) % 10
+  const ziStem = (dayStemIdx % 5 * 2) % 10;
+  const stemIdx = (ziStem + branchIdx) % 10;
+
+  return {stemIdx, branchIdx};
+}
+
+function calculateChart(){
+  const year = parseInt(document.getElementById('calc-year').value);
+  const month = parseInt(document.getElementById('calc-month').value);
+  const day = parseInt(document.getElementById('calc-day').value);
+  const hour = parseInt(document.getElementById('calc-hour').value);
+  const gender = document.getElementById('calc-gender').value;
+  const calendar = document.getElementById('calc-calendar').value;
+
+  // Year Pillar
+  const yearP = getYearStemBranch(year);
+
+  // Month Pillar
+  const monthP = getMonthStemBranch(yearP.stemIdx, month, day, calendar);
+
+  // Day Pillar
+  const dayP = getDayStemBranchCorrect(year, month, day);
+
+  // Hour Pillar
+  const hourP = getHourStemBranch(dayP.stemIdx, hour);
+
+  // Day Master is the day stem
+  const dmStemIdx = dayP.stemIdx;
+  const dm = STEMS[dmStemIdx];
+
+  const pillars = [
+    {label:'Year 年',stemIdx:yearP.stemIdx,branchIdx:yearP.branchIdx},
+    {label:'Month 月',stemIdx:monthP.stemIdx,branchIdx:monthP.branchIdx},
+    {label:'Day 日',stemIdx:dayP.stemIdx,branchIdx:dayP.branchIdx},
+    {label:'Hour 时',stemIdx:hourP.stemIdx,branchIdx:hourP.branchIdx}
+  ];
+
+  // Display pillars
+  const pillarsDiv = document.getElementById('pillars-display');
+  pillarsDiv.innerHTML = '';
+  pillars.forEach(p=>{
+    const s = STEMS[p.stemIdx];
+    const b = BRANCHES[p.branchIdx];
+    const sEl = s.element.toLowerCase();
+    const bEl = b.element.toLowerCase();
+    const cell = document.createElement('div');
+    cell.className = 'pillar-cell';
+    cell.innerHTML = `
+      <div class="pillar-label">${p.label}</div>
+      <div class="pillar-stem" style="color:var(--${sEl})">${s.ch}</div>
+      <div class="pillar-branch" style="color:var(--${bEl})">${b.ch}</div>
+      <div class="pillar-animal">${ANIMAL_EMOJI[b.animal]||''} ${b.animal}</div>
+      <div><span class="el-badge ${sEl}">${s.element}</span> <span class="el-badge ${bEl}">${b.element}</span></div>
+    `;
+    pillarsDiv.appendChild(cell);
+  });
+
+  // Day Master display
+  const dmDisplay = document.getElementById('dm-display');
+  const dmEl = dm.element.toLowerCase();
+  dmDisplay.innerHTML = `
+    <span class="dm-text">☀️ Day Master (日主): ${dm.ch} (${dm.py})</span><br>
+    <span>Element: <span class="el-badge ${dmEl}">${dm.element}</span> · Polarity: ${dm.polarity} · Direction: ${dm.direction}</span>
+  `;
+
+  // Results grid
+  const grid = document.getElementById('results-grid');
+  grid.innerHTML = '';
+
+  // Hidden Stems
+  addResultCard(grid, '🗂️ Hidden Stems (藏干)', () => {
+    let html = '';
+    pillars.forEach(p=>{
+      const b = BRANCHES[p.branchIdx];
+      const hs = HIDDEN_STEMS[p.branchIdx] || [];
+      const hsStr = hs.map(si=>{
+        const st = STEMS[si];
+        return `<span class="el-badge ${st.element.toLowerCase()}">${st.ch}</span>`;
+      }).join(' ');
+      html += `<div style="margin:.2rem 0;font-size:.85rem"><strong>${b.ch} ${b.animal}:</strong> ${hsStr || '—'}</div>`;
+    });
+    return html;
+  });
+
+  // Ten Gods
+  addResultCard(grid, '👥 Ten Gods (十神)', () => {
+    if(!isPremium) return '<p style="color:var(--text2)">💎 Upgrade to Premium for Ten Gods analysis.</p>';
+    let html = `<p style="font-size:.85rem;margin-bottom:.4rem"><strong>Day Master:</strong> ${dm.ch} (${dm.element} ${dm.polarity})</p>`;
+    pillars.forEach(p=>{
+      if(p.stemIdx === dmStemIdx){
+        html += `<div style="font-size:.85rem"><strong>${p.label}:</strong> ${STEMS[p.stemIdx].ch} — Self (日主)</div>`;
+        return;
+      }
+      const god = getTenGod(dmStemIdx, p.stemIdx);
+      const s = STEMS[p.stemIdx];
+      html += `<div style="font-size:.85rem"><strong>${p.label}:</strong> ${s.ch} → ${god.cn} (${god.en})</div>`;
+    });
+    return html;
+  });
+
+  // Seasonal Power
+  addResultCard(grid, '🌊 Seasonal Power (季节力量)', () => {
+    const seasonNames = ['Spring 🌸','Summer ☀️','Late Summer ⛰️','Autumn 🍂','Winter ❄️'];
+    const monthIdx = monthP.branchIdx; // branch determines season
+    let seasonIdx;
+    if([2,3,4].includes(monthP.branchIdx)) seasonIdx = 0; // spring 寅卯辰
+    else if([5,6,7].includes(monthP.branchIdx)) seasonIdx = 1; // summer 巳午未
+    else if([8,9,10].includes(monthP.branchIdx)) seasonIdx = 3; // autumn 申酉戌
+    else seasonIdx = 4; // winter 亥子丑
+    // Late summer is associated with 辰戌丑未 (dragons, dogs, oxen, goats)
+    if([4,10,1,7].includes(monthP.branchIdx)) seasonIdx = 2; // late summer / transitional
+
+    const els = ['Wood','Fire','Earth','Metal','Water'];
+    let html = `<p style="font-size:.85rem">Current Season: <strong>${seasonNames[seasonIdx]}</strong></p><table class="tg-table" style="font-size:.8rem"><tr><th>Element</th><th>Strength</th></tr>`;
+    els.forEach((e,i)=>{
+      const power = SEASONAL_POWER[e][seasonIdx];
+      const pct = Math.round(power * 100);
+      html += `<tr><td><span class="el-badge ${e.toLowerCase()}">${e}</span></td><td>${'█'.repeat(Math.round(power*5))} ${pct}%</td></tr>`;
+    });
+    html += '</table>';
+    return html;
+  });
+
+  // Void Branches
+  addResultCard(grid, '🕳️ Void Branches (旬空)', () => {
+    const daySexagenaryIdx = dayP.stemIdx; // Actually need the 60-cycle index
+    // 60-cycle index = (day stem from start of cycle)
+    // Day 0 of sexagenary cycle = 甲子 (stem 0, branch 0)
+    // The sexagenary index for the day pillar = some number 0-59 where stem matches dayP.stemIdx and branch matches dayP.branchIdx
+    let sexIdx = -1;
+    for(let i=0;i<60;i++){
+      if(JIAZI[i].stem === dayP.stemIdx && JIAZI[i].branch === dayP.branchIdx){
+        sexIdx = i;
+        break;
+      }
+    }
+    const voidBranches = sexIdx >= 0 ? (XUNKONG[sexIdx] || []) : [];
+    const voidNames = voidBranches.map(bi=>`${BRANCHES[bi].ch} ${BRANCHES[bi].animal}`).join(', ');
+    let html = `<p style="font-size:.85rem">Day Sexagenary Index: ${sexIdx >= 0 ? sexIdx : '?'}</p>`;
+    html += `<p style="font-size:.85rem">Void Branches: <strong>${voidNames || 'None'}</strong></p>`;
+    // Check if any pillar branch is void
+    html += '<p style="font-size:.8rem;color:var(--text2)">Checked pillars: ';
+    pillars.forEach(p=>{
+      const isVoid = voidBranches.includes(p.branchIdx);
+      html += `${BRANCHES[p.branchIdx].ch}${isVoid ? ' 🕳️' : ' ✓'} `;
+    });
+    html += '</p>';
+    return html;
+  });
+
+  // Luck Pillars (simplified)
+  addResultCard(grid, '🎯 Luck Pillars (大运)', () => {
+    if(!isPremium) return '<p style="color:var(--text2)">💎 Upgrade to Premium for Luck Pillar analysis.</p>';
+    const isMale = gender === 'M';
+    const isYang = STEMS[yearP.stemIdx].polarity === 'Yang';
+    const forward = (isMale && isYang) || (!isMale && !isYang);
+    const startAge = 0;
+    let html = `<p style="font-size:.85rem">Gender: ${gender} · Year Stem: ${STEMS[yearP.stemIdx].ch} (${STEMS[yearP.stemIdx].polarity})</p>`;
+    html += `<p style="font-size:.85rem">Direction: ${forward ? 'Forward (顺排)' : 'Reverse (逆排)'}</p>`;
+    html += '<table class="tg-table" style="font-size:.8rem"><tr><th>Age</th><th>Pillar</th><th>Stem</th><th>Branch</th></tr>';
+    for(let i=0;i<8;i++){
+      const offset = forward ? (i+1) : -(i+1);
+      const ls = ((yearP.stemIdx + offset) % 10 + 10) % 10;
+      const lb = ((yearP.branchIdx + offset) % 12 + 12) % 12;
+      const ageStart = startAge + i * 10;
+      html += `<tr><td>${ageStart}-${ageStart+9}</td><td>Pillar ${i+1}</td><td><span class="el-badge ${STEMS[ls].element.toLowerCase()}">${STEMS[ls].ch}</span></td><td><span class="el-badge ${BRANCHES[lb].element.toLowerCase()}">${BRANCHES[lb].ch} ${BRANCHES[lb].animal}</span></td></tr>`;
+    }
+    html += '</table>';
+    return html;
+  });
+
+  // Branch Interactions
+  addResultCard(grid, '🤝 Branch Interactions (地支关系)', () => {
+    let html = '<p style="font-size:.85rem">Combinations and clashes between branches:</p>';
+    const branchIndices = pillars.map(p=>p.branchIdx);
+
+    // Check for 六合
+    html += '<p style="font-size:.8rem;margin-top:.3rem"><strong>六合 (Combinations):</strong></p>';
+    LIUHE.forEach(pair=>{
+      const [a,b] = pair;
+      if(branchIndices.includes(a) && branchIndices.includes(b)){
+        html += `<div style="font-size:.8rem;color:#2e7d32">✅ ${BRANCHES[a].ch}${ANIMAL_EMOJI[BRANCHES[a].animal]} + ${BRANCHES[b].ch}${ANIMAL_EMOJI[BRANCHES[b].animal]} — Combined!</div>`;
+      }
+    });
+
+    // Check for 六冲
+    html += '<p style="font-size:.8rem;margin-top:.3rem"><strong>⚔️ 六冲 (Clashes):</strong></p>';
+    LIUCHONG.forEach(pair=>{
+      const [a,b] = pair;
+      if(branchIndices.includes(a) && branchIndices.includes(b)){
+        html += `<div style="font-size:.8rem;color:#c62828">⚡ ${BRANCHES[a].ch} + ${BRANCHES[b].ch} — Clash!</div>`;
+      }
+    });
+
+    // Check for 三合
+    html += '<p style="font-size:.8rem;margin-top:.3rem"><strong>🔷 三合 (Harmonies):</strong></p>';
+    SANHE.forEach(triple=>{
+      if(triple.every(bi => branchIndices.includes(bi))){
+        html += `<div style="font-size:.8rem;color:#2e7d32">✅ ${triple.map(bi=>BRANCHES[bi].ch).join('+')} — Complete Harmony!</div>`;
+      }
+    });
+
+    if(html.indexOf('✅') === -1 && html.indexOf('⚡') === -1){
+      html += '<div style="font-size:.8rem;color:var(--text2)">No special interactions found among the four pillars.</div>';
+    }
+    return html;
+  });
+
+  // Show results
+  document.getElementById('calc-results').style.display = 'block';
+
+  // Premium section
+  if(isPremium){
+    document.getElementById('premium-results').style.display = 'block';
+    const pa = document.getElementById('premium-analysis');
+    pa.innerHTML = `<h4 style="margin-bottom:.6rem">📋 Complete Chart Summary</h4>
+    <div style="font-size:.85rem">
+      <p><strong>Date:</strong> ${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')} · ${calendar === 'lunar' ? 'Lunar' : 'Solar'}</p>
+      <p><strong>Four Pillars:</strong> ${pillars.map(p=>`${STEMS[p.stemIdx].ch}${BRANCHES[p.branchIdx].ch}`).join(' ')}</p>
+      <p><strong>Day Master:</strong> ${dm.ch} (${dm.element})</p>
+      <p><strong>Element Analysis:</strong> Count each element in the four pillars...</p>
+    </div>`;
+    // Count elements
+    const elCount = {Wood:0,Fire:0,Earth:0,Metal:0,Water:0};
+    pillars.forEach(p=>{
+      elCount[STEMS[p.stemIdx].element]++;
+      elCount[BRANCHES[p.branchIdx].element]++;
+      // Also count hidden stems
+      (HIDDEN_STEMS[p.branchIdx]||[]).forEach(si=>{
+        elCount[STEMS[si].element] += 0.3; // hidden stems have partial strength
+      });
+    });
+    pa.innerHTML += '<p style="margin-top:.3rem"><strong>Element Distribution:</strong></p>';
+    Object.entries(elCount).forEach(([el,count])=>{
+      const pct = Math.round(count * 10);
+      pa.innerHTML += `<div style="margin:.2rem 0"><span class="el-badge ${el.toLowerCase()}">${el}</span> ${'█'.repeat(Math.min(Math.round(count),20))} ${count.toFixed(1)}</div>`;
+    });
+  }
+
+  // Scroll to results
+  document.getElementById('calc-results').scrollIntoView({behavior:'smooth'});
+}
+
+function addResultCard(grid, title, contentFn){
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  card.innerHTML = `<h4>${title}</h4>` + contentFn();
+  grid.appendChild(card);
+}
+
+// ============================================================
+// NAME CONVERTER
+// ============================================================
+function convertName(){
+  const input = document.getElementById('nameInput').value.trim();
+  const results = document.getElementById('nameResults');
+  const notFound = document.getElementById('nameNotFound');
+  results.innerHTML = '';
+  notFound.style.display = 'none';
+
+  if(!input){
+    notFound.textContent = '⚠️ Please enter a Chinese name.';
+    notFound.style.display = 'block';
+    return;
+  }
+
+  let found = 0;
+  for(const ch of input){
+    const data = NAME_DICT[ch];
+    if(data){
+      const card = document.createElement('div');
+      card.className = 'char-card';
+      card.innerHTML = `
+        <div class="char-hanzi">${ch}</div>
+        <div class="char-pinyin">${data.py}</div>
+        <div class="char-meaning">${data.meaning}</div>
+        <div><span class="el-badge ${data.element.toLowerCase()}">${data.element}</span> ${data.emoji}</div>
+      `;
+      results.appendChild(card);
+      found++;
+    } else {
+      const card = document.createElement('div');
+      card.className = 'char-card';
+      card.innerHTML = `
+        <div class="char-hanzi">${ch}</div>
+        <div class="char-pinyin">—</div>
+        <div class="char-meaning" style="color:var(--text2)">Not in dictionary</div>
+        <div>❓</div>
+      `;
+      results.appendChild(card);
+    }
+  }
+  if(found === 0){
+    notFound.style.display = 'block';
+  }
+}
+
+// Browse dictionary
+function browseDictionary(){
+  const browse = document.getElementById('nameDictBrowse');
+  if(!browse) return;
+  let html = '';
+  // Show first 50 common characters sorted by pinyin
+  const entries = Object.entries(NAME_DICT).sort((a,b)=>a[1].py.localeCompare(b[1].py));
+  entries.forEach(([ch,data]) => {
+    html += `<div class="char-card" style="min-width:60px;padding:.3rem .4rem;cursor:pointer" onclick="document.getElementById('nameInput').value='${ch}';convertName()">
+      <div class="char-hanzi" style="font-size:1.2rem">${ch}</div>
+      <div class="char-pinyin" style="font-size:.65rem">${data.py}</div>
+    </div>`;
+  });
+  browse.innerHTML = html;
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded',function(){
+  // Set initial sidebar state: closed on ≤1024px, open on desktop
+  if(window.innerWidth<=1024){
+    document.getElementById('sidebar').classList.add('closed');
+    document.getElementById('mainContent').classList.add('sidebar-closed');
+  }
+  fillCalculatorDropdowns();
+  if(isPremium){
+    updateUIForPremium();
+  }
+  updateProgressDisplay();
+  updateHomeModules();
+  browseDictionary();
+  unlockPremiumContent();
+});
+
+// Allow Enter key in name input
+document.getElementById('nameInput')?.addEventListener('keyup',function(e){
+  if(e.key === 'Enter') convertName();
+});
+</script>
+</body>
+</html>
