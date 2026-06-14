@@ -118,6 +118,7 @@ final Map<String, NameChar> nameDict = {
   '翔': NameChar('翔', 'xiáng', ['Soar', 'Glide'], '水', '🦅', 'Soaring.'),
   '晨': NameChar('晨', 'chén', ['Morning', 'Dawn'], '火', '🌅', 'Morning.'),
   '曦': NameChar('曦', 'xī', ['Sunlight', 'Radiant'], '火', '☀️', 'Morning sunlight.'),
+  '晓': NameChar('晓', 'xiǎo', ['Dawn', 'Know', 'Daybreak'], '火', '🌄', 'Dawn. Common in female names.'),
   '浩': NameChar('浩', 'hào', ['Vast', 'Expansive'], '水', '🌅', 'Vastness.'),
   '涛': NameChar('涛', 'tāo', ['Wave', 'Surge'], '水', '🌊', 'Great waves.'),
   '峰': NameChar('峰', 'fēng', ['Peak', 'Summit'], '山', '⛰️', 'Mountain peak.'),
