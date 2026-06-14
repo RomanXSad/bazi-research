@@ -208,21 +208,21 @@ a:hover{text-decoration:underline}
   </div>
   <div class="sidebar-nav">
     <div class="nav-label">📚 Learning</div>
-    <a class="active" data-page="home">🏠 Home</a>
-    <a data-page="module1">1. 五行 · Five Elements</a>
-    <a data-page="module2">2. 天干 · Heavenly Stems</a>
-    <a data-page="module3">3. 地支 · Earthly Branches</a>
-    <a data-page="module4" class="locked-nav">4. 藏干 · Hidden Stems 🔒</a>
-    <a data-page="module5" class="locked-nav">5. 十神 · Ten Gods 🔒</a>
-    <a data-page="module6" class="locked-nav">6. Chart Reading 🔒</a>
+    <a class="active" data-page="home" role="button" tabindex="0">🏠 Home</a>
+    <a data-page="module1" role="button" tabindex="0">1. 五行 · Five Elements</a>
+    <a data-page="module2" role="button" tabindex="0">2. 天干 · Heavenly Stems</a>
+    <a data-page="module3" role="button" tabindex="0">3. 地支 · Earthly Branches</a>
+    <a data-page="module4" class="locked-nav" role="button" tabindex="0">4. 藏干 · Hidden Stems 🔒</a>
+    <a data-page="module5" class="locked-nav" role="button" tabindex="0">5. 十神 · Ten Gods 🔒</a>
+    <a data-page="module6" class="locked-nav" role="button" tabindex="0">6. Chart Reading 🔒</a>
 
     <div class="nav-label">🛠️ Tools</div>
-    <a data-page="calculator">🔢 Chart Calculator</a>
-    <a data-page="nameconverter">📝 Name Converter</a>
+    <a data-page="calculator" role="button" tabindex="0">🔢 Chart Calculator</a>
+    <a data-page="nameconverter" role="button" tabindex="0">📝 Name Converter</a>
 
     <div class="nav-label">⚙️ Account</div>
-    <a data-page="progress">📊 My Progress</a>
-    <a data-page="subscription">💎 Subscription</a>
+    <a data-page="progress" role="button" tabindex="0">📊 My Progress</a>
+    <a data-page="subscription" role="button" tabindex="0">💎 Subscription</a>
   </div>
   <div class="sidebar-footer">
     <div class="sub-status free" id="navSubStatus">🔓 Free Tier</div>
@@ -1289,13 +1289,20 @@ function toggleSidebar(){
 // Sidebar nav clicks
 document.querySelectorAll('.sidebar-nav a').forEach(a=>{
   a.addEventListener('click',function(e){
-    e.preventDefault();
+    if(e) e.preventDefault();
     const page = this.dataset.page;
     if(page && ['module4','module5','module6'].includes(page) && !isPremium){
       showUpgradeModal();
       return;
     }
     navigate(page);
+  });
+  // Keyboard support (Enter/Space)
+  a.addEventListener('keydown',function(e){
+    if(e.key==='Enter'||e.key===' '){
+      e.preventDefault();
+      this.click();
+    }
   });
 });
 
