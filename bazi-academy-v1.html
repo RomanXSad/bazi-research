@@ -178,11 +178,12 @@ a:hover{text-decoration:underline}
 .tg-table tr:nth-child(even),.dz-table tr:nth-child(even){background:rgba(201,164,62,.05)}
 
 /* ===== RESPONSIVE ===== */
-@media(max-width:768px){
+@media(max-width:1024px){
   .sidebar.closed{transform:translateX(-100%)}
   .sidebar.open{transform:translateX(0)}
   .sidebar-overlay.open{display:block}
   .main{margin-left:0;padding:1rem 1rem 3rem;padding-top:3.5rem}
+  .main.sidebar-closed{margin-left:0}
   .pillars-display{grid-template-columns:repeat(4,1fr);gap:.3rem}
   .pillar-cell .pillar-stem,.pillar-cell .pillar-branch{font-size:1.1rem}
   .calc-grid{grid-template-columns:1fr 1fr}
@@ -1236,13 +1237,15 @@ function navigate(pageId){
   if(['module4','module5','module6'].includes(pageId)){
     if(!isPremium){
       showUpgradeModal();
+      return;
     } else {
       unlockPremiumContent();
     }
   }
-  // Close sidebar after navigation (all screen sizes)
-  const sb = document.getElementById('sidebar');
-  if(sb.classList.contains('open')){
+
+  // Close sidebar on medium/mobile screens (≤1024px)
+  if(window.innerWidth<=1024){
+    const sb = document.getElementById('sidebar');
     sb.classList.remove('open');
     sb.classList.add('closed');
     document.getElementById('sidebarOverlay').classList.remove('open');
@@ -1256,7 +1259,7 @@ function navigate(pageId){
 function updateMobileBack(pageId){
   const existing = document.getElementById('mobileBack');
   if(existing) existing.remove();
-  if(pageId==='home'||window.innerWidth>768) return;
+  if(pageId==='home'||window.innerWidth>1024) return;
   const back = document.createElement('button');
   back.id = 'mobileBack';
   back.innerHTML = '← Back';
@@ -1286,12 +1289,13 @@ function toggleSidebar(){
   }
 }
 
-// Sidebar nav clicks
+// Sidebar nav clicks — use getAttribute for reliability
 document.querySelectorAll('.sidebar-nav a').forEach(a=>{
   a.addEventListener('click',function(e){
-    if(e) e.preventDefault();
-    const page = this.dataset.page;
-    if(page && ['module4','module5','module6'].includes(page) && !isPremium){
+    try { e.preventDefault(); } catch(ex) {}
+    const page = this.getAttribute('data-page');
+    if(!page) return;
+    if(['module4','module5','module6'].includes(page) && !isPremium){
       showUpgradeModal();
       return;
     }
@@ -2066,6 +2070,11 @@ function browseDictionary(){
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded',function(){
+  // Set initial sidebar state: closed on ≤1024px, open on desktop
+  if(window.innerWidth<=1024){
+    document.getElementById('sidebar').classList.add('closed');
+    document.getElementById('mainContent').classList.add('sidebar-closed');
+  }
   fillCalculatorDropdowns();
   if(isPremium){
     updateUIForPremium();
