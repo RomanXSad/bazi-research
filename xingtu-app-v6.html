@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>XingTu · 行途 — Your BaZi Destiny</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;user-select:none;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f5f0eb; --bg2:#ede5db; --card:#faf7f2; --card2:#f0eae2;
+  --text:#3e2723; --text2:#6d4c41; --gold:#c9a43e; --gold2:#b8922e;
+  --wood:#4CAF50; --fire:#e74c3c; --earth:#f0ad4e; --metal:#7f8c8d; --water:#3498db;
+}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Serif+SC:wght@400;700&display=swap');
+body{
+  font-family:-apple-system,'SF Pro Display','Segoe UI',Roboto,sans-serif;
+  background:transparent; color:var(--text); min-height:100vh;
+  overflow:hidden; /* full-screen app */
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══════════════ CORNER GLOW OVERLAYS ═══════════════ */
+.bg-glow{
+  position:fixed;inset:0;z-index:-1;pointer-events:none;
+  transition:opacity 1.8s ease;
+  opacity:0;
+}
+.bg-glow.show{opacity:1}
+
+/* ═══════════════ SCREENS ═══════════════ */
+.screen{display:none;position:fixed;inset:0;flex-direction:column;overflow:hidden}
+.screen.active{display:flex}
+
+/* ═══════════════ SPLASH / INTRO ═══════════════ */
+#splash{
+  background:radial-gradient(ellipse at 50% 30%, #f0e8dd 0%, #f5f0eb 70%);
+  align-items:center; justify-content:center; z-index:10;
+}
+#splash .logo{
+  font-size:36px; font-weight:900;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:4px; margin-bottom:4px;
+}
+#splash .logosc{font-size:18px;color:var(--text2);letter-spacing:8px;margin-bottom:6px}
+#splash .sub{font-size:13px;color:var(--text2);opacity:.7;margin-bottom:30px}
+#splash .whirl{
+  width:120px;height:120px;position:relative;margin:20px auto;
+  animation:spin 20s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.wi{position:absolute;width:24px;height:24px;border-radius:50%;opacity:.8}
+.wi:nth-child(1){background:var(--wood);top:0;left:50%;margin-left:-12px}
+.wi:nth-child(2){background:var(--fire);top:30px;right:0}
+.wi:nth-child(3){background:var(--earth);bottom:0;left:50%;margin-left:-12px}
+.wi:nth-child(4){background:var(--metal);top:30px;left:0}
+.wi:nth-child(5){background:var(--water);top:50%;left:50%;margin:-12px;width:28px;height:28px}
+#splash .enter-btn{
+  padding:16px 40px;border-radius:30px;border:1px solid var(--gold);
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  color:#1a1412;font-size:16px;font-weight:700;cursor:pointer;
+  transition:.3s;margin-top:24px;letter-spacing:1px;
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(212,168,67,.4)}50%{box-shadow:0 0 0 15px rgba(212,168,67,0)}}
+#splash .enter-btn:active{transform:scale(.96)}
+
+#splash .hint{font-size:11px;color:var(--text2);opacity:.4;margin-top:16px}
+
+/* ═══════════════ DATE PICKER SCREEN ═══════════════ */
+#picker{
+  background:transparent;
+}
+.pick-hdr{
+  padding:20px 20px 8px;text-align:center;flex-shrink:0;
+}
+.pick-hdr h2{
+  font-size:20px;font-weight:700;color:var(--text);letter-spacing:2px;
+}
+.pick-hdr p{
+  font-size:12px;color:var(--text2);margin-top:4px;opacity:.7;
+}
+.pick-hdr .ornament{
+  font-size:28px;margin:4px 0;opacity:.3;letter-spacing:10px;
+}
+
+/* ELEMENT THEME BAR */
+.theme-bar{
+  height:3px;margin:0 20px;border-radius:2px;flex-shrink:0;
+  transition:background .5s cubic-bezier(.4,0,.2,1);
+}
+
+/* DIAL GRID — 2x2 SVG sector selectors */
+.dial-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;
+  padding:2px 16px;flex:1;align-items:center;justify-items:center;
+  max-width:480px;margin:0 auto;width:100%;
+}
+.dial-box{display:flex;flex-direction:column;align-items:center;gap:2px}
+.dial{
+  position:relative;border-radius:50%;overflow:hidden;
+  box-shadow:0 3px 16px rgba(0,0,0,.1);
+}
+.dial svg{display:block;width:100%;height:100%}
+.dial svg path{cursor:pointer;transition:opacity .15s}
+.dial svg path:hover{opacity:.8}
+.d-lbl{font-size:9px;color:var(--text2);opacity:.5;letter-spacing:1px;text-transform:uppercase;text-align:center;margin-top:1px}
+
+/* ACTION BUTTON */
+.pick-action{
+  padding:12px 20px 28px;flex-shrink:0;
+}
+.pick-action .calc-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:18px;border:none;border-radius:18px;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  color:#fff;font-size:17px;font-weight:800;cursor:pointer;
+  transition:.3s;letter-spacing:1px;position:relative;overflow:hidden;
+}
+.pick-action .calc-btn:active{transform:scale(.97)}
+.pick-action .calc-btn .shine{
+  position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(circle,rgba(255,255,255,.2) 0%,transparent 60%);
+  opacity:0;transition:opacity .5s;
+}
+.pick-action .calc-btn:hover .shine{opacity:1}
+/* ═══════════════ RESULT SCREEN ═══════════════ */
+#result{
+  background:transparent;
+  padding:0;overflow-y:auto;
+}
+.rs-hdr{
+  padding:16px 20px 12px;text-align:center;flex-shrink:0;
+  position:sticky;top:0;z-index:5;
+  background:linear-gradient(to bottom,var(--card) 0%, transparent 100%);
+}
+.rs-hdr .back{
+  position:absolute;left:16px;top:16px;
+  background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;
+  padding:4px;transition:.2s;
+}
+.rs-hdr .back:active{transform:scale(.85)}
+.rs-hdr h2{font-size:14px;font-weight:600;color:var(--text2);letter-spacing:2px}
+.rs-hdr .born{font-size:11px;color:var(--text2);opacity:.5;margin-top:2px}
+.rs-body{padding:0 16px 40px}
+
+/* Day Master Hero */
+.dm-hero{
+  text-align:center;padding:24px 16px;margin-bottom:16px;
+  position:relative;border-radius:20px;overflow:hidden;
+}
+.dm-hero .dm-bg{
+  position:absolute;inset:0;opacity:.08;border-radius:20px;
+  transition:background .8s;
+}
+.dm-hero .dm-label{font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;position:relative}
+.dm-hero .dm-char{font-size:64px;font-weight:900;position:relative;margin:4px 0;line-height:1.1}
+.dm-hero .dm-char .hz{font-size:28px;opacity:.5;display:block}
+.dm-hero .dm-name{font-size:15px;color:var(--text2);position:relative}
+.dm-hero .dm-elem{font-size:12px;position:relative;margin-top:6px;
+  display:inline-block;padding:4px 16px;border-radius:20px;font-weight:700;letter-spacing:1px;
+}
+
+/* Four Pillars Grid */
+.pil-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0;
+}
+.pil-card{
+  text-align:center;padding:12px 4px 10px;border-radius:14px;
+  background:var(--card);border:1px solid rgba(0,0,0,.06);
+  position:relative;overflow:hidden;transition:.3s;
+}
+.pil-card .top-bar{height:3px;position:absolute;top:0;left:0;right:0;border-radius:14px 14px 0 0}
+.pil-card .p-label{font-size:9px;color:var(--text2);opacity:.5;letter-spacing:2px;text-transform:uppercase}
+.pil-card .p-stem{font-size:26px;font-weight:800;margin:2px 0;line-height:1.2}
+.pil-card .p-branch{font-size:26px;font-weight:800;line-height:1.2}
+.pil-card .p-animal{font-size:13px;margin-top:2px}
+.pil-card .p-hz{font-size:10px;color:var(--text2);opacity:.4;margin-top:2px}
+.pil-card .p-tg{font-size:10px;padding:2px 8px;border-radius:8px;
+  display:inline-block;margin-top:4px;background:rgba(255,255,255,.04);color:var(--text2)}
+.pil-card.highlight{border-color:var(--gold);background:var(--card2)}
+
+/* Sections */
+.rs-section{
+  background:var(--card);border-radius:16px;padding:16px;margin:10px 0;
+  border:1px solid rgba(255,255,255,.04);
+}
+.rs-section h4{
+  font-size:13px;font-weight:700;margin-bottom:10px;letter-spacing:1px;
+  display:flex;align-items:center;gap:6px;
+}
+.rs-section .stat-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;
+}
+.rs-section .stat-row:last-child{border-bottom:none}
+.rs-section .stat-row .label{color:var(--text2)}
+.rs-section .stat-row .val{font-weight:600;display:flex;align-items:center;gap:4px}
+.el-dot-sm{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+
+/* Element bar */
+.elem-bar{display:flex;gap:3px;height:8px;border-radius:4px;overflow:hidden;margin:6px 0}
+.elem-bar div{transition:width .6s cubic-bezier(.4,0,.2,1)}
+
+/* Lucky elements grid */
+.lucky-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lucky-item{
+  text-align:center;padding:10px;border-radius:12px;background:var(--bg2);
+  border:1px solid rgba(255,255,255,.04);
+  font-size:12px;color:var(--text2);
+}
+.lucky-item .em{font-size:22px;display:block;margin-bottom:2px}
+
+/* Ten Gods */
+.tg-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.tg-card{
+  padding:8px 10px;border-radius:12px;background:var(--bg2);
+  border:1px solid rgba(255,255,255,.04);font-size:12px;
+  display:flex;align-items:center;gap:6px;
+}
+.tg-card .tg-stem{font-size:18px;font-weight:700}
+.tg-card .tg-name{color:var(--text2);font-size:11px}
+
+/* Scrollbar */
+#result::-webkit-scrollbar{width:3px}
+#result::-webkit-scrollbar-track{background:transparent}
+#result::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+/* ═══════════════ AMULET MODAL ═══════════════ */
+.modal-overlay{
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.7);
+  display:none;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  animation:fadeIn .25s;
+}
+.modal-overlay.open{display:flex}
+.modal-card{
+  background:var(--card);border:1px solid rgba(0,0,0,.06);
+  border-radius:24px;padding:32px 24px 20px;margin:20px;width:320px;
+  max-width:90vw;text-align:center;position:relative;
+  animation:scaleIn .3s;
+}
+.modal-close{
+  position:absolute;top:12px;right:12px;
+  background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;
+  width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.modal-close:active{background:rgba(255,255,255,.08);transform:scale(.9)}
+.modal-name{font-size:18px;font-weight:700;margin:8px 0 2px}
+.modal-price{font-size:28px;font-weight:900;color:var(--gold);margin:4px 0 12px}
+.modal-desc{font-size:13px;color:var(--text2);line-height:1.5;margin:4px 0}
+.modal-elem{font-size:11px;color:var(--text2);opacity:.6;margin:4px 0 16px}
+.modal-buy{
+  width:100%;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--gold2),var(--gold));
+  color:#1a1412;font-size:16px;font-weight:700;cursor:pointer;
+  transition:.3s;letter-spacing:.5px;
+}
+.modal-buy:active{transform:scale(.97)}
+.modal-hint{font-size:10px;color:var(--text2);opacity:.4;margin-top:8px;letter-spacing:.5px}
+
+/* ═══════════════ ANIMATIONS ═══════════════ */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes scaleIn{
+  from{opacity:0;transform:scale(.85)}
+  to{opacity:1;transform:scale(1)}
+}
+.screen.active .anim-fade{animation:fadeUp .5s ease-out both}
+.screen.active .anim-s1{animation-delay:.1s}
+.screen.active .anim-s2{animation-delay:.2s}
+.screen.active .anim-s3{animation-delay:.3s}
+.screen.active .anim-s4{animation-delay:.4s}
+.screen.active .anim-s5{animation-delay:.5s}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(min-width:500px){
+  </style>
+</head>
+<body>
+
+<!-- ═══════ CORNER GLOW ═══════ -->
+<div class="bg-glow show" id="bgGlow1"></div>
+<div class="bg-glow" id="bgGlow2"></div>
+
+<!-- ═══════ SPLASH / INTRO ═══════ -->
+<div class="screen active" id="splash">
+  <div class="whirl">
+    <div class="wi"></div><div class="wi"></div><div class="wi"></div>
+    <div class="wi"></div><div class="wi"></div>
+  </div>
+  <div class="logo" style="margin-top:10px">XINGTU</div>
+  <div class="logosc">行 途</div>
+  <div class="sub">Discover your BaZi destiny</div>
+  <button class="enter-btn" onclick="showScreen('picker')">✦ Begin Your Journey ✦</button>
+  <div class="hint">五行 · 天干 · 地支 · 十神</div>
+</div>
+
+<!-- ═══════ DATE PICKER ═══════ -->
+<div class="screen" id="picker">
+  <div class="pick-hdr">
+    <div class="ornament">☰ ☷ ☴ ☵</div>
+    <h2>Enter Your Time of Birth</h2>
+    <p>Tap a sector to select</p>
+  </div>
+  <div class="theme-bar" id="themeBar"></div>
+
+  <div class="dial-grid" id="dialGrid">
+    <div class="dial-box">
+      <div class="dial" id="dial0"></div>
+      <div class="d-lbl">Year · 年</div>
+    </div>
+    <div class="dial-box">
+      <div class="dial" id="dial1"></div>
+      <div class="d-lbl">Month · 月</div>
+    </div>
+    <div class="dial-box">
+      <div class="dial" id="dial2"></div>
+      <div class="d-lbl">Day · 日</div>
+    </div>
+    <div class="dial-box">
+      <div class="dial" id="dial3"></div>
+      <div class="d-lbl">Hour · 时</div>
+    </div>
+  </div>
+
+  <div class="pick-action">
+    <button class="calc-btn" onclick="revealDestiny()">
+      <span class="shine"></span>
+      <span>🔮</span> Reveal Your Destiny
+    </button>
+  </div>
+</div>
+
+<!-- ═══════ RESULT ═══════ -->
+<div class="screen" id="result">
+  <div class="rs-hdr">
+    <button class="back" onclick="showScreen('picker')">←</button>
+    <h2>✦ Your BaZi Destiny ✦</h2>
+    <div class="born" id="rsBorn"></div>
+  </div>
+  <div class="rs-body" id="rsBody"></div>
+</div>
+
+<!-- ═══════ AMULET MODAL ═══════ -->
+<div class="modal-overlay" id="amuletModal" onclick="closeAmulet(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeAmulet()">✕</button>
+    <div style="width:120px;height:120px;border-radius:20px;overflow:hidden;margin:8px auto 4px;background:var(--bg2)">
+      <img id="amImg" src="https://picsum.photos/seed/jade/300/300" alt="Amulet" style="width:100%;height:100%;object-fit:cover;display:block">
+    </div>
+    <div class="modal-name" id="amName">Jade Tree Pendant</div>
+    <div class="modal-price" id="amPrice">$29</div>
+    <div class="modal-desc" id="amDesc">Description here</div>
+    <div class="modal-elem" id="amElem">Element · 用神</div>
+    <button class="modal-buy">🛒 Purchase Amulet</button>
+    <div class="modal-hint">Mock store — no real purchase</div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// BAZI DATA
+// ═══════════════════════════════════════════════════════════════
+const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const STEMS_PY = ['Jiǎ','Yǐ','Bǐng','Dīng','Wù','Jǐ','Gēng','Xīn','Rén','Guǐ'];
+const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const BRANCHES_PY = ['Zǐ','Chǒu','Yín','Mǎo','Chén','Sì','Wǔ','Wèi','Shēn','Yǒu','Xū','Hài'];
+const ANIMALS = ['Rat 🐀','Ox 🐂','Tiger 🐯','Rabbit 🐰','Dragon 🐉','Snake 🐍','Horse 🐴','Goat 🐐','Monkey 🐵','Rooster 🐔','Dog 🐕','Pig 🐷'];
+const STEM_ELEM = ['木','木','火','火','土','土','金','金','水','水'];
+const BR_ELEM = ['水','土','木','木','土','火','火','土','金','金','土','水'];
+const ELEM_COLORS = {木:'var(--wood)',火:'var(--fire)',土:'var(--earth)',金:'var(--metal)',水:'var(--water)'};
+const ELEM_EMOJI = {木:'🌳',火:'🔥',土:'⛰️',金:'⚙️',水:'💧'};
+const ELEM_NAMES = {木:'Wood',火:'Fire',土:'Earth',金:'Metal',水:'Water'};
+const TEN_GODS = ['比肩 Friend','劫财 Rob Wealth','食神 Eating','伤官 Hurting','偏财 Indirect Wealth',
+  '正财 Direct Wealth','七杀 Seven Kill','正官 Direct Officer','偏印 Indirect Seal','正印 Direct Seal'];
+const HIDDEN_STEMS = [['癸'],['癸','辛','己'],['甲','丙','戊'],['乙'],['乙','戊','癸'],
+  ['庚','丙','戊'],['丁','己'],['乙','己','丁'],['戊','庚','壬'],['辛'],['辛','丁','戊'],['壬','甲']];
+const HOUR_NAMES = ['23:00–01:00 子','01:00–03:00 丑','03:00–05:00 寅','05:00–07:00 卯',
+  '07:00–09:00 辰','09:00–11:00 巳','11:00–13:00 午','13:00–15:00 未',
+  '15:00–17:00 申','17:00–19:00 酉','19:00–21:00 戌','21:00–23:00 亥'];
+
+// Amulet data — real photos (picsum), price shown only in modal
+const AMULETS = {
+  木:{img:'https://picsum.photos/seed/jade/300/300',name:'Jade Tree Pendant',desc:'Hand-carved jade leaf — attracts growth, vitality, and new beginnings.',price:'$29',bg:'rgba(92,184,92,.15)',border:'var(--wood)'},
+  火:{img:'https://picsum.photos/seed/crimson/300/300',name:'Crimson Flame Amulet',desc:'Cinnabar-infused charm — ignites passion, recognition, and inner fire.',price:'$34',bg:'rgba(231,76,60,.15)',border:'var(--fire)'},
+  土:{img:'https://picsum.photos/seed/talisman/300/300',name:'Golden Earth Talisman',desc:'Brass talisman with ancient sigils — grounds energy, stabilises fortune.',price:'$27',bg:'rgba(240,173,78,.15)',border:'var(--earth)'},
+  金:{img:'https://picsum.photos/seed/coin/300/300',name:'Bronze Guardian Coin',desc:'Aged bronze coin from a Song dynasty temple — protects wealth and authority.',price:'$39',bg:'rgba(189,195,199,.15)',border:'var(--metal)'},
+  水:{img:'https://picsum.photos/seed/wave/300/300',name:'Jade Wave Pendant',desc:'White jade pendant carved with water ripples — attracts wisdom and flow.',price:'$32',bg:'rgba(93,173,226,.15)',border:'var(--water)'}
+};
+
+// DIAL ENGINE — SVG sector selectors
+// ═══════════════════════════════════════════════════════════════
+let selectedValues = [2026,6,17,6];
+let _yrStart = 2020; // fixed 12-year window for the year dial
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MONTH_ELEM = ['木','木','木','火','火','火','土','金','金','金','水','水'];
+
+function makeSectorPath(cx, cy, r, startAngle, endAngle){
+  const sa = startAngle * Math.PI / 180, ea = endAngle * Math.PI / 180;
+  const x1 = cx + r * Math.sin(sa), y1 = cy - r * Math.cos(sa);
+  const x2 = cx + r * Math.sin(ea), y2 = cy - r * Math.cos(ea);
+  const large = (endAngle - startAngle) > 180 ? 1 : 0;
+  return 'M'+cx+','+cy+' L'+x1.toFixed(1)+','+y1.toFixed(1)+' A'+r+','+r+' 0 '+large+',1 '+x2.toFixed(1)+','+y2.toFixed(1)+' Z';
+}
+
+function buildDial(colIdx){
+  const container = document.getElementById('dial'+colIdx);
+  const v = selectedValues[colIdx];
+  const yCol = resolveColor(ELEM_COLORS[STEM_ELEM[((selectedValues[0]-4)%10+10)%10]]);
+  
+  let items = [], total;
+  if(colIdx===0){
+    // Year: 12 consecutive years from the fixed _yrStart window.
+    // Current year at its position, years increase clockwise.
+    for(let i=0;i<12;i++){
+      const yr = _yrStart + i;
+      const br = ((yr-4)%12+12)%12;
+      const animal = ANIMALS[br].split(' ')[0];
+      items.push({val:yr, label:yr+' '+BRANCHES[br]+' '+animal, sub:''});
+    }
+    total = 12;
+  }else if(colIdx===1){
+    for(let i=0;i<12;i++) items.push({val:i+1, label:(i+1)+'', sub:MONTH_NAMES[i]});
+  }else if(colIdx===2){
+    for(let i=1;i<=31;i++) items.push({val:i, label:i+''});
+  }else if(colIdx===3){
+    for(let i=0;i<12;i++) items.push({val:i, label:BRANCHES[i], sub:HOUR_NAMES[i].split(' ')[0]});
+  }
+  total = items.length;
+  
+  const cnt = total, deg = 360 / total;
+  const sectorR = 82, labelR = 62, innerR = 40;
+  const isYear = colIdx === 0;
+  
+  let svg = '<svg viewBox="0 0 200 200" width="200" height="200">';
+  svg += '<circle cx="100" cy="100" r="98" fill="'+yCol+'" opacity=".08" stroke="'+yCol+'" stroke-width="2"/>';
+  
+  for(let i=0;i<total;i++){
+    const a1 = i * deg - 90, a2 = (i+1) * deg - 90;
+    const path = makeSectorPath(100, 100, sectorR, a1, a2);
+    const isSel = items[i].val === v;
+    // All sectors visible: dim for non-selected, bright for selected
+    const opacity = isSel ? '.35' : '.07';
+    const stroke = isSel ? 'rgba(0,0,0,.1)' : 'rgba(0,0,0,.04)';
+    svg += '<path d="'+path+'" fill="'+yCol+'" opacity="'+opacity+'" onclick="clickSector('+colIdx+','+i+')" stroke="'+stroke+'" stroke-width=".5"/>';
+    // Sector separator lines
+    if(i > 0){
+      const la = a1 * Math.PI / 180;
+      svg += '<line x1="'+(100+innerR*Math.sin(la)).toFixed(1)+'" y1="'+(100-innerR*Math.cos(la)).toFixed(1)+'" x2="'+(100+sectorR*Math.sin(la)).toFixed(1)+'" y2="'+(100-sectorR*Math.cos(la)).toFixed(1)+'" stroke="rgba(0,0,0,.06)" stroke-width=".5"/>';
+    }
+    // Label — show year number or month/day/hour value
+    const ma = ((a1 + a2) / 2) * Math.PI / 180;
+    const lx = 100 + labelR * Math.sin(ma), ly = 100 - labelR * Math.cos(ma);
+    const fSize = isSel ? (isYear ? '12' : '11') : (isYear ? '10' : '9');
+    const weight = isSel ? '700' : '500';
+    const color = isSel ? yCol : 'var(--text2)';
+    svg += '<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="middle" dominant-baseline="central" font-size="'+fSize+'" font-weight="'+weight+'" fill="'+color+'" pointer-events="none">'+items[i].label+'</text>';
+    // Sub label (zodiac for year, month name abbreviation for month)
+    if(items[i].sub){
+      const sy = ly + 11;
+      svg += '<text x="'+lx.toFixed(1)+'" y="'+sy.toFixed(0)+'" text-anchor="middle" dominant-baseline="central" font-size="6.5" fill="var(--text2)" opacity=".55" pointer-events="none">'+items[i].sub+'</text>';
+    }
+  }
+  
+  // Center mask
+  svg += '<circle cx="100" cy="100" r="'+innerR+'" fill="var(--card)" stroke="'+yCol+'" stroke-width="1.5"/>';
+  
+  let ct = '', cs = '';
+  if(colIdx===0){ const br=((v-4)%12+12)%12; ct=''+v; cs=BRANCHES[br]+' '+ANIMALS[br].split(' ')[0]; }
+  else if(colIdx===1){ ct=''+v; cs=MONTH_NAMES[v-1]; }
+  else if(colIdx===2){ ct=''+v; }
+  else if(colIdx===3){ ct=BRANCHES[v]; cs=HOUR_NAMES[v].split(' ')[0]; }
+  svg += '<text x="100" y="96" text-anchor="middle" dominant-baseline="central" font-size="20" font-weight="900" fill="'+(colIdx===0?'#fff':yCol)+'" pointer-events="none">'+ct+'</text>';
+  if(cs) svg += '<text x="100" y="115" text-anchor="middle" dominant-baseline="central" font-size="9" fill="var(--text2)" opacity=".7" pointer-events="none">'+cs+'</text>';
+  svg += '</svg>';
+  container.innerHTML = svg;
+}
+
+function clickSector(colIdx, idx){
+  let val;
+  if(colIdx===0){
+    // Year: fixed 12-year window. idx 0 = window start, idx 11 = window end.
+    // Window shifts by ±12 when clicking the first or last sector.
+    const windowStart = _yrStart;
+    if(idx === 0){
+      // Go back 12 years
+      _yrStart = Math.max(1920, _yrStart - 12);
+      val = _yrStart;
+    }else if(idx === 11){
+      // Go forward 12 years
+      _yrStart = Math.min(2030 - 11, _yrStart + 12);
+      val = _yrStart + 11;
+    }else{
+      // Select within the current window
+      val = _yrStart + idx;
+    }
+    if(val > 2030) val = 2030;
+    if(val < 1920) val = 1920;
+  }else if(colIdx===1) val = idx + 1;
+  else if(colIdx===2) val = idx + 1;
+  else if(colIdx===3) val = idx;
+  if(colIdx===2){ if(val>31) val=31; if(val<1) val=1; }
+  selectedValues[colIdx] = val;
+  buildDial(colIdx);
+  updateTheme();
+}
+
+function sizeDials(){
+  const h = window.innerHeight, w = window.innerWidth;
+  const sz = Math.max(80, Math.min((Math.min(w-40,440)/2-10), (h-120)/2, 170));
+  for(let i=0;i<4;i++) {
+    const el = document.getElementById('dial'+i);
+    if(el) { el.style.width=sz+'px'; el.style.height=sz+'px'; }
+  }
+}
+
+function initDials(){
+  const n = new Date();
+  selectedValues = [n.getFullYear(), n.getMonth()+1, n.getDate(), 6];
+  _yrStart = Math.max(1920, Math.min(selectedValues[0] - 6, 2030 - 11));
+  sizeDials();
+  for(let c=0; c<4; c++) buildDial(c);
+  updateTheme();
+}
+window.addEventListener('resize', sizeDials);
+function updateTheme(){
+  const y = selectedValues[0];
+  const m = selectedValues[1];
+  const d = selectedValues[2];
+  const h = selectedValues[3];
+
+  // Get dominant element from year stem
+  const yStem = (y - 4) % 10;
+  const yElem = STEM_ELEM[yStem < 0 ? yStem + 10 : yStem];
+  const bar = document.getElementById('themeBar');
+  bar.style.background = ELEM_COLORS[yElem];
+
+  // Also update all selection bars
+  for(let c=0; c<4; c++){
+    buildDial(c);
+  }
+  // Update corner glow with 1.8s crossfade
+  updateBgGlow();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CORNER GLOW — 4-colour gradient crossfade
+// ═══════════════════════════════════════════════════════════════
+const MONTH_ELEM_GLOW = ['木','木','木','火','火','火','土','金','金','金','水','水'];
+let _glowActive = 1;
+function updateBgGlow(){
+  const y = selectedValues[0], m = selectedValues[1], d = selectedValues[2], hh = selectedValues[3];
+  
+  // Year stem element → TL
+  const yStem = ((y - 4) % 10 + 10) % 10;
+  const cTL = resolveColor(ELEM_COLORS[STEM_ELEM[yStem]]);
+  
+  // Month season element → TR
+  const cTR = resolveColor(ELEM_COLORS[MONTH_ELEM_GLOW[m-1] || '土']);
+  
+  // Day stem element → BL (use same calc as calculator)
+  const ref = new Date(1900, 0, 31);
+  const birth = new Date(y, m-1, d);
+  const diffDays = Math.round((birth - ref) / 86400000);
+  const dStem = ((diffDays % 10) + 10) % 10;
+  const cBL = resolveColor(ELEM_COLORS[STEM_ELEM[dStem]]);
+  
+  // Hour branch element → BR
+  const cBR = resolveColor(ELEM_COLORS[BR_ELEM[hh]]);
+
+  // Build gradient
+  const toRgba = (c) => `rgba(${c.match(/\d+/g).slice(0,3).join(',')},.38)`;
+  const grad = `radial-gradient(circle at 0% 0%, ${toRgba(cTL)} 0%, transparent 75%),
+                radial-gradient(circle at 100% 0%, ${toRgba(cTR)} 0%, transparent 75%),
+                radial-gradient(circle at 0% 100%, ${toRgba(cBL)} 0%, transparent 75%),
+                radial-gradient(circle at 100% 100%, ${toRgba(cBR)} 0%, transparent 75%)`;
+
+  const next = _glowActive === 1 ? 2 : 1;
+  const front = document.getElementById('bgGlow' + _glowActive);
+  const back = document.getElementById('bgGlow' + next);
+
+  // Set new gradient on the hidden layer, fade it in while current fades out
+  back.style.background = grad;
+  back.classList.add('show');
+  front.classList.remove('show');
+  _glowActive = next;
+}
+
+function resolveColor(cssVar){
+  const el = document.createElement('div');
+  el.style.color = cssVar;
+  document.body.appendChild(el);
+  const c = getComputedStyle(el).color;
+  el.remove();
+  return c;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BAZI CALCULATOR
+// ═══════════════════════════════════════════════════════════════
+function calcBaZi(year, month, day, hourIdx){
+  // Year Pillar
+  const yStem = ((year - 4) % 10 + 10) % 10;
+  const yBranch = ((year - 4) % 12 + 12) % 12;
+
+  // Day Pillar (from 1900-01-31 = 甲戌)
+  const ref = new Date(1900, 0, 31);
+  const birth = new Date(year, month - 1, day);
+  const diffDays = Math.round((birth - ref) / 86400000);
+  const dStem = ((diffDays % 10) + 10) % 10;
+  const dBranch = ((diffDays % 12) + 12) % 12;
+
+  // Month Pillar (simplified)
+  const mStem = ((year - 4) * 2 + month + 2) % 10;
+  const mBranch = (month + 1) % 12;
+
+  // Hour Pillar
+  const hStem = ((dStem % 5) * 2 + hourIdx) % 10;
+  const hBranch = hourIdx;
+
+  const pillars = [
+    {label:'Year · 年', stemIdx:yStem, branchIdx:yBranch},
+    {label:'Month · 月', stemIdx:mStem, branchIdx:mBranch},
+    {label:'Day · 日', stemIdx:dStem, branchIdx:dBranch},
+    {label:'Hour · 时', stemIdx:hStem, branchIdx:hBranch}
+  ];
+
+  const DM = {stem: STEMS[dStem], elem: STEM_ELEM[dStem], idx: dStem};
+  const isYang = dStem % 2 === 0;
+
+  // Ten Gods
+  const tenGods = pillars.map(p => {
+    const rel = ((dStem - p.stemIdx) % 10 + 10) % 10;
+    return {stem: STEMS[p.stemIdx], tg: TEN_GODS[rel], elem: STEM_ELEM[p.stemIdx]};
+  });
+
+  // Element strength
+  const elemCount = {木:0,火:0,土:0,金:0,水:0};
+  pillars.forEach(p => {
+    elemCount[STEM_ELEM[p.stemIdx]] = (elemCount[STEM_ELEM[p.stemIdx]] || 0) + 1;
+    elemCount[BR_ELEM[p.branchIdx]] = (elemCount[BR_ELEM[p.branchIdx]] || 0) + 1;
+  });
+  const total = Object.values(elemCount).reduce((a,b)=>a+b, 0);
+
+  // Seasonal strength
+  const seasonMap = {1:'冬',2:'冬',3:'春',4:'春',5:'春',6:'夏',7:'夏',8:'夏',9:'秋',10:'秋',11:'冬',12:'冬'};
+  const season = seasonMap[month] || '四季';
+  const seasonElem = {春:'木',夏:'火',秋:'金',冬:'水'}[season] || '土';
+  const isDMSupported = DM.elem === seasonElem;
+  const dmElem = DM.elem;
+
+  // Useful God (用神): element that balances the chart
+  // If DM is weak → use producing element (母). If strong → use controlling element (官).
+  const produceCycle = {木:'水',火:'木',土:'火',金:'土',水:'金'};
+  const controlCycle = {木:'金',火:'水',土:'木',金:'火',水:'土'};
+  const usefulGod = isDMSupported ? controlCycle[dmElem] : produceCycle[dmElem];
+  const usefulGodLabel = isDMSupported ? 'Controls excess' : 'Strengthens weakness';
+
+  return {
+    birthLabel: `${year}.${String(month).padStart(2,'0')}.${String(day).padStart(2,'0')} ${HOUR_NAMES[hourIdx].split(' ')[1] || ''}h`,
+    pillars, DM, tenGods, elemCount, total, isYang, isDMSupported,
+    usefulGod, dmElem, usefulGodLabel,
+    season, seasonElem,
+    hiddenStems: pillars.map(p => ({
+      branch: BRANCHES[p.branchIdx],
+      stems: HIDDEN_STEMS[p.branchIdx]
+    }))
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REVEAL DESTINY
+// ═══════════════════════════════════════════════════════════════
+function revealDestiny(){
+  const [year, month, day, hour] = selectedValues;
+  const bazi = calcBaZi(year, month, day, hour);
+
+  // Store result
+  window._lastBazi = bazi;
+  showScreen('result');
+  renderResult(bazi);
+}
+
+function renderResult(b){
+  const body = document.getElementById('rsBody');
+  document.getElementById('rsBorn').textContent = 'Born: ' + b.birthLabel;
+
+  const dmColor = ELEM_COLORS[b.dmElem];
+  const dmBg = dmColor.replace('var(','').replace(')','').trim();
+
+  let html = '';
+
+  // Day Master Hero
+  html += `<div class="dm-hero anim-fade anim-s1">
+    <div class="dm-bg" style="background:${dmColor}"></div>
+    <div class="dm-label">✦ Day Master ✦</div>
+    <div class="dm-char">${b.DM.stem}<span class="hz">${STEMS_PY[b.DM.idx]}</span></div>
+    <div class="dm-name">${ELEM_EMOJI[b.dmElem]} ${ELEM_NAMES[b.dmElem]}</div>
+    <div class="dm-elem" style="background:${dmColor};color:${b.dmElem==='土'||b.dmElem==='金'?'#1a1412':'#fff'}">${b.dmElem} · ${b.isYang ? 'Yang ☰' : 'Yin ☷'}</div>
+  </div>`;
+
+  // Four Pillars
+  html += '<div class="anim-fade anim-s2"><div class="pil-grid">';
+  b.pillars.forEach((p, i) => {
+    const isDM = i === 2;
+    const sElem = STEM_ELEM[p.stemIdx];
+    const bElem = BR_ELEM[p.branchIdx];
+    const sColor = ELEM_COLORS[sElem];
+    const bColor = ELEM_COLORS[bElem];
+    html += `<div class="pil-card ${isDM?'highlight':''}">
+      <div class="top-bar" style="background:linear-gradient(90deg,${sColor},${bColor})"></div>
+      <div class="p-label">${p.label}${isDM?' ☀️':''}</div>
+      <div class="p-stem" style="color:${sColor}">${STEMS[p.stemIdx]}</div>
+      <div class="p-branch" style="color:${bColor}">${BRANCHES[p.branchIdx]}</div>
+      <div class="p-animal">${ANIMALS[p.branchIdx]}</div>
+      <div class="p-hz">${STEMS_PY[p.stemIdx]} · ${BRANCHES_PY[p.branchIdx]}</div>
+      <div class="p-tg">${b.tenGods[i].tg}</div>
+    </div>`;
+  });
+  html += '</div></div>';
+
+  // Element Distribution
+  const maxVal = Math.max(...Object.values(b.elemCount), 1);
+  const elemOrder = ['木','火','土','金','水'];
+  html += `<div class="rs-section anim-fade anim-s3">
+    <h4>🌐 Elemental Balance · 五行</h4>
+    <div class="elem-bar">`;
+  elemOrder.forEach(e => {
+    const pct = (b.elemCount[e] / maxVal) * 100;
+    if(pct > 0) html += `<div style="flex:${pct};background:${ELEM_COLORS[e]}"></div>`;
+  });
+  html += `</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">`;
+  elemOrder.forEach(e => {
+    const count = b.elemCount[e] || 0;
+    const pct = b.total > 0 ? Math.round(count/b.total*100) : 0;
+    html += `<span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)">
+      <span class="el-dot-sm" style="background:${ELEM_COLORS[e]}"></span>${ELEM_EMOJI[e]} ${e} ${pct}%</span>`;
+  });
+  html += `</div>
+  </div>`;
+
+  // Useful God & Season
+  html += `<div class="rs-section anim-fade anim-s3">
+    <h4>🎯 Chart Analysis</h4>
+    <div class="stat-row"><span class="label">Season</span><span class="val">${b.season} · ${ELEM_EMOJI[b.seasonElem]} ${ELEM_NAMES[b.seasonElem]}</span></div>
+    <div class="stat-row"><span class="label">Day Master element</span><span class="val"><span class="el-dot-sm" style="background:${dmColor}"></span>${ELEM_EMOJI[b.dmElem]} ${ELEM_NAMES[b.dmElem]} (${b.dmElem})</span></div>
+    <div class="stat-row"><span class="label">DM supported by season?</span><span class="val">${b.isDMSupported ? '✅ Yes — strong' : '⚠️ No — needs support'}</span></div>
+    <div class="stat-row"><span class="label">🪄 Useful God (用神)</span><span class="val" style="color:${ELEM_COLORS[b.usefulGod]}">${ELEM_EMOJI[b.usefulGod]} ${ELEM_NAMES[b.usefulGod]} (${b.usefulGod})<br><span style="font-size:11px;opacity:.6">${b.usefulGodLabel}</span></span></div>
+  </div>`;
+
+  // Lucky Amulet
+  const amulet = AMULETS[b.usefulGod];
+  if(amulet){
+    html += `<div class="rs-section anim-fade anim-s4" style="cursor:pointer" onclick="showAmulet('${b.usefulGod}')">
+      <h4>🍀 Your Lucky Amulet</h4>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:64px;height:64px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--bg2)">
+          <img src="${amulet.img}" alt="${amulet.name}" style="width:100%;height:100%;object-fit:cover;display:block">
+        </div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${amulet.name}</div>
+          <div style="font-size:11px;color:var(--text2);margin:2px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${amulet.desc}</div>
+          <span style="font-size:10px;color:var(--text2);opacity:.6;background:var(--bg2);padding:2px 8px;border-radius:10px;display:inline-block;margin-top:2px">based on your 用神</span>
+        </div>
+        <div style="font-size:20px;color:var(--text2);opacity:.4">→</div>
+      </div>
+    </div>`;
+  }
+
+  // Ten Gods
+  html += `<div class="rs-section anim-fade anim-s4">
+    <h4>🃏 Ten Gods · 十神</h4>
+    <div class="tg-grid">`;
+  b.tenGods.forEach(tg => {
+    html += `<div class="tg-card">
+      <span class="tg-stem" style="color:${ELEM_COLORS[tg.elem]}">${tg.stem}</span>
+      <span class="tg-name">${tg.tg}</span>
+      <span class="el-dot-sm" style="background:${ELEM_COLORS[tg.elem]};margin-left:auto"></span>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  // Hidden Stems
+  html += `<div class="rs-section anim-fade anim-s5">
+    <h4>🔍 Hidden Stems · 藏干</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">`;
+  b.pillars.forEach((p, i) => {
+    const hidden = HIDDEN_STEMS[p.branchIdx];
+    html += `<div style="text-align:center;padding:8px;background:var(--bg2);border-radius:10px;border:1px solid rgba(255,255,255,.04)">
+      <div style="font-size:18px;font-weight:700;color:${ELEM_COLORS[BR_ELEM[p.branchIdx]]}">${BRANCHES[p.branchIdx]}</div>
+      <div style="font-size:11px;color:var(--text2);margin:2px 0">${BRANCHES_PY[p.branchIdx]}</div>
+      <div style="display:flex;gap:3px;justify-content:center;margin-top:4px;">
+        ${hidden.map(s => {
+          const ei = STEMS.indexOf(s);
+          const elem = STEM_ELEM[ei];
+          return `<span style="background:${ELEM_COLORS[elem]};color:${elem==='土'||elem==='金'?'#1a1412':'#fff'};padding:1px 6px;border-radius:6px;font-size:12px;font-weight:700">${s}</span>`;
+        }).join('')}
+      </div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  // Button to re-enter
+  html += `<div style="text-align:center;padding:12px 0 24px">
+    <button onclick="showScreen('picker')" style="background:none;border:1px solid rgba(255,255,255,.1);color:var(--text2);padding:12px 24px;border-radius:30px;font-size:13px;cursor:pointer">← Enter Another Date</button>
+  </div>`;
+
+  body.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═══════════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id === 'picker'){
+    updateTheme();
+  }
+  if(id === 'result'){
+    // Re-render if data exists
+    if(window._lastBazi) renderResult(window._lastBazi);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AMULET MODAL
+// ═══════════════════════════════════════════════════════════════
+function showAmulet(elemKey){
+  const a = AMULETS[elemKey];
+  if(!a) return;
+  document.getElementById('amImg').src = a.img;
+  document.getElementById('amImg').alt = a.name;
+  document.getElementById('amName').textContent = a.name;
+  document.getElementById('amPrice').textContent = a.price;
+  document.getElementById('amDesc').textContent = a.desc;
+  document.getElementById('amElem').textContent = ELEM_NAMES[elemKey] + ' (' + elemKey + ') · 用神';
+  document.getElementById('amuletModal').classList.add('open');
+}
+function closeAmulet(e){
+  if(e && e.target !== e.currentTarget) return; // only close when overlay clicked or close btn
+  document.getElementById('amuletModal').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', ()=>{
+  initDials();
+});
+</script>
+</body>
+</html>
