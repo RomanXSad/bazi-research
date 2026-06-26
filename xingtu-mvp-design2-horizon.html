@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>行途 · 八字 XingTu BaZi</title>
+<style>
+/* ===== RESET / BASE ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', 'Helvetica Neue', sans-serif; background: #0a0a1a; color: #e0e0e8; -webkit-font-smoothing: antialiased; }
+a { color: #c9a43e; text-decoration: none; }
+
+/* ===== SCREENS ===== */
+.screen { position: fixed; inset: 0; display: none; flex-direction: column; background: #0a0a1a; z-index: 1; overflow: hidden; }
+.screen.active { display: flex; z-index: 10; }
+
+/* ===== SPLASH ===== */
+#splash { justify-content: center; align-items: center; text-align: center; background: radial-gradient(ellipse at 30% 20%, #1a1a3a 0%, #0a0a1a 70%); }
+#splash .logo { font-size: 52px; margin-bottom: 8px; }
+#splash h1 { font-size: 38px; font-weight: 300; letter-spacing: 8px; color: #e0e0e8; margin-bottom: 6px; }
+#splash h1 span { color: #c9a43e; }
+#splash .subtitle { font-size: 14px; color: #888; letter-spacing: 6px; margin-bottom: 48px; }
+#splash .splash-btn { background: linear-gradient(135deg, #c9a43e, #a8882e); color: #0a0a1a; border: none; padding: 14px 48px; border-radius: 30px; font-size: 17px; font-weight: 600; letter-spacing: 2px; cursor: pointer; transition: transform .3s, box-shadow .3s; box-shadow: 0 4px 24px rgba(201,164,62,.3); }
+#splash .splash-btn:active { transform: scale(.96); }
+#splash .splash-footer { position: absolute; bottom: 36px; color: #555; font-size: 12px; letter-spacing: 2px; }
+
+/* ===== PICKER ===== */
+#picker { padding-top: env(safe-area-inset-top,0px); }
+.picker-header { padding: 16px 20px 6px; text-align: center; flex-shrink: 0; }
+.picker-header h2 { font-size: 20px; font-weight: 400; letter-spacing: 4px; }
+.picker-header h2 span { color: #c9a43e; }
+.picker-header .hint { font-size: 12px; color: #777; margin-top: 4px; letter-spacing: 1px; }
+
+.sliders-container { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 8px 0; overflow: hidden; }
+.slider-group { display: flex; flex-direction: column; gap: 2px; padding: 0 16px; }
+.slider-label { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #888; letter-spacing: 1px; padding: 0 4px; }
+.slider-label .label-color { font-weight: 600; text-transform: uppercase; }
+.slider-wrap { position: relative; height: 44px; border-radius: 12px; background: #0d0d22; overflow: hidden; cursor: grab; user-select: none; -webkit-user-select: none; touch-action: none; overscroll-behavior: none; }
+.slider-wrap:active { cursor: grabbing; }
+.slider-track { display: flex; height: 100%; align-items: center; will-change: transform; }
+.slider-item { flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 500; color: #666; transition: color .15s; white-space: nowrap; flex-direction: column; line-height: 1.2; }
+.slider-item .sub { font-size: 11px; color: #555; margin-left: 5px; font-weight: 400; }
+.slider-item.two-line { flex-direction: column; gap: 1px; padding: 2px 0; }
+.slider-item .tl-main { font-size: 18px; font-weight: 600; }
+.slider-item .tl-sub { font-size: 10px; color: #555; font-weight: 400; white-space: nowrap; }
+.slider-item.active { color: #fff; }
+.slider-item.active .sub { color: #ccc; }
+.slider-item.active .tl-sub { color: #aaa; }
+
+.picker-footer { padding: 8px 20px 20px; text-align: center; flex-shrink: 0; }
+.spin-btn { background: linear-gradient(135deg, #c9a43e, #a8882e); color: #0a0a1a; border: none; width: 72px; height: 72px; border-radius: 50%; font-size: 28px; cursor: pointer; transition: transform .3s, box-shadow .3s; box-shadow: 0 4px 30px rgba(201,164,62,.35); display: inline-flex; align-items: center; justify-content: center; }
+.spin-btn:active { transform: scale(.92); }
+.spin-btn:disabled { opacity: .5; transform: scale(.95); cursor: default; }
+
+/* ===== SPIN OVERLAY ===== */
+#spin-overlay { position: fixed; inset: 0; z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center; background: rgba(10,10,26,.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+#spin-overlay.show { display: flex; }
+#spin-overlay .dice { font-size: 72px; animation: spinDice .9s ease-in-out infinite; }
+#spin-overlay .lucky { font-size: 48px; margin-top: 18px; animation: pulseClover .8s ease-in-out infinite alternate; }
+#spin-overlay .spin-text { margin-top: 18px; font-size: 16px; color: #c9a43e; letter-spacing: 3px; animation: fadeText 1.2s ease-in-out infinite; }
+@keyframes spinDice { 0% { transform: rotate(0deg) scale(1); } 25% { transform: rotate(90deg) scale(1.1); } 50% { transform: rotate(180deg) scale(1); } 75% { transform: rotate(270deg) scale(1.1); } 100% { transform: rotate(360deg) scale(1); } }
+@keyframes pulseClover { 0% { transform: scale(.85); opacity: .6; } 100% { transform: scale(1.15); opacity: 1; } }
+@keyframes fadeText { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+
+/* ===== RESULT ===== */
+#result { padding: 0; }
+.result-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 90px; }
+.result-header { padding: 16px 16px 10px; display: flex; align-items: center; gap: 12px; flex-shrink: 0; background: #0a0a1a; border-bottom: 1px solid rgba(255,255,255,.04); }
+.back-btn { background: rgba(255,255,255,.06); border: none; color: #e0e0e8; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .2s; flex-shrink: 0; }
+.back-btn:active { background: rgba(255,255,255,.12); }
+.result-header h2 { font-size: 16px; font-weight: 400; letter-spacing: 2px; }
+.result-header .date-summary { font-size: 12px; color: #888; margin-left: auto; text-align: right; }
+
+/* Four Pillars */
+.pillars { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; margin: 12px 0; }
+.pillar-card { background: #111128; border-radius: 12px; padding: 12px 8px; text-align: center; position: relative; overflow: hidden; }
+.pillar-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.pillar-card .pillar-label { font-size: 10px; color: #888; letter-spacing: 2px; margin-bottom: 4px; text-transform: uppercase; }
+.pillar-card .stem { font-size: 26px; font-weight: 700; }
+.pillar-card .branch { font-size: 22px; margin-top: 2px; }
+.pillar-card .animal { font-size: 11px; color: #aaa; margin-top: 2px; }
+.pillar-card .elem-tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 8px; margin-top: 4px; color: #fff; }
+
+/* Element Balance */
+.elem-balance { background: #111128; border-radius: 12px; padding: 14px 16px; margin: 10px 0; }
+.elem-balance h3 { font-size: 13px; color: #888; letter-spacing: 1px; margin-bottom: 10px; }
+.elem-bar-wrap { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+.elem-bar-label { width: 52px; font-size: 12px; display: flex; align-items: center; gap: 3px; }
+.elem-bar-track { flex: 1; height: 14px; background: rgba(255,255,255,.04); border-radius: 7px; overflow: hidden; position: relative; }
+.elem-bar-fill { height: 100%; border-radius: 7px; transition: width .8s cubic-bezier(.22,1,.36,1); }
+.elem-bar-count { width: 24px; text-align: right; font-size: 12px; color: #888; }
+.elem-insight { font-size: 11px; color: #999; margin-top: 6px; padding: 6px 10px; background: rgba(255,255,255,.03); border-radius: 8px; }
+
+/* Day Master */
+.day-master { background: #111128; border-radius: 12px; padding: 14px 16px; margin: 10px 0; display: flex; align-items: center; gap: 14px; }
+.day-master .dm-icon { font-size: 32px; }
+.day-master .dm-info { flex: 1; }
+.day-master .dm-label { font-size: 10px; color: #888; letter-spacing: 1px; }
+.day-master .dm-value { font-size: 22px; font-weight: 700; margin-top: 2px; }
+.day-master .dm-elem { font-size: 12px; color: #999; margin-top: 2px; }
+
+/* Ten Gods Grid */
+.ten-gods { background: #111128; border-radius: 12px; padding: 14px 16px; margin: 10px 0; }
+.ten-gods h3 { font-size: 13px; color: #888; letter-spacing: 1px; margin-bottom: 8px; }
+.gods-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 4px; }
+.god-item { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; background: rgba(255,255,255,.025); border-radius: 6px; font-size: 12px; }
+.god-item .god-name { color: #ccc; }
+.god-item .god-val { color: #c9a43e; font-weight: 600; }
+
+/* Hidden Stems */
+.hidden-stems { background: #111128; border-radius: 12px; padding: 14px 16px; margin: 10px 0; }
+.hidden-stems h3 { font-size: 13px; color: #888; letter-spacing: 1px; margin-bottom: 8px; }
+.hs-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+.hs-pillar { text-align: center; }
+.hs-pillar .hs-label { font-size: 10px; color: #666; letter-spacing: 1px; text-transform: uppercase; }
+.hs-pillar .hs-stems { display: flex; justify-content: center; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+.hs-pillar .hs-stem { font-size: 11px; padding: 1px 5px; border-radius: 4px; background: rgba(255,255,255,.04); }
+
+/* Lucky Amulet */
+.lucky-amulet { background: linear-gradient(135deg, rgba(201,164,62,.08), rgba(201,164,62,.02)); border: 1px solid rgba(201,164,62,.15); border-radius: 12px; padding: 14px 16px; margin: 10px 0; display: flex; align-items: center; gap: 12px; }
+.lucky-amulet .amulet-icon { font-size: 32px; }
+.lucky-amulet .amulet-info { flex: 1; }
+.lucky-amulet .amulet-label { font-size: 10px; color: #c9a43e; letter-spacing: 1px; text-transform: uppercase; }
+.lucky-amulet .amulet-name { font-size: 18px; font-weight: 600; color: #e0e0e8; margin-top: 2px; }
+.lucky-amulet .amulet-desc { font-size: 11px; color: #999; margin-top: 2px; }
+
+/* Random Palace */
+.palace-pool { margin: 10px 0; }
+.palace-pool h3 { font-size: 13px; color: #888; letter-spacing: 1px; margin-bottom: 8px; }
+.palace-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 6px; }
+.palace-card { background: #111128; border-radius: 10px; padding: 10px 8px; text-align: center; border: 1px solid rgba(255,255,255,.03); }
+.palace-card .pal-icon { font-size: 22px; }
+.palace-card .pal-name { font-size: 12px; font-weight: 600; margin-top: 3px; }
+.palace-card .pal-desc { font-size: 9px; color: #888; margin-top: 2px; }
+
+/* Scrollbar */
+.result-scroll::-webkit-scrollbar { width: 3px; }
+.result-scroll::-webkit-scrollbar-track { background: transparent; }
+.result-scroll::-webkit-scrollbar-thumb { background: rgba(201,164,62,.3); border-radius: 3px; }
+
+/* ===== MORE FAB + MENU ===== */
+#moreFAB{position:fixed;bottom:28px;right:24px;z-index:100;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#c9a43e,#a8882e);color:#0a0a1a;display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;cursor:pointer;box-shadow:0 4px 24px rgba(201,164,62,.45);transition:transform .3s,box-shadow .3s;-webkit-user-select:none;user-select:none;}#moreFAB:active{transform:scale(.9);}#moreIcon{transition:transform .4s cubic-bezier(.22,1,.36,1);display:inline-block;}#moreFAB.open #moreIcon{transform:rotate(45deg);}#moreOverlay{position:fixed;inset:0;z-index:200;display:none;background:rgba(10,10,26,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:fadeIn .25s ease;}#moreOverlay.show{display:block;}#moreMenu{position:fixed;bottom:100px;right:24px;width:280px;background:#14143a;border:1px solid rgba(201,164,62,.2);border-radius:16px;padding:10px 0;box-shadow:0 8px 40px rgba(0,0,0,.5);animation:slideUp .3s cubic-bezier(.22,1,.36,1);}.more-title{text-align:center;font-size:14px;color:#c9a43e;letter-spacing:2px;padding:12px 16px 10px;border-bottom:1px solid rgba(255,255,255,.06);}.more-item{padding:14px 18px;font-size:14px;color:#ddd;cursor:pointer;transition:background .2s,color .2s;display:flex;align-items:center;gap:8px;}.more-item:active{background:rgba(201,164,62,.1);color:#c9a43e;}.more-close{text-align:center;padding:12px;font-size:13px;color:#888;cursor:pointer;border-top:1px solid rgba(255,255,255,.06);margin-top:4px;}.more-close:active{color:#c9a43e;}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ===== AMULET SHOP MODAL ===== */
+#amuletShopOverlay{position:fixed;inset:0;z-index:300;display:none;background:rgba(10,10,26,.8);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:fadeIn .25s ease;flex-direction:column;align-items:center;justify-content:flex-end;}#amuletShopOverlay.show{display:flex;}#amuletShop{width:100%;max-width:520px;max-height:88vh;background:#0d0d22;border-radius:20px 20px 0 0;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .35s cubic-bezier(.22,1,.36,1);}.shop-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}.shop-header h2{font-size:17px;font-weight:400;letter-spacing:2px;color:#e0e0e8;}.shop-header h2 span{color:#c9a43e;}.shop-close{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.06);color:#aaa;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;}.shop-close:active{background:rgba(255,255,255,.12);color:#fff;}.shop-grid{flex:1;overflow-y:auto;padding:10px 14px 20px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}.shop-grid::-webkit-scrollbar{width:3px;}.shop-grid::-webkit-scrollbar-track{background:transparent;}.shop-grid::-webkit-scrollbar-thumb{background:rgba(201,164,62,.3);border-radius:3px;}.shop-card{background:#111128;border-radius:12px;padding:14px 10px;text-align:center;border:1px solid rgba(255,255,255,.04);transition:border-color .2s,transform .2s;cursor:pointer;}.shop-card:active{transform:scale(.97);border-color:#c9a43e;}.sc-emoji{font-size:32px;margin-bottom:4px;}.sc-name{font-size:13px;font-weight:600;color:#e0e0e8;margin-bottom:3px;}.sc-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(201,164,62,.12);color:#c9a43e;margin-bottom:4px;}.sc-price{font-size:16px;font-weight:700;color:#c9a43e;}
+
+/* ===== RECOMMENDED AMULETS IN RESULT ===== */
+.recommended-amulets{background:linear-gradient(135deg,rgba(201,164,62,.06),rgba(201,164,62,.01));border:1px solid rgba(201,164,62,.1);border-radius:12px;padding:14px 16px;margin:10px 0;}.rec-header{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#c9a43e;letter-spacing:1px;margin-bottom:10px;}.shop-all-link{background:none;border:none;color:#c9a43e;font-size:11px;cursor:pointer;padding:3px 8px;border-radius:6px;border:1px solid rgba(201,164,62,.2);}.shop-all-link:active{background:rgba(201,164,62,.1);}.amulet-shop-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}.amulet-buy-card{background:#111128;border-radius:10px;padding:10px 6px;text-align:center;border:1px solid rgba(255,255,255,.04);cursor:pointer;transition:border-color .2s,transform .2s;}.amulet-buy-card:active{transform:scale(.95);border-color:#c9a43e;}.rec-footer{text-align:center;margin-top:10px;}.shop-all-btn{background:linear-gradient(135deg,#c9a43e,#a8882e);color:#0a0a1a;border:none;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:transform .2s;}.shop-all-btn:active{transform:scale(.96);}
+
+/* Responsive: amulet shop grid becomes 1 col on very narrow */
+@media(max-width:400px){.shop-grid{grid-template-columns:repeat(1,1fr);}}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 420px) {
+  .slider-item { font-size: 14px; }
+  .slider-item .sub { font-size: 10px; }
+  .pillars { gap: 5px; }
+  .pillar-card .stem { font-size: 22px; }
+  .pillar-card .branch { font-size: 18px; }
+  .palace-grid { grid-template-columns: repeat(2,1fr); }
+}
+@media (min-width: 600px) {
+  .sliders-container { max-width: 540px; margin: 0 auto; }
+  .result-scroll { max-width: 520px; margin: 0 auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash" class="screen active">
+  <div class="logo">☰</div>
+  <h1>行<span>途</span></h1>
+  <p class="subtitle">XINGTU · 八字命理</p>
+  <button class="splash-btn" onclick="goToPicker()">开启命盘</button>
+  <p class="splash-footer">✦  Destiny Unveiled  ✦</p>
+</div>
+
+<!-- ===== PICKER ===== -->
+<div id="picker" class="screen">
+  <div class="picker-header">
+    <h2>行<span>途</span> · 命盘</h2>
+    <p class="hint">← 滚动选择生辰 →</p>
+  </div>
+  <div class="sliders-container" id="slidersContainer">
+    <!-- Year -->
+    <div class="slider-group">
+      <div class="slider-label"><span class="label-color" style="color:#e94560">年 YEAR</span><span id="yearDisplay" style="color:#e94560">—</span></div>
+      <div class="slider-wrap" data-id="year"><div class="slider-track" id="trackYear"></div></div>
+    </div>
+    <!-- Month -->
+    <div class="slider-group">
+      <div class="slider-label"><span class="label-color" style="color:#42a5f5">月 MONTH</span><span id="monthDisplay" style="color:#42a5f5">—</span></div>
+      <div class="slider-wrap" data-id="month"><div class="slider-track" id="trackMonth"></div></div>
+    </div>
+    <!-- Day -->
+    <div class="slider-group">
+      <div class="slider-label"><span class="label-color" style="color:#66bb6a">日 DAY</span><span id="dayDisplay" style="color:#66bb6a">—</span></div>
+      <div class="slider-wrap" data-id="day"><div class="slider-track" id="trackDay"></div></div>
+    </div>
+    <!-- Hour -->
+    <div class="slider-group">
+      <div class="slider-label"><span class="label-color" style="color:#ffb74d">时 HOUR</span><span id="hourDisplay" style="color:#ffb74d">—</span></div>
+      <div class="slider-wrap" data-id="hour"><div class="slider-track" id="trackHour"></div></div>
+    </div>
+    <!-- Timezone -->
+    <div class="slider-group">
+      <div class="slider-label"><span class="label-color" style="color:#ce93d8">区 ZONE</span><span id="zoneDisplay" style="color:#ce93d8">—</span></div>
+      <div class="slider-wrap" data-id="zone"><div class="slider-track" id="trackZone"></div></div>
+    </div>
+  </div>
+  <div class="picker-footer">
+    <button class="spin-btn" id="spinBtn" onclick="doSpin()">✦</button>
+  </div>
+</div>
+
+<!-- ===== SPIN OVERLAY ===== -->
+<div id="spin-overlay">
+  <div class="dice">🎲</div>
+  <div class="lucky">🍀</div>
+  <div class="spin-text">推演命盘 ...</div>
+</div>
+
+<!-- ===== RESULT ===== -->
+<div id="result" class="screen">
+  <div class="result-header">
+    <button class="back-btn" onclick="goBack()">←</button>
+    <h2>行途 · 命盘</h2>
+    <div class="date-summary" id="dateSummary"></div>
+  </div>
+  <div class="result-scroll" id="resultScroll">
+    <div id="resultContent"></div>
+  </div>
+</div>
+
+<div id="moreFAB" onclick="openMoreMenu()"><span id="moreIcon">+</span></div>
+<div id="moreOverlay" onclick="closeMoreMenu()"><div id="moreMenu" onclick="event.stopPropagation()">
+<div class="more-title">✦ XingTu Premium</div>
+<div class="more-item" onclick="openAmuletShop()">📿 Buy Lucky Amulet</div>
+<div class="more-item" onclick="alert('🔒 Full Reading — Unlock detailed BaZi analysis, yearly forecast & personal guidance. Subscribe: $7/month')">📖 Full Reading · $7/mo</div>
+<div class="more-item" onclick="alert('🔒 Name Analysis — Discover your Chinese name based on your BaZi. One-time: $5')">📝 Name Analysis · $5</div>
+<div class="more-item" onclick="alert('🔒 Daily Fortune — Get your daily BaZi forecast every morning. Subscribe: $3/month')">📅 Daily Fortune · $3/mo</div>
+<div class="more-item" onclick="alert('🔒 Bundle — Everything included. Subscribe: $12/month')">🎁 Complete Bundle · $12/mo</div>
+<div class="more-close" onclick="closeMoreMenu()">✕ Close</div>
+</div></div>
+
+<!-- ===== AMULET SHOP MODAL ===== -->
+<div id="amuletShopOverlay" onclick="closeAmuletShop()"><div id="amuletShop" onclick="event.stopPropagation()">
+<div class="shop-header"><h2>行<span>途</span> · 灵宝 Shop</h2><button class="shop-close" onclick="closeAmuletShop()">✕</button></div>
+<div class="shop-grid" id="amuletShopGrid"></div>
+</div></div>
+
+<script>
+/* ===================================================================
+   DATA
+   =================================================================== */
+const STEMS        = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANCHES     = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ANIMALS      = ['Rat','Ox','Tiger','Rabbit','Dragon','Snake','Horse','Goat','Monkey','Rooster','Dog','Pig'];
+const STEM_ELEM    = ['木','木','火','火','土','土','金','金','水','水'];
+const BR_ELEM      = ['水','土','木','木','土','火','火','土','金','金','土','水'];
+const ELEM_COLORS  = {木:'#4CAF50',火:'#e74c3c',土:'#f0ad4e',金:'#7f8c8d',水:'#3498db'};
+const ELEM_EMOJI   = {木:'🌳',火:'🔥',土:'⛰️',金:'⚙️',水:'💧'};
+const ELEM_NAMES   = {木:'Wood',火:'Fire',土:'Earth',金:'Metal',水:'Water'};
+const ANIMAL_EMOJI = ['🐭','🐮','🐯','🐰','🐲','🐍','🐴','🐏','🐵','🐔','🐶','🐷'];
+const HOUR_NAMES   = ['23:00–01:00 子','01:00–03:00 丑','03:00–05:00 寅','05:00–07:00 卯','07:00–09:00 辰','09:00–11:00 巳','11:00–13:00 午','13:00–15:00 未','15:00–17:00 申','17:00–19:00 酉','19:00–21:00 戌','21:00–23:00 亥'];
+
+const HIDDEN_STEMS_MAP = {
+  子:['癸'],丑:['己','癸','辛'],寅:['甲','丙','戊'],卯:['乙'],
+  辰:['戊','乙','癸'],巳:['丙','庚','戊'],午:['丁','己'],
+  未:['己','丁','乙'],申:['庚','壬','戊'],酉:['辛'],
+  戌:['戊','辛','丁'],亥:['壬','甲']
+};
+
+const TEN_GOD_RELATIONS = {
+  '比肩':'Same Stem Element as Day Master',
+  '劫财':'Opposite Yin/Yang, Same Element',
+  '食神':'Day Master produces (same Yin/Yang)',
+  '伤官':'Day Master produces (opposite Yin/Yang)',
+  '偏财':'Controlled by Day Master (same Yin/Yang)',
+  '正财':'Controlled by Day Master (opposite Yin/Yang)',
+  '偏官':'Controls Day Master (same Yin/Yang)',
+  '正官':'Controls Day Master (opposite Yin/Yang)',
+  '偏印':'Generates Day Master (same Yin/Yang)',
+  '正印':'Generates Day Master (opposite Yin/Yang)'
+};
+
+const AMULET_SHOP = [
+  {id:'jade-dragon', name:'Jade Dragon Pendant', elem:'wood', emoji:'🐉', price:29, desc:'Hand-carved nephrite jade — attracts growth and vitality.', tag:'Wood Boost'},
+  {id:'ruby-phoenix', name:'Ruby Phoenix Amulet', elem:'fire', emoji:'🦅', price:34, desc:'Cinnabar-infused charm — ignites passion and recognition.', tag:'Fire Boost'},
+  {id:'golden-turtle', name:'Golden Turtle Talisman', elem:'earth', emoji:'🐢', price:27, desc:'Brass talisman — grounds energy, stabilises fortune.', tag:'Earth Boost'},
+  {id:'silver-wolf', name:'Silver Wolf Guardian', elem:'metal', emoji:'🐺', price:39, desc:'Aged bronze from Song dynasty — protects wealth.', tag:'Metal Boost'},
+  {id:'wave-jade', name:'Jade Wave Pendant', elem:'water', emoji:'🌊', price:32, desc:'White jade with water ripples — attracts wisdom and flow.', tag:'Water Boost'},
+  {id:'bamboo-forest', name:'Bamboo Forest Blessing', elem:'wood', emoji:'🎋', price:22, desc:'Engraved bamboo slip — brings steady career growth.', tag:'Career'},
+  {id:'crimson-heart', name:'Crimson Heart Charm', elem:'fire', emoji:'❤️', price:44, desc:'Rose quartz & red thread — enhances love and relationships.', tag:'Love'},
+  {id:'amber-tiger', name:'Amber Tiger Eye', elem:'earth', emoji:'🐅', price:37, desc:'Golden amber with tiger stripe — confidence and courage.', tag:'Courage'},
+  {id:'iron-sword', name:'Iron Sword Miniature', elem:'metal', emoji:'⚔️', price:49, desc:'Miniature broadsword — cuts through obstacles and enemies.', tag:'Protection'},
+  {id:'abyss-mirror', name:'Abyss Mirror Talisman', elem:'water', emoji:'🪞', price:42, desc:'Black obsidian mirror — reflects negative energy away.', tag:'Protection'},
+  {id:'cherry-blossom', name:'Cherry Blossom Hairpin', elem:'wood', emoji:'🌸', price:19, desc:'Pink quartz hair ornament — attracts gentle romance.', tag:'Love'},
+  {id:'sun-wheel', name:'Sun Wheel Pendant', elem:'fire', emoji:'☀️', price:33, desc:'Gold-plated sun disk — boosts charisma and leadership.', tag:'Career'},
+  {id:'mountain-seal', name:'Mountain Seal Stamp', elem:'earth', emoji:'⛰️', price:28, desc:'Jade seal with mountain engraving — authority and stability.', tag:'Career'},
+  {id:'moon-dagger', name:'Moon Shadow Dagger', elem:'metal', emoji:'🌙', price:45, desc:'Silver dagger with moonstone — dispels nightmares and fear.', tag:'Protection'},
+  {id:'koi-fish', name:'Koi Fish Pair', elem:'water', emoji:'🐟', price:36, desc:'Twin koi in wave pattern — wealth flowing like water.', tag:'Wealth'},
+  {id:'pine-tree', name:'Pine Tree of Longevity', elem:'wood', emoji:'🌲', price:31, desc:'Ancient pine needle charm — health and long life.', tag:'Health'},
+  {id:'dragon-pearl', name:'Dragon Pearl Ring', elem:'fire', emoji:'🔮', price:52, desc:'Red spinel set in gold — ultimate prosperity attractor.', tag:'Wealth'},
+  {id:'crystal-sceptre', name:'Crystal Sceptre', elem:'earth', emoji:'💎', price:58, desc:'Quartz crystal wand — amplifies all elemental energies.', tag:'All Elements'},
+  {id:'shield-badge', name:'Guardian Shield Badge', elem:'metal', emoji:'🛡️', price:38, desc:'Bronze shield with lion — deflects misfortune and gossip.', tag:'Protection'},
+  {id:'lotus-beads', name:'Lotus Prayer Beads', elem:'water', emoji:'🪷', price:26, desc:'Blue sandalwood beads — meditation and inner peace.', tag:'Health'},
+];
+
+function recommendAmulets(elemCounts, dayStemIdx, count=3) {
+  const elemToEng = {木:'wood',火:'fire',土:'earth',金:'metal',水:'water'};
+  const sorted = Object.entries(elemCounts).sort((a,b) => a[1] - b[1]);
+  const minCount = sorted[0][1];
+  const neededRaw = sorted.filter(e => e[1] === minCount).map(e => e[0]);
+  const needed = neededRaw.map(cn => elemToEng[cn] || cn);
+  const prodCycle = {wood:'water', fire:'wood', earth:'fire', metal:'earth', water:'metal'};
+  const producers = needed.map(el => prodCycle[el] || el);
+  let pool = AMULET_SHOP.filter(a => needed.includes(a.elem) || producers.includes(a.elem));
+  if (pool.length < count) pool = AMULET_SHOP.slice();
+  for (let i = pool.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i+1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, count);
+}
+
+const PALACES = [
+  {icon:'🏛️',name:'Palace of Life',desc:'Core destiny & vitality'},
+  {icon:'💰',name:'Palace of Wealth',desc:'Financial fortune'},
+  {icon:'💞',name:'Palace of Spouse',desc:'Relationships & marriage'},
+  {icon:'👨‍👩‍👧‍👦',name:'Palace of Children',desc:'Offspring & legacy'},
+  {icon:'📚',name:'Palace of Wisdom',desc:'Knowledge & career'},
+  {icon:'🏠',name:'Palace of Abode',desc:'Home & stability'},
+  {icon:'🚀',name:'Palace of Travel',desc:'Journeys & change'},
+  {icon:'👥',name:'Palace of Friends',desc:'Social circle & support'},
+  {icon:'🕊️',name:'Palace of Spirit',desc:'Inner self & fate'},
+  {icon:'⚡',name:'Palace of Action',desc:'Drive & ambition'},
+  {icon:'🌿',name:'Palace of Growth',desc:'Personal development'},
+  {icon:'🛡️',name:'Palace of Guard',desc:'Protection & challenges'}
+];
+
+const TIMEZONES = [
+  {city:'Baker Island',offset:-12,tag:'GMT-12'},
+  {city:'American Samoa',offset:-11,tag:'GMT-11'},
+  {city:'Hawaii',offset:-10,tag:'GMT-10'},
+  {city:'Alaska',offset:-9,tag:'GMT-9'},
+  {city:'Los Angeles',offset:-8,tag:'GMT-8'},
+  {city:'Denver',offset:-7,tag:'GMT-7'},
+  {city:'Chicago',offset:-6,tag:'GMT-6'},
+  {city:'New York',offset:-5,tag:'GMT-5'},
+  {city:'Caracas',offset:-4,tag:'GMT-4'},
+  {city:'Buenos Aires',offset:-3,tag:'GMT-3'},
+  {city:'Fernando de Noronha',offset:-2,tag:'GMT-2'},
+  {city:'Azores',offset:-1,tag:'GMT-1'},
+  {city:'London',offset:0,tag:'GMT±0'},
+  {city:'Berlin',offset:1,tag:'GMT+1'},
+  {city:'Athens',offset:2,tag:'GMT+2'},
+  {city:'Moscow',offset:3,tag:'GMT+3'},
+  {city:'Dubai',offset:4,tag:'GMT+4'},
+  {city:'Karachi',offset:5,tag:'GMT+5'},
+  {city:'Dhaka',offset:6,tag:'GMT+6'},
+  {city:'Bangkok',offset:7,tag:'GMT+7'},
+  {city:'Beijing',offset:8,tag:'GMT+8'},
+  {city:'Tokyo',offset:9,tag:'GMT+9'},
+  {city:'Sydney',offset:10,tag:'GMT+10'},
+  {city:'Noumea',offset:11,tag:'GMT+11'},
+  {city:'Auckland',offset:12,tag:'GMT+12'},
+  {city:'Apia',offset:13,tag:'GMT+13'},
+  {city:'Line Islands',offset:14,tag:'GMT+14'},
+  {city:'Kathmandu',offset:5.75,tag:'GMT+5:45'},
+  {city:'Tehran',offset:3.5,tag:'GMT+3:30'}
+];
+
+/* ===================================================================
+   SLIDER CONFIG
+   =================================================================== */
+const now = new Date();
+const currentYear = now.getFullYear();
+const SLIDER_CFG = {
+  year: {
+    count: 206,
+    itemWidth: 120,
+    items: (i) => {
+      const y = currentYear + 5 - i;
+      const s = ((y - 4) % 12 + 12) % 12;
+      return { label: String(y), sub: ANIMAL_EMOJI[s] + ' ' + ANIMALS[s], twoLine: true };
+    },
+    defaultIdx: 5 // current year
+  },
+  month: {
+    count: 12,
+    items: (i) => {
+      const m = i + 1;
+      const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      return { label: String(m), sub: names[i] };
+    },
+    defaultIdx: now.getMonth()
+  },
+  day: {
+    count: 31,
+    items: (i) => ({ label: String(i + 1), sub: '' }),
+    defaultIdx: now.getDate() - 1
+  },
+  hour: {
+    count: 12,
+    items: (i) => ({ label: BRANCHES[i], sub: HOUR_NAMES[i].split(' ')[0], twoLine: true }),
+    defaultIdx: 0
+  },
+  zone: {
+    count: TIMEZONES.length,
+    items: (i) => ({ label: TIMEZONES[i].city.split(' ')[0], sub: TIMEZONES[i].tag, twoLine: true }),
+    defaultIdx: TIMEZONES.findIndex(t => t.offset === 8) // Beijing default
+  }
+};
+
+/* ===================================================================
+   SLIDER ENGINE
+   =================================================================== */
+const sliders = {};
+
+function initSlider(id) {
+  const cfg = SLIDER_CFG[id];
+  const track = document.getElementById('track' + id.charAt(0).toUpperCase() + id.slice(1));
+  const wrap = track.parentElement;
+  const container = document.getElementById('slidersContainer');
+  const containerW = container.clientWidth - 32; // padding
+  const itemW = cfg.itemWidth || Math.max(60, Math.floor(containerW / 3.5));
+  const totalW = cfg.count * itemW;
+
+  // Build track
+  track.innerHTML = '';
+  for (let i = 0; i < cfg.count; i++) {
+    const item = cfg.items(i);
+    const div = document.createElement('div');
+    div.className = 'slider-item' + (item.twoLine ? ' two-line' : '');
+    div.style.width = itemW + 'px';
+    div.dataset.index = i;
+    if (item.twoLine) {
+      div.innerHTML = '<span class="tl-main">' + item.label + '</span><span class="tl-sub">' + (item.sub || '') + '</span>';
+    } else {
+      div.innerHTML = item.label + (item.sub ? '<span class="sub">' + item.sub + '</span>' : '');
+    }
+    track.appendChild(div);
+  }
+  track.style.width = totalW + 'px';
+
+  const state = {
+    id, track, wrap, itemW, itemCount: cfg.count,
+    startX: 0, startPos: 0, lastX: 0, lastTime: 0,
+    lastDx: 0, currentIdx: cfg.defaultIdx, currentPos: 0,
+    isDragging: false, animFrame: null,
+    defaultIdx: cfg.defaultIdx
+  };
+
+  // Center active item
+  const centerOffset = (containerW - itemW) / 2;
+  state.centerOffset = centerOffset;
+  state.currentPos = -(state.currentIdx * itemW) + centerOffset;
+  applyTransform(state);
+
+  // Update active class
+  updateActive(state);
+
+  // Events
+  const getX = (e) => {
+    if (e.touches && e.touches.length) return e.touches[0].clientX;
+    return e.clientX;
+  };
+
+  const onStart = (e) => {
+    e.preventDefault();
+    state.isDragging = true;
+    state.startX = getX(e);
+    state.startPos = state.currentPos;
+    state.lastX = state.startX;
+    state.lastTime = Date.now();
+    state.lastDx = 0;
+    if (state.animFrame) { cancelAnimationFrame(state.animFrame); state.animFrame = null; }
+    track.style.transition = 'none';
+  };
+
+  const onMove = (e) => {
+    if (!state.isDragging) return;
+    e.preventDefault();
+    const x = getX(e);
+    const dx = x - state.lastX;
+    state.currentPos += dx;
+    state.lastX = x;
+    state.lastTime = Date.now();
+    applyTransform(state);
+    state.lastDx = dx;
+  };
+
+  const onEnd = (e) => {
+    if (!state.isDragging) return;
+    state.isDragging = false;
+    // Use last movement delta for momentum (instantaneous velocity proxy)
+    const inertia = state.lastDx * 4;
+    const clampedInertia = Math.max(-state.itemW * 4, Math.min(state.itemW * 4, inertia));
+    const rawIdx = (-(state.currentPos + clampedInertia - state.centerOffset)) / state.itemW;
+    let targetIdx = Math.round(rawIdx);
+    targetIdx = Math.max(0, Math.min(state.itemCount - 1, targetIdx));
+    const targetPos = -(targetIdx * state.itemW) + state.centerOffset;
+    state.currentPos = targetPos;
+    state.currentIdx = targetIdx;
+    track.style.transition = 'transform 0.55s cubic-bezier(0.22, 1, 0.36, 1)';
+    applyTransform(state);
+    updateActive(state);
+    updateDisplay(state);
+  };
+
+  wrap.addEventListener('mousedown', onStart);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onEnd);
+  wrap.addEventListener('touchstart', onStart, {passive:false});
+  document.addEventListener('touchmove', onMove, {passive:false});
+  document.addEventListener('touchend', onEnd);
+
+  sliders[id] = state;
+  updateDisplay(state);
+}
+
+function applyTransform(state) {
+  state.track.style.transform = 'translateX(' + state.currentPos + 'px)';
+}
+
+function updateActive(state) {
+  const items = state.track.querySelectorAll('.slider-item');
+  items.forEach((el, i) => {
+    el.classList.toggle('active', i === state.currentIdx);
+  });
+}
+
+function updateDisplay(state) {
+  const displayId = state.id + 'Display';
+  const el = document.getElementById(displayId);
+  if (!el) return;
+  const cfg = SLIDER_CFG[state.id];
+  const item = cfg.items(state.currentIdx);
+  el.textContent = item.twoLine ? item.label : (item.label + (item.sub ? ' ' + item.sub : ''));
+}
+
+function getSliderValue(id) {
+  const s = sliders[id];
+  if (!s) return SLIDER_CFG[id].defaultIdx;
+  return s.currentIdx;
+}
+
+function getSliderLabel(id) {
+  const idx = getSliderValue(id);
+  const cfg = SLIDER_CFG[id];
+  return cfg.items(idx).label;
+}
+
+/* ===================================================================
+   BAZI CALCULATION
+   =================================================================== */
+function calcBaZi(year, month, day, hour) {
+  const yStem = ((year - 4) % 10 + 10) % 10;
+  const yBranch = ((year - 4) % 12 + 12) % 12;
+  const MONTH_BRANCH = [2,3,4,5,6,7,8,9,10,11,0,1];
+  const mBranch = MONTH_BRANCH[(month - 1) % 12];
+  const mStem = ((yStem % 10) * 2 + mBranch) % 10;
+  const ref = new Date(1900, 0, 31);
+  const birth = new Date(year, month - 1, day);
+  const diff = Math.round((birth - ref) / 86400000);
+  const dStem = ((diff % 10) + 10) % 10;
+  const dBranch = ((diff % 12) + 12) % 12;
+  const hBranch = hour % 12;
+  const hStem = ((dStem % 10) * 2 + hBranch) % 10;
+  return { year: [yStem, yBranch], month: [mStem, mBranch], day: [dStem, dBranch], hour: [hStem, hBranch] };
+}
+
+function getTenGod(dmStem, otherStem) {
+  const dmHeaven = dmStem; // 0-9
+  const dmElem = STEM_ELEM[dmStem];
+  const otherElem = STEM_ELEM[otherStem];
+  const dmYin = (dmStem % 2 === 1);
+  const otherYin = (otherStem % 2 === 1);
+
+  // Same element
+  if (dmElem === otherElem) {
+    return dmYin === otherYin ? '比肩' : '劫财';
+  }
+  // DM produces other
+  const produceOrder = ['木','火','土','金','水'];
+  const dmIdx = produceOrder.indexOf(dmElem);
+  const prod = produceOrder[(dmIdx + 1) % 5];
+  if (otherElem === prod) {
+    return dmYin === otherYin ? '食神' : '伤官';
+  }
+  // DM controls other
+  const ctrl = produceOrder[(dmIdx + 2) % 5];
+  if (otherElem === ctrl) {
+    return dmYin === otherYin ? '偏财' : '正财';
+  }
+  // Other controls DM
+  const ctrlBy = produceOrder[(dmIdx + 3) % 5];
+  if (otherElem === ctrlBy) {
+    return dmYin === otherYin ? '偏官' : '正官';
+  }
+  // Other produces DM
+  const prodBy = produceOrder[(dmIdx + 4) % 5];
+  if (otherElem === prodBy) {
+    return dmYin === otherYin ? '偏印' : '正印';
+  }
+  return '—';
+}
+
+/* ===================================================================
+   NAVIGATION
+   =================================================================== */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function goToPicker() {
+  showScreen('picker');
+  // Init sliders if not done
+  if (!sliders.year) {
+    ['year','month','day','hour','zone'].forEach(initSlider);
+  }
+}
+
+function goBack() {
+  showScreen('picker');
+}
+
+/* ===================================================================
+   SPIN (CALCULATE)
+   =================================================================== */
+function doSpin() {
+  const btn = document.getElementById('spinBtn');
+  btn.disabled = true;
+
+  const overlay = document.getElementById('spin-overlay');
+  overlay.classList.add('show');
+
+  const delay = 900 + Math.random() * 400; // 900-1300ms
+
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    btn.disabled = false;
+    calculateAndShow();
+  }, delay);
+}
+
+/* ===================================================================
+   CALCULATE & SHOW RESULT
+   =================================================================== */
+function calculateAndShow() {
+  const yearVal = currentYear + 5 - getSliderValue('year');
+  const monthVal = getSliderValue('month') + 1;
+  const dayVal = getSliderValue('day') + 1;
+  const hourVal = getSliderValue('hour');
+  const zoneIdx = getSliderValue('zone');
+  const zone = TIMEZONES[zoneIdx];
+
+  const bazi = calcBaZi(yearVal, monthVal, dayVal, hourVal);
+
+  // Summary date/time
+  const dateStr = yearVal + '年' + String(monthVal).padStart(2,'0') + '月' + String(dayVal).padStart(2,'0') + '日';
+  document.getElementById('dateSummary').textContent = dateStr + ' ' + zone.city;
+
+  // Build result HTML
+  let html = '';
+  const pillarKeys = ['year','month','day','hour'];
+  const pillarLabels = ['年','月','日','时'];
+  const pillarColors = ['#e94560','#42a5f5','#66bb6a','#ffb74d'];
+
+  html += '<div class="pillars">';
+  for (let p = 0; p < 4; p++) {
+    const key = pillarKeys[p];
+    const [sIdx, bIdx] = bazi[key];
+    const stem = STEMS[sIdx];
+    const branch = BRANCHES[bIdx];
+    const animal = ANIMALS[bIdx];
+    const stemElem = STEM_ELEM[sIdx];
+    const brElem = BR_ELEM[bIdx];
+    html += '<div class="pillar-card" style="border-top:3px solid ' + pillarColors[p] + '">';
+    html += '<div class="pillar-label">' + pillarLabels[p] + '</div>';
+    html += '<div class="stem" style="color:' + ELEM_COLORS[stemElem] + '">' + stem + '</div>';
+    html += '<div class="branch" style="color:' + ELEM_COLORS[brElem] + '">' + branch + '</div>';
+    html += '<div class="animal">' + animal + '</div>';
+    html += '<div class="elem-tag" style="background:' + ELEM_COLORS[stemElem] + '">' + stemElem + ' ' + ELEM_EMOJI[stemElem] + '</div>';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // Element Balance
+  const elemCounts = {木:0,火:0,土:0,金:0,水:0};
+  for (const key of pillarKeys) {
+    const [sIdx, bIdx] = bazi[key];
+    elemCounts[STEM_ELEM[sIdx]]++;
+    elemCounts[BR_ELEM[bIdx]]++;
+  }
+  const maxCount = Math.max(...Object.values(elemCounts), 1);
+  html += '<div class="elem-balance">';
+  html += '<h3>⚖️ Element Balance</h3>';
+  for (const elem of ['木','火','土','金','水']) {
+    const count = elemCounts[elem];
+    const pct = (count / maxCount) * 100;
+    html += '<div class="elem-bar-wrap">';
+    html += '<div class="elem-bar-label">' + ELEM_EMOJI[elem] + ' ' + ELEM_NAMES[elem] + '</div>';
+    html += '<div class="elem-bar-track"><div class="elem-bar-fill" style="width:' + pct + '%;background:' + ELEM_COLORS[elem] + '"></div></div>';
+    html += '<div class="elem-bar-count">' + count + '</div>';
+    html += '</div>';
+  }
+  // Insight
+  const sorted = Object.entries(elemCounts).sort((a,b) => b[1] - a[1]);
+  const strongest = sorted[0];
+  const weakest = sorted[sorted.length - 1];
+  let insight = '';
+  if (strongest[1] > 3) {
+    insight = 'Strong ' + ELEM_EMOJI[strongest[0]] + ' ' + ELEM_NAMES[strongest[0]] + ' energy dominates. Consider balancing with ' + ELEM_NAMES[weakest[0]] + '.';
+  } else if (weakest[1] === 0) {
+    insight = 'Missing ' + ELEM_EMOJI[weakest[0]] + ' ' + ELEM_NAMES[weakest[0]] + ' — the element that is absent may bring challenges or opportunities.';
+  } else {
+    insight = 'Fairly balanced elements with slight emphasis on ' + ELEM_NAMES[strongest[0]] + '.';
+  }
+  html += '<div class="elem-insight">' + insight + '</div>';
+  html += '</div>';
+
+  // Day Master
+  const dmStemIdx = bazi.day[0];
+  const dmBranchIdx = bazi.day[1];
+  const dmStem = STEMS[dmStemIdx];
+  const dmElem = STEM_ELEM[dmStemIdx];
+  const dmYin = (dmStemIdx % 2 === 1) ? 'Yin' : 'Yang';
+  html += '<div class="day-master">';
+  html += '<div class="dm-icon" style="color:' + ELEM_COLORS[dmElem] + '">' + ELEM_EMOJI[dmElem] + '</div>';
+  html += '<div class="dm-info">';
+  html += '<div class="dm-label">DAY MASTER · 日主</div>';
+  html += '<div class="dm-value">' + dmStem + ' ' + dmYin + ' ' + ELEM_NAMES[dmElem] + '</div>';
+  html += '<div class="dm-elem">Element: ' + dmElem + ' · Branch: ' + BRANCHES[dmBranchIdx] + ' ' + ANIMALS[dmBranchIdx] + '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Ten Gods
+  html += '<div class="ten-gods">';
+  html += '<h3>🔮 Ten Gods · 十神</h3>';
+  html += '<div class="gods-grid">';
+  const allStems = [bazi.year[0], bazi.month[0], bazi.day[0], bazi.hour[0]];
+  const pillarGodLabels = ['Year','Month','Day','Hour'];
+  const godColorMap = {
+    '比肩':'#4CAF50','劫财':'#66BB6A','食神':'#42A5F5','伤官':'#1E88E5',
+    '偏财':'#FFB74D','正财':'#FFA726','偏官':'#e74c3c','正官':'#E53935',
+    '偏印':'#AB47BC','正印':'#8E24AA'
+  };
+  for (let i = 0; i < 4; i++) {
+    const god = getTenGod(dmStemIdx, allStems[i]);
+    const color = godColorMap[god] || '#888';
+    html += '<div class="god-item">';
+    html += '<span class="god-name">' + pillarGodLabels[i] + ' Stem</span>';
+    html += '<span class="god-val" style="color:' + color + '">' + god + ' ' + STEMS[allStems[i]] + '</span>';
+    html += '</div>';
+  }
+  // Also branches
+  for (let i = 0; i < 4; i++) {
+    const key = pillarKeys[i];
+    const bIdx = bazi[key][1];
+    const hidden = HIDDEN_STEMS_MAP[BRANCHES[bIdx]] || [];
+    const branchGods = hidden.map(hs => {
+      const hsIdx = STEMS.indexOf(hs);
+      const g = getTenGod(dmStemIdx, hsIdx);
+      return g;
+    });
+    const uniqueGods = [...new Set(branchGods)];
+    html += '<div class="god-item">';
+    html += '<span class="god-name">' + pillarGodLabels[i] + ' Branch</span>';
+    html += '<span class="god-val" style="color:#c9a43e">' + (uniqueGods.join(', ') || '—') + '</span>';
+    html += '</div>';
+  }
+  html += '</div></div>';
+
+  // Hidden Stems
+  html += '<div class="hidden-stems">';
+  html += '<h3>🌿 Hidden Stems · 藏干</h3>';
+  html += '<div class="hs-grid">';
+  for (let p = 0; p < 4; p++) {
+    const key = pillarKeys[p];
+    const bIdx = bazi[key][1];
+    const branchChar = BRANCHES[bIdx];
+    const hidden = HIDDEN_STEMS_MAP[branchChar] || [];
+    html += '<div class="hs-pillar">';
+    html += '<div class="hs-label">' + pillarLabels[p] + ' (' + branchChar + ')</div>';
+    html += '<div class="hs-stems">';
+    hidden.forEach(hs => {
+      const hsIdx = STEMS.indexOf(hs);
+      const col = ELEM_COLORS[STEM_ELEM[hsIdx]];
+      html += '<span class="hs-stem" style="color:' + col + ';background:' + col + '18">' + hs + '</span>';
+    });
+    if (!hidden.length) html += '<span class="hs-stem" style="color:#555">—</span>';
+    html += '</div></div>';
+  }
+  html += '</div></div>';
+
+  // Lucky Amulet
+  const amuletIdx = (dmStemIdx + bazi.day[1] + bazi.hour[1]) % AMULET_SHOP.length;
+  const amulet = AMULET_SHOP[amuletIdx];
+  html += '<div class="lucky-amulet">';
+  html += '<div class="amulet-icon">' + amulet.emoji + '</div>';
+  html += '<div class="amulet-info">';
+  html += '<div class="amulet-label">✨ Lucky Amulet · 护身符</div>';
+  html += '<div class="amulet-name">' + amulet.name + '</div>';
+  html += '<div class="amulet-desc">' + amulet.desc + '</div>';
+  html += '</div>';
+  html += '</div>';
+
+  // Recommended Amulets (3 shop cards)
+  const recs = recommendAmulets(elemCounts, dmStemIdx, 3);
+  html += '<div class="recommended-amulets">';
+  html += '<div class="rec-header"><span>🛍️ Personalized Amulets</span><button class="shop-all-link" onclick="openAmuletShop()">Browse All</button></div>';
+  html += '<div class="amulet-shop-row">';
+  recs.forEach(a => {
+    html += '<div class="amulet-buy-card" onclick="openAmuletShop()">';
+    html += '<div class="sc-emoji">' + a.emoji + '</div>';
+    html += '<div class="sc-name">' + a.name + '</div>';
+    html += '<div class="sc-tag">' + a.tag + '</div>';
+    html += '<div class="sc-price">$' + a.price + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<div class="rec-footer"><button class="shop-all-btn" onclick="openAmuletShop()">🛒 Browse All ' + AMULET_SHOP.length + ' Amulets</button></div>';
+  html += '</div>';
+
+  // Random Palace Pool (6 random palaces)
+  html += '<div class="palace-pool">';
+  html += '<h3>🏯 Random Palace · 宫位</h3>';
+  html += '<div class="palace-grid">';
+  const shuffled = [...PALACES].sort(() => Math.random() - 0.5).slice(0, 6);
+  shuffled.forEach(p => {
+    html += '<div class="palace-card">';
+    html += '<div class="pal-icon">' + p.icon + '</div>';
+    html += '<div class="pal-name">' + p.name + '</div>';
+    html += '<div class="pal-desc">' + p.desc + '</div>';
+    html += '</div>';
+  });
+  html += '</div></div>';
+
+  document.getElementById('resultContent').innerHTML = html;
+  showScreen('result');
+
+  // Smooth scroll to top
+  const scrollEl = document.getElementById('resultScroll');
+  scrollEl.scrollTop = 0;
+}
+
+/* ===================================================================
+   WINDOW RESIZE HANDLER
+   =================================================================== */
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    // Recalc item widths and re-center for each slider
+    const container = document.getElementById('slidersContainer');
+    if (!container) return;
+    const containerW = container.clientWidth - 32;
+    const itemW = Math.max(60, Math.floor(containerW / 3.5));
+    for (const id of ['year','month','day','hour','zone']) {
+      const s = sliders[id];
+      if (!s) continue;
+      const cfg = SLIDER_CFG[id];
+      s.itemW = itemW;
+      const items = s.track.querySelectorAll('.slider-item');
+      items.forEach(el => el.style.width = itemW + 'px');
+      s.track.style.width = (cfg.count * itemW) + 'px';
+      s.centerOffset = (containerW - itemW) / 2;
+      s.currentPos = -(s.currentIdx * itemW) + s.centerOffset;
+      s.track.style.transition = 'transform 0.3s ease';
+      applyTransform(s);
+    }
+  }, 200);
+});
+
+/* ===================================================================
+   KEYBOARD SUPPORT
+   =================================================================== */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const spinBtn = document.getElementById('spinBtn');
+    if (spinBtn && !spinBtn.disabled && document.getElementById('picker').classList.contains('active')) {
+      doSpin();
+    }
+  }
+});
+
+/* ===================================================================
+   MORE MENU
+   =================================================================== */
+function openMoreMenu() {
+  document.getElementById('moreOverlay').classList.add('show');
+  document.getElementById('moreFAB').classList.add('open');
+}
+function closeMoreMenu() {
+  document.getElementById('moreOverlay').classList.remove('show');
+  document.getElementById('moreFAB').classList.remove('open');
+}
+
+/* ===================================================================
+   AMULET SHOP
+   =================================================================== */
+function openAmuletShop() {
+  closeMoreMenu();
+  const grid = document.getElementById('amuletShopGrid');
+  if (!grid.hasChildNodes()) {
+    grid.innerHTML = AMULET_SHOP.map(a =>
+      '<div class="shop-card" onclick="alert(\'🛒 ' + a.name + ' — $' + a.price + '\\n\\n🔒 Subscription required.\\nSubscribe to unlock purchases.\')">' +
+      '<div class="sc-emoji">' + a.emoji + '</div>' +
+      '<div class="sc-name">' + a.name + '</div>' +
+      '<div class="sc-tag">' + a.tag + '</div>' +
+      '<div class="sc-price">$' + a.price + '</div>' +
+      '</div>'
+    ).join('');
+  }
+  document.getElementById('amuletShopOverlay').classList.add('show');
+}
+function closeAmuletShop() {
+  document.getElementById('amuletShopOverlay').classList.remove('show');
+}
+
+/* ===================================================================
+   CLOSE OVERLAYS ON ESC
+   =================================================================== */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('amuletShopOverlay').classList.contains('show')) closeAmuletShop();
+    if (document.getElementById('moreOverlay').classList.contains('show')) closeMoreMenu();
+  }
+});
+</script>
+</body>
+</html>

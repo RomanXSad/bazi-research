@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XingTu — Year 1 & Year 2 Financial Model</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f1a; color: #e0e0e0; padding: 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  h1 { color: #e8c84a; font-size: 1.6em; margin-bottom: 4px; }
+  .sub { color: #8899bb; font-size: .9em; margin-bottom: 20px; }
+  
+  .chart-card { background: #1a1a2e; border-radius: 12px; padding: 24px; margin: 16px 0; }
+  .chart-card h2 { color: #c0c8e0; font-size: 1.1em; margin-bottom: 12px; }
+  .chart-card h3 { color: #8899bb; font-size: .85em; font-weight: 400; margin-bottom: 16px; }
+  
+  .chart-wrapper { position: relative; width: 100%; }
+  canvas { width: 100% !important; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .stat-card { background: #1a1a2e; border-radius: 10px; padding: 16px; text-align: center; }
+  .stat-card .label { color: #8899bb; font-size: .8em; text-transform: uppercase; letter-spacing: .5px; }
+  .stat-card .value { color: #e8c84a; font-size: 1.5em; font-weight: 700; margin: 4px 0; }
+  .stat-card .range { color: #667; font-size: .8em; }
+  .stat-card.green .value { color: #4caf50; }
+  .stat-card.red .value { color: #f44336; }
+  .stat-card.blue .value { color: #42a5f5; }
+
+  .hidden-costs { background: #1a1a2e; border-left: 3px solid #e8c84a; border-radius: 0 8px 8px 0; padding: 16px 20px; margin: 12px 0; }
+  .hidden-costs h3 { color: #e8c84a; font-size: .95em; margin-bottom: 8px; }
+  .hidden-costs ul { list-style: none; padding: 0; }
+  .hidden-costs li { color: #aaa; font-size: .82em; padding: 3px 0; border-bottom: 1px solid #222; display: flex; justify-content: space-between; }
+  .hidden-costs li span { color: #667; }
+  .hidden-costs .est { color: #8899bb; }
+
+  .note { background: #1a1a2e; border-radius: 8px; padding: 14px 16px; margin: 12px 0; font-size: .85em; color: #8899bb; line-height: 1.6; }
+  .note strong { color: #c0c8e0; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: .78em; color: #8899bb; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 3px; }
+
+  .table-wrap { overflow-x: auto; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: .8em; }
+  th { background: #16213e; color: #8899bb; padding: 8px 10px; text-align: left; font-weight: 500; white-space: nowrap; }
+  td { padding: 6px 10px; border-bottom: 1px solid #1a1a2e; }
+  tr:hover td { background: #1a1a2e; }
+  .num { text-align: right; font-family: 'SF Mono', monospace; white-space: nowrap; }
+  .total { border-top: 2px solid #e8c84a; font-weight: 600; }
+  .total td { color: #e8c84a; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>XingTu + Amulet</h1>
+<div class="sub">Year 1 &amp; Year 2 Financial Model — Expense &amp; Revenue Breakdown with Ranges</div>
+
+<!-- SUMMARY CARDS -->
+<div class="summary-grid">
+  <div class="stat-card blue">
+    <div class="label">Year 1 Revenue</div>
+    <div class="value">$15k–$48k</div>
+    <div class="range">ramp-up months 1–12</div>
+  </div>
+  <div class="stat-card green">
+    <div class="label">Year 2 Revenue</div>
+    <div class="value">$65k–$135k</div>
+    <div class="range">steady state (SEO matures)</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Year 1 Net (low)</div>
+    <div class="value" style="color:#f44336">-$9k</div>
+    <div class="range">if traffic stays low</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Year 1 Net (high)</div>
+    <div class="value" style="color:#4caf50">$22k</div>
+    <div class="range">if SEO hits + $500/mo mktg</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Year 2 Net (low)</div>
+    <div class="value" style="color:#f44336">$12k</div>
+    <div class="range">if growth stalls</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Year 2 Net (high)</div>
+    <div class="value" style="color:#4caf50">$72k</div>
+    <div class="range">50k+ visits/mo steady</div>
+  </div>
+</div>
+
+<!-- === HIDDEN COSTS === -->
+<div class="note">
+  <strong>⚠️ Hidden costs included that are NOT in the standard COGS model:</strong>
+  Shipping logistics, returns/refunds (3-5%), customer support, system maintenance, inventory storage, payment processor holds, packaging waste, photography, compliance, and accounting. All factored into ranges below.
+</div>
+
+<div class="hidden-costs">
+  <h3>📦 Hidden & Non-Obvious Costs by Category</h3>
+  <ul>
+    <li><span>Shipping logistics (China → customer)</span><span class="est">$3–6/unit (dropship) or $1.50/unit (bulk sea + 3PL)</span></li>
+    <li><span>Returns & refunds (3–5% of physical goods)</span><span class="est">$0.75–2.25/unit avg</span></li>
+    <li><span>Inventory storage (warehouse if bulk import)</span><span class="est">$30–80/mo</span></li>
+    <li><span>Packaging waste + damaged units (2–4%)</span><span class="est">$0.30–1.00/unit</span></li>
+    <li><span>Customer support (email/chat, returns handling)</span><span class="est">$50–200/mo (time)</span></li>
+    <li><span>App maintenance (bug fixes, OS updates, Flutter upgrades)</span><span class="est">$200–500/mo (dev time)</span></li>
+    <li><span>Analytics tools (PostHog free → paid at scale)</span><span class="est">$0–50/mo</span></li>
+    <li><span>Payment processor holds (Stripe reserves 5–10% for first 6 mo)</span><span class="est">cash flow impact</span></li>
+    <li><span>Product photography / amulet listing images</span><span class="est">$200–500 one-time</span></li>
+    <li><span>Accounting & tax filing (multi-country sales)</span><span class="est">$500–2,000/yr</span></li>
+    <li><span>Legal: Terms of Service, Privacy Policy updates</span><span class="est">$500–1,500/yr</span></li>
+    <li><span>SSL/domain/email infrastructure</span><span class="est">$50–120/yr</span></li>
+    <li><span>BaZi reference data licenses (if not public domain)</span><span class="est">$0 (own engine)</span></li>
+  </ul>
+</div>
+
+<!-- === CHART 1: YEAR 1 STACKED === -->
+<div class="chart-card">
+  <h2>Year 1 — Revenue vs Expenses (Range View)</h2>
+  <h3>Ramp-up phase: traffic 500→40k/mo, orders 2→200/mo. Low = pessimistic, High = optimistic with SEO traction</h3>
+  <div class="chart-wrapper">
+    <canvas id="chartY1"></canvas>
+  </div>
+</div>
+
+<!-- === CHART 2: YEAR 2 STACKED === -->
+<div class="chart-card">
+  <h2>Year 2 — Revenue vs Expenses (Range View)</h2>
+  <h3>Steady state: traffic 40k–80k/mo, SEO compound effect, lower marketing as % of revenue</h3>
+  <div class="chart-wrapper">
+    <canvas id="chartY2"></canvas>
+  </div>
+</div>
+
+<!-- === CHART 3: DETAILED BREAKDOWN === -->
+<div class="two-col">
+  <div class="chart-card">
+    <h2>Year 1 Expense Breakdown (High Scenario)</h2>
+    <div class="chart-wrapper">
+      <canvas id="expenseY1"></canvas>
+    </div>
+  </div>
+  <div class="chart-card">
+    <h2>Year 2 Expense Breakdown (High Scenario)</h2>
+    <div class="chart-wrapper">
+      <canvas id="expenseY2"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- === TABLE === -->
+<div class="chart-card">
+  <h2>Detailed Line Items — Year 1 &amp; Year 2</h2>
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>Category</th>
+        <th class="num">Y1 Low</th>
+        <th class="num">Y1 High</th>
+        <th class="num">Y2 Low</th>
+        <th class="num">Y2 High</th>
+        <th>Notes</th>
+      </tr>
+      <tr>
+        <td><b>Revenue</b></td>
+        <td class="num" style="color:#42a5f5">$15,000</td>
+        <td class="num" style="color:#42a5f5">$48,000</td>
+        <td class="num" style="color:#42a5f5">$65,000</td>
+        <td class="num" style="color:#42a5f5">$135,000</td>
+        <td>Amulet sales (budget + mid + premium blend)</td>
+      </tr>
+      <tr>
+        <td>COGS (amulet production)</td>
+        <td class="num">$3,600</td>
+        <td class="num">$10,200</td>
+        <td class="num">$14,000</td>
+        <td class="num">$28,000</td>
+        <td>$2–15/unit depending on tier</td>
+      </tr>
+      <tr>
+        <td>Shipping & logistics</td>
+        <td class="num">$2,200</td>
+        <td class="num">$6,500</td>
+        <td class="num">$9,000</td>
+        <td class="num">$18,000</td>
+        <td>$3–6/unit dropship or $1.50 bulk</td>
+      </tr>
+      <tr>
+        <td>Returns & refunds (3–5%)</td>
+        <td class="num">$450</td>
+        <td class="num">$1,920</td>
+        <td class="num">$2,600</td>
+        <td class="num">$5,400</td>
+        <td>Physical goods avg 4% return rate</td>
+      </tr>
+      <tr>
+        <td>Payment processing (Stripe)</td>
+        <td class="num">$435</td>
+        <td class="num">$1,392</td>
+        <td class="num">$1,885</td>
+        <td class="num">$3,915</td>
+        <td>2.9% + $0.30/transaction</td>
+      </tr>
+      <tr>
+        <td>Marketing & SEO content</td>
+        <td class="num">$300</td>
+        <td class="num">$6,000</td>
+        <td class="num">$4,000</td>
+        <td class="num">$12,000</td>
+        <td>Y1: probe + SEO articles; Y2: scaling</td>
+      </tr>
+      <tr>
+        <td>Customer support</td>
+        <td class="num">$600</td>
+        <td class="num">$2,400</td>
+        <td class="num">$3,000</td>
+        <td class="num">$7,200</td>
+        <td>$50–200/mo (time/value)</td>
+      </tr>
+      <tr>
+        <td>App maintenance & updates</td>
+        <td class="num">$2,400</td>
+        <td class="num">$6,000</td>
+        <td class="num">$4,800</td>
+        <td class="num">$9,600</td>
+        <td>Dev time, Flutter upgrades, bug fixes</td>
+      </tr>
+      <tr>
+        <td>Hosting & infrastructure</td>
+        <td class="num">$180</td>
+        <td class="num">$600</td>
+        <td class="num">$600</td>
+        <td class="num">$1,200</td>
+        <td>VPS + CDN + analytics</td>
+      </tr>
+      <tr>
+        <td>Inventory storage</td>
+        <td class="num">$180</td>
+        <td class="num">$600</td>
+        <td class="num">$600</td>
+        <td class="num">$1,200</td>
+        <td>Warehouse/storage if bulk import</td>
+      </tr>
+      <tr>
+        <td>Legal, compliance, accounting</td>
+        <td class="num">$1,200</td>
+        <td class="num">$2,500</td>
+        <td class="num">$1,500</td>
+        <td class="num">$3,000</td>
+        <td>Incorporation, ToS, tax filing, insurance</td>
+      </tr>
+      <tr>
+        <td>Packaging & materials</td>
+        <td class="num">$400</td>
+        <td class="num">$1,500</td>
+        <td class="num">$2,000</td>
+        <td class="num">$4,000</td>
+        <td>Custom pouches, cards, boxes, inserts</td>
+      </tr>
+      <tr>
+        <td>Product photography & content</td>
+        <td class="num">$300</td>
+        <td class="num">$800</td>
+        <td class="num">$400</td>
+        <td class="num">$1,200</td>
+        <td>Amulet photos, listing images</td>
+      </tr>
+      <tr>
+        <td>Tools & subscriptions</td>
+        <td class="num">$200</td>
+        <td class="num">$600</td>
+        <td class="num">$400</td>
+        <td class="num">$1,000</td>
+        <td>Domain, email, design tools, analytics</td>
+      </tr>
+      <tr>
+        <td>Contingency (10% buffer)</td>
+        <td class="num">$1,245</td>
+        <td class="num">$4,012</td>
+        <td class="num">$4,418</td>
+        <td class="num">$9,472</td>
+        <td>Unforeseen: chargebacks, fraud, shipping issues</td>
+      </tr>
+      <tr class="total">
+        <td><b>Total Expenses</b></td>
+        <td class="num"><b>$13,690</b></td>
+        <td class="num"><b>$45,024</b></td>
+        <td class="num"><b>$49,203</b></td>
+        <td class="num"><b>$105,187</b></td>
+        <td></td>
+      </tr>
+      <tr style="border-top: 2px solid #e8c84a; font-weight: 700;">
+        <td><b style="color:#e8c84a">NET PROFIT</b></td>
+        <td class="num" style="color:#f44336;font-weight:700"><b>$1,310</b></td>
+        <td class="num" style="color:#4caf50;font-weight:700"><b>$2,976</b></td>
+        <td class="num" style="color:#4caf50;font-weight:700"><b>$15,797</b></td>
+        <td class="num" style="color:#4caf50;font-weight:700"><b>$29,813</b></td>
+        <td style="color:#667">Before seed recoupment</td>
+      </tr>
+    </table>
+  </div>
+  <div class="note" style="margin-top: 12px;">
+    <strong>Note on Net Profit:</strong> Y1 Low shows near-zero profit ($1.3k) — this is the BASE CASE if traffic never exceeds 15k/mo. Y1 High shows ~$3k profit only if Optimistic scenario hits by month 8-9. <strong>Y2 is where the business becomes real</strong> — SEO compound effect kicks in, customer acquisition cost drops to near-zero, and margins expand significantly. At Y2 High ($29.8k net), the $30k seed is fully recovered with the business generating $2,500/mo profit.
+  </div>
+</div>
+
+<!-- ASSUMPTIONS -->
+<div class="note">
+  <strong>Assumptions behind ranges:</strong><br>
+  • <b>Y1 Low:</b> 5k–10k visits/mo avg, 20–50 orders/mo, $0–300/mo marketing | <b>Y1 High:</b> 25k–40k visits/mo avg (SEO ramps), 100–200 orders/mo, $500/mo avg marketing<br>
+  • <b>Y2 Low:</b> Traffic plateaus at 20k/mo, 80–100 orders/mo | <b>Y2 High:</b> Traffic reaches 50k–80k/mo (SEO mature), 200–400 orders/mo<br>
+  • COGS uses blended 40/40/20 mix (Budget/Mid/Premium) at $5.80 avg<br>
+  • Returns calculated at 4% of revenue (physical goods norm)<br>
+  • Contingency is 10% of revenue to cover unexpected costs (chargebacks, fraud, shipping damage, platform fee changes)<br>
+  • App maintenance assumes solo developer ($50/hr equivalent, ~4-10 hrs/mo)<br>
+  • Does NOT include founder salary — this is side-project economics
+</div>
+
+<script>
+// Color palette
+const colors = {
+  cogs: '#ef5350',
+  shipping: '#ff7043',
+  returns: '#ffa726',
+  stripe: '#66bb6a',
+  marketing: '#42a5f5',
+  support: '#ab47bc',
+  maintenance: '#7e57c2',
+  hosting: '#26c6da',
+  storage: '#26a69a',
+  legal: '#78909c',
+  packaging: '#8d6e63',
+  photo: '#bdbdbd',
+  tools: '#90a4ae',
+  contingency: '#e0e0e0',
+  net: '#e8c84a',
+  revenue: '#42a5f5'
+};
+
+// === CHART 1: YEAR 1 STACKED (range) ===
+new Chart(document.getElementById('chartY1'), {
+  type: 'bar',
+  data: {
+    labels: ['Revenue', 'COGS', 'Shipping\n& Logistics', 'Returns\n& Refunds', 'Stripe\nFees', 'Marketing\n& SEO', 'Support\n& CS', 'App\nMaintenance', 'Hosting\n& Infra', 'Inventory\nStorage', 'Legal &\nCompliance', 'Packaging\n& Materials', 'Photo &\nContent', 'Tools &\nSubs', 'Contingency\n(10%)', 'Net\nProfit'],
+    datasets: [{
+      label: 'Low Estimate',
+      data: [15000, 3600, 2200, 450, 435, 300, 600, 2400, 180, 180, 1200, 400, 300, 200, 1245, 1310],
+      backgroundColor: '#334',
+      borderRadius: 2,
+    }, {
+      label: 'High Estimate',
+      data: [48000, 10200, 6500, 1920, 1392, 6000, 2400, 6000, 600, 600, 2500, 1500, 800, 600, 4012, 2976],
+      backgroundColor: [
+        '#42a5f5','#ef5350','#ff7043','#ffa726','#66bb6a','#42a5f5','#ab47bc','#7e57c2',
+        '#26c6da','#26a69a','#78909c','#8d6e63','#bdbdbd','#90a4ae','#e0e0e0','#e8c84a'
+      ],
+      borderRadius: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { labels: { color: '#8899bb', font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString() } }
+    },
+    scales: {
+      x: { ticks: { color: '#667', font: { size: 9 } }, grid: { color: '#1a1a2e' } },
+      y: { ticks: { color: '#667', callback: v => '$' + (v/1000) + 'k' }, grid: { color: '#1a1a2e' } }
+    }
+  }
+});
+
+// === CHART 2: YEAR 2 STACKED ===
+new Chart(document.getElementById('chartY2'), {
+  type: 'bar',
+  data: {
+    labels: ['Revenue', 'COGS', 'Shipping\n& Logistics', 'Returns\n& Refunds', 'Stripe\nFees', 'Marketing\n& SEO', 'Support\n& CS', 'App\nMaintenance', 'Hosting\n& Infra', 'Inventory\nStorage', 'Legal &\nCompliance', 'Packaging\n& Materials', 'Photo &\nContent', 'Tools &\nSubs', 'Contingency\n(10%)', 'Net\nProfit'],
+    datasets: [{
+      label: 'Low Estimate',
+      data: [65000, 14000, 9000, 2600, 1885, 4000, 3000, 4800, 600, 600, 1500, 2000, 400, 400, 4418, 15797],
+      backgroundColor: '#334',
+      borderRadius: 2,
+    }, {
+      label: 'High Estimate',
+      data: [135000, 28000, 18000, 5400, 3915, 12000, 7200, 9600, 1200, 1200, 3000, 4000, 1200, 1000, 9472, 29813],
+      backgroundColor: [
+        '#42a5f5','#ef5350','#ff7043','#ffa726','#66bb6a','#42a5f5','#ab47bc','#7e57c2',
+        '#26c6da','#26a69a','#78909c','#8d6e63','#bdbdbd','#90a4ae','#e0e0e0','#e8c84a'
+      ],
+      borderRadius: 2,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { labels: { color: '#8899bb', font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString() } }
+    },
+    scales: {
+      x: { ticks: { color: '#667', font: { size: 9 } }, grid: { color: '#1a1a2e' } },
+      y: { ticks: { color: '#667', callback: v => '$' + (v/1000) + 'k' }, grid: { color: '#1a1a2e' } }
+    }
+  }
+});
+
+// === CHART 3: Y1 EXPENSE PIE ===
+new Chart(document.getElementById('expenseY1'), {
+  type: 'doughnut',
+  data: {
+    labels: ['COGS', 'Shipping & Logistics', 'Returns & Refunds', 'Stripe Fees', 'Marketing & SEO', 'Customer Support', 'App Maintenance', 'Hosting & Infra', 'Inventory Storage', 'Legal & Compliance', 'Packaging', 'Photo & Content', 'Tools & Subs', 'Contingency (10%)'],
+    datasets: [{
+      data: [10200, 6500, 1920, 1392, 6000, 2400, 6000, 600, 600, 2500, 1500, 800, 600, 4012],
+      backgroundColor: ['#ef5350','#ff7043','#ffa726','#66bb6a','#42a5f5','#ab47bc','#7e57c2','#26c6da','#26a69a','#78909c','#8d6e63','#bdbdbd','#90a4ae','#e0e0e0'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { position: 'right', labels: { color: '#8899bb', font: { size: 9 }, padding: 8 } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': $' + ctx.parsed.toLocaleString() } }
+    }
+  }
+});
+
+// === CHART 4: Y2 EXPENSE PIE ===
+new Chart(document.getElementById('expenseY2'), {
+  type: 'doughnut',
+  data: {
+    labels: ['COGS', 'Shipping & Logistics', 'Returns & Refunds', 'Stripe Fees', 'Marketing & SEO', 'Customer Support', 'App Maintenance', 'Hosting & Infra', 'Inventory Storage', 'Legal & Compliance', 'Packaging', 'Photo & Content', 'Tools & Subs', 'Contingency (10%)'],
+    datasets: [{
+      data: [28000, 18000, 5400, 3915, 12000, 7200, 9600, 1200, 1200, 3000, 4000, 1200, 1000, 9472],
+      backgroundColor: ['#ef5350','#ff7043','#ffa726','#66bb6a','#42a5f5','#ab47bc','#7e57c2','#26c6da','#26a69a','#78909c','#8d6e63','#bdbdbd','#90a4ae','#e0e0e0'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: { position: 'right', labels: { color: '#8899bb', font: { size: 9 }, padding: 8 } },
+      tooltip: { callbacks: { label: ctx => ctx.label + ': $' + ctx.parsed.toLocaleString() } }
+    }
+  }
+});
+</script>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>行途 · 八字 ｜ XingTu BaZi</title>
+<style>
+/* ===== RESET & BASE ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Noto Serif SC','Songti SC','STSong','Georgia',serif}
+body{background:#2a1b0e;color:#e8ddd0;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none}
+a{color:#ffb347;text-decoration:none}
+
+/* ===== SPLASH SCREEN ===== */
+#splash{
+  position:fixed;inset:0;z-index:100;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%,#2a1b0e 0%,#1a1008 70%);
+  opacity:1;transition:opacity .8s ease,transform .8s ease;
+}
+#splash.hidden{opacity:0;transform:scale(1.05);pointer-events:none}
+#splash .logo{font-size:56px;font-weight:700;letter-spacing:8px;color:#ffb347;text-shadow:0 0 40px rgba(255,179,71,.3),0 0 80px rgba(255,179,71,.15)}
+#splash .logo-sub{font-size:16px;color:#a09078;letter-spacing:6px;margin-top:6px;font-weight:300}
+#splash .ornament{color:#5a4c38;font-size:28px;margin:24px 0 30px;letter-spacing:12px}
+#splash .enter-btn{
+  padding:14px 48px;border:1px solid rgba(255,179,71,.4);background:transparent;
+  color:#ffb347;font-size:16px;letter-spacing:6px;cursor:pointer;
+  transition:all .4s;font-family:inherit;border-radius:0;
+}
+#splash .enter-btn:hover{background:rgba(255,179,71,.1);border-color:#ffb347;box-shadow:0 0 30px rgba(255,179,71,.15)}
+#splash .footer-note{position:absolute;bottom:28px;color:#4a3f30;font-size:11px;letter-spacing:2px}
+
+/* ===== PICKER SCREEN ===== */
+#picker{
+  position:fixed;inset:0;z-index:10;
+  display:none;flex-direction:column;
+  background:radial-gradient(ellipse at 50% 30%,#2a1b0e 0%,#1a1008 70%);
+  opacity:0;transition:opacity .6s ease;
+}
+#picker.active{display:flex;opacity:1}
+#picker .header{
+  padding:20px 20px 10px;text-align:center;flex-shrink:0;
+  position:relative;
+}
+#picker .header h1{font-size:20px;color:#ffb347;letter-spacing:6px;font-weight:600}
+#picker .header p{font-size:12px;color:#6a5c48;letter-spacing:2px;margin-top:2px}
+
+/* Wheel columns container */
+.wheels-container{
+  flex:1;display:flex;flex-direction:row;
+  padding:0 8px;gap:4px;position:relative;
+  min-height:0;overflow:hidden;
+}
+
+/* Column labels */
+.col-labels{
+  display:flex;flex-direction:row;padding:0 8px;gap:4px;flex-shrink:0;
+  margin-bottom:0;
+}
+.col-labels span{
+  text-align:center;color:#8a7a60;font-size:10px;letter-spacing:2px;
+  padding:2px 0;
+}
+
+/* Individual wheel column */
+.wheel-col-wrapper{
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+  touch-action:none;
+  -webkit-user-select:none;
+  user-select:none;
+}
+.wheel-col-wrapper.col-year{width:120px;flex-shrink:0;flex-grow:0}
+.wheel-col-wrapper.col-month{flex:1}
+.wheel-col-wrapper.col-day{flex:1}
+.wheel-col-wrapper.col-hour{flex:1}
+
+.wheel-col{
+  position:absolute;inset:0;
+  overflow:hidden;
+}
+.wheel-col-inner{
+  display:block;padding:0;margin:0;
+  list-style:none;
+  will-change:transform;
+}
+.wheel-col-inner.dragging{transition:none !important}
+.wheel-item{
+  display:flex;align-items:center;
+  height:36px;padding:4px 10px;
+  font-size:14px;color:#7a6a55;
+  border-left:2px solid transparent;
+  box-sizing:border-box;
+  white-space:nowrap;
+  transition:color .15s,border-color .15s;
+  position:relative;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+.wheel-item .label{overflow:hidden;text-overflow:ellipsis}
+.wheel-item .sub{font-size:10px;color:#5a4c38;margin-left:4px;white-space:nowrap}
+.wheel-item .emoji-symbol{margin-right:5px;font-size:12px;width:16px;text-align:center;flex-shrink:0}
+
+/* Selection bar */
+.selection-bar{
+  position:absolute;
+  top:50%;
+  height:36px;
+  transform:translateY(-50%);
+  left:0;right:0;
+  border-top:1px solid rgba(255,179,71,.6);
+  border-bottom:1px solid rgba(255,179,71,.6);
+  background:rgba(255,179,71,.04);
+  box-shadow:0 0 20px rgba(255,179,71,.06),inset 0 0 20px rgba(255,179,71,.02);
+  pointer-events:none;
+  z-index:2;
+}
+
+/* CTA Button */
+.picker-footer{
+  padding:12px 20px 24px;flex-shrink:0;text-align:center;
+}
+.reveal-btn{
+  width:100%;max-width:320px;
+  padding:16px 0;
+  background:linear-gradient(135deg,#e8a030 0%,#ffb347 40%,#ffcc66 100%);
+  border:none;color:#1a1008;
+  font-size:16px;font-weight:600;letter-spacing:10px;
+  cursor:pointer;font-family:inherit;
+  transition:all .3s;position:relative;overflow:hidden;
+}
+.reveal-btn:hover{transform:translateY(-1px);box-shadow:0 4px 24px rgba(255,179,71,.25)}
+.reveal-btn:active{transform:translateY(0)}
+.reveal-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 0%,rgba(255,255,255,.15) 50%,transparent 100%);
+  opacity:0;transition:opacity .4s;
+}
+.reveal-btn:hover::after{opacity:1}
+.reveal-btn:disabled{opacity:.35;cursor:default;transform:none!important;box-shadow:none!important}
+
+/* ===== RESULT SCREEN ===== */
+#result{
+  position:fixed;inset:0;z-index:20;
+  display:none;flex-direction:column;
+  background:radial-gradient(ellipse at 50% 20%,#2a1b0e 0%,#1a1008 70%);
+  opacity:0;transition:opacity .6s ease;
+  overflow-y:auto;
+}
+#result.active{display:flex;opacity:1}
+
+/* Result header */
+.result-header{
+  padding:16px 20px 12px;flex-shrink:0;text-align:center;
+  position:relative;
+}
+.result-header .back-btn{
+  position:absolute;left:16px;top:50%;transform:translateY(-50%);
+  background:none;border:none;color:#8a7a60;font-size:22px;cursor:pointer;
+  padding:8px;line-height:1;transition:color .3s;
+}
+.result-header .back-btn:hover{color:#ffb347}
+.result-header h2{font-size:18px;color:#ffb347;letter-spacing:4px;font-weight:600}
+.result-header .sub{font-size:11px;color:#6a5c48;letter-spacing:2px;margin-top:2px}
+
+/* Result body -- scrollable */
+.result-body{padding:4px 16px 40px;flex:1;overflow-y:auto}
+
+/* Four Pillars */
+.pillars-row{
+  display:flex;gap:6px;margin-bottom:16px;
+}
+.pillar-card{
+  flex:1;border-radius:4px;padding:10px 4px 8px;
+  text-align:center;position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.06);
+}
+.pillar-card::before{content:'';position:absolute;inset:0;opacity:.15;background:currentColor}
+.pillar-card .pillar-label{font-size:9px;color:rgba(255,255,255,.5);letter-spacing:2px;margin-bottom:4px;position:relative}
+.pillar-card .stem-char{font-size:28px;font-weight:700;line-height:1.2;position:relative}
+.pillar-card .branch-char{font-size:24px;line-height:1.2;position:relative;margin-bottom:2px}
+.pillar-card .pillar-elem{font-size:10px;opacity:.7;position:relative;margin-top:2px}
+.pillar-card .pillar-animal{font-size:10px;opacity:.5;position:relative}
+
+/* Day master card */
+.dm-card{
+  background:rgba(255,179,71,.06);border:1px solid rgba(255,179,71,.15);border-radius:4px;
+  padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;
+}
+.dm-card .dm-label{font-size:11px;color:#8a7a60;letter-spacing:2px}
+.dm-card .dm-value{font-size:20px;color:#e8ddd0;font-weight:600}
+.dm-card .dm-element{font-size:13px;margin-top:2px}
+.dm-card .dm-icon{font-size:28px;margin-left:12px}
+
+/* Element balance */
+.elem-section{margin-bottom:14px}
+.elem-section h3{font-size:11px;color:#8a7a60;letter-spacing:3px;margin-bottom:6px}
+.elem-bar{border-radius:3px;overflow:hidden;display:flex;height:10px;background:rgba(255,255,255,.04);margin-bottom:4px}
+.elem-bar-seg{height:100%;transition:width .6s ease;min-width:2px}
+.elem-legend{display:flex;flex-wrap:wrap;gap:3px 10px;font-size:10px;color:#a09078}
+.elem-legend span{display:flex;align-items:center;gap:3px}
+.elem-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* Ten Gods grid */
+.tengods-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:14px;
+}
+.tengod-cell{
+  background:rgba(255,255,255,.03);border-radius:3px;padding:5px 8px;
+  display:flex;align-items:center;gap:6px;
+}
+.tengod-cell .tg-label{font-size:11px;color:#e8ddd0;font-weight:500}
+.tengod-cell .tg-stem{font-size:10px;color:#8a7a60}
+.tengod-cell .tg-elem{font-size:9px}
+
+/* Hidden Stems */
+.hidden-stems{margin-bottom:14px}
+.hidden-stems h3{font-size:11px;color:#8a7a60;letter-spacing:3px;margin-bottom:6px}
+.hs-grid{display:flex;gap:4px}
+.hs-pillar{
+  flex:1;background:rgba(255,255,255,.03);border-radius:3px;padding:6px 4px;text-align:center;
+}
+.hs-pillar .hs-label{font-size:9px;color:#6a5c48;margin-bottom:2px}
+.hs-pillar .hs-stems{font-size:13px;color:#e8ddd0}
+
+/* Amulet card */
+.amulet-card{
+  background:rgba(255,179,71,.05);border:1px solid rgba(255,179,71,.12);border-radius:4px;
+  padding:12px;margin-bottom:10px;cursor:pointer;transition:all .3s;
+  display:flex;align-items:center;gap:12px;
+}
+.amulet-card:hover{border-color:rgba(255,179,71,.3);background:rgba(255,179,71,.08)}
+.amulet-card .amulet-img{width:50px;height:50px;border-radius:3px;object-fit:cover;flex-shrink:0;background:rgba(255,255,255,.04)}
+.amulet-card .amulet-info{flex:1;min-width:0}
+.amulet-card .amulet-name{font-size:14px;color:#ffb347;font-weight:600}
+.amulet-card .amulet-desc{font-size:11px;color:#8a7a60;margin-top:2px}
+.amulet-card .amulet-price{font-size:12px;color:#e8c060;margin-top:2px}
+
+/* Amulet modal */
+.amulet-modal{
+  position:fixed;inset:0;z-index:50;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(6px);
+  padding:24px;
+}
+.amulet-modal.active{display:flex}
+.amulet-modal-content{
+  background:#1a1008;border:1px solid rgba(255,179,71,.2);
+  border-radius:6px;max-width:340px;width:100%;
+  padding:20px;text-align:center;
+  animation:fadeIn .3s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.amulet-modal-content img{width:180px;height:180px;object-fit:cover;border-radius:4px;margin-bottom:12px}
+.amulet-modal-content h3{font-size:18px;color:#ffb347;margin-bottom:4px}
+.amulet-modal-content .modal-desc{font-size:13px;color:#a09078;margin-bottom:8px;line-height:1.5}
+.amulet-modal-content .modal-price{font-size:16px;color:#e8c060;margin-bottom:14px}
+.amulet-modal-content .modal-close{
+  padding:10px 28px;background:rgba(255,179,71,.12);border:1px solid rgba(255,179,71,.25);
+  color:#ffb347;font-size:12px;letter-spacing:3px;cursor:pointer;font-family:inherit;border-radius:3px;
+  transition:all .3s;
+}
+.amulet-modal-content .modal-close:hover{background:rgba(255,179,71,.2)}
+
+/* Scrollbar */
+#result::-webkit-scrollbar{width:3px}
+#result::-webkit-scrollbar-track{background:transparent}
+#result::-webkit-scrollbar-thumb{background:rgba(255,179,71,.2);border-radius:2px}
+
+/* Loading overlay */
+.loading-overlay{
+  position:fixed;inset:0;z-index:30;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(26,16,8,.85);backdrop-filter:blur(4px);
+}
+.loading-overlay.active{display:flex}
+.loading-spinner{width:36px;height:36px;border:2px solid rgba(255,179,71,.15);border-top-color:#ffb347;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Responsive */
+@media(min-width:480px){
+  .wheels-container{padding:0 20px;gap:8px}
+  .col-labels{padding:0 20px;gap:8px}
+  .wheel-item{font-size:14px}
+  .wheel-col-wrapper.col-year{width:130px}
+}
+@media(max-width:479px){
+  .wheels-container{flex-wrap:wrap;padding:0 4px;gap:3px}
+  .wheel-col-wrapper{width:calc(50% - 3px);height:50%}
+  .wheel-col-wrapper.col-year{width:calc(50% - 3px);flex:none}
+  .col-labels{flex-wrap:wrap;padding:0 4px;gap:3px}
+  .col-labels span{width:calc(50% - 3px)}
+  .wheel-item{font-size:11px;height:24px;padding:3px 6px}
+  .selection-bar{height:24px}
+  .wheel-col-inner{display:block}
+  .picker-footer{padding:8px 12px 16px}
+  .reveal-btn{padding:12px 0;font-size:14px;max-width:240px}
+}
+@media(min-height:700px){
+  .wheels-container{padding-top:8px;padding-bottom:4px}
+}
+
+/* ===== MORE BUTTON ===== */
+.more-btn{position:fixed;bottom:24px;right:24px;z-index:40;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#e8a030 0%,#ffb347 40%,#ffcc66 100%);border:none;color:#1a1008;font-size:24px;cursor:pointer;box-shadow:0 4px 20px rgba(255,179,71,.35);transition:all .3s;display:flex;align-items:center;justify-content:center;font-family:inherit;line-height:1}.more-btn:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(255,179,71,.45)}.more-btn:active{transform:scale(.95)}
+
+/* ===== MORE MENU ===== */
+.more-menu-overlay{position:fixed;inset:0;z-index:60;display:none;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}.more-menu-overlay.active{display:flex}
+.more-menu-panel{background:#1a1008;border:1px solid rgba(255,179,71,.15);border-radius:12px 12px 0 0;width:100%;max-width:420px;padding:20px 20px 36px;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.more-menu-panel h3{font-size:16px;color:#ffb347;letter-spacing:4px;text-align:center;margin-bottom:16px}
+.more-menu-item{display:flex;align-items:center;gap:14px;padding:14px 12px;border-radius:6px;cursor:pointer;transition:all .3s;border-bottom:1px solid rgba(255,255,255,.04)}.more-menu-item:last-child{border-bottom:none}.more-menu-item:hover{background:rgba(255,179,71,.08)}.more-menu-item .mm-icon{width:40px;height:40px;border-radius:8px;background:rgba(255,179,71,.1);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}.more-menu-item .mm-text{flex:1}.more-menu-item .mm-title{font-size:14px;color:#e8ddd0;font-weight:500}.more-menu-item .mm-desc{font-size:11px;color:#6a5c48;margin-top:2px}
+
+/* ===== AMULET SHOP MODAL ===== */
+.shop-modal{position:fixed;inset:0;z-index:70;display:none;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px}.shop-modal.active{display:flex}
+.shop-modal-content{background:#1a1008;border:1px solid rgba(255,179,71,.2);border-radius:8px;max-width:400px;width:100%;max-height:90vh;display:flex;flex-direction:column;animation:fadeIn .3s ease}
+.shop-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 8px;flex-shrink:0;border-bottom:1px solid rgba(255,255,255,.06)}
+.shop-modal-header h3{font-size:16px;color:#ffb347;letter-spacing:4px}
+.shop-modal-close{background:none;border:none;color:#6a5c48;font-size:22px;cursor:pointer;padding:4px 8px;transition:color .3s;font-family:inherit}.shop-modal-close:hover{color:#ffb347}
+.shop-grid{overflow-y:auto;padding:12px 16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.shop-item{background:rgba(255,179,71,.04);border:1px solid rgba(255,179,71,.1);border-radius:6px;padding:10px;text-align:center;cursor:pointer;transition:all .3s}
+.shop-item:hover{border-color:rgba(255,179,71,.3);background:rgba(255,179,71,.08);transform:translateY(-2px)}
+.shop-item .si-emoji{font-size:28px;margin-bottom:4px}
+.shop-item .si-name{font-size:11px;color:#e8ddd0;font-weight:500;line-height:1.3;margin-bottom:2px}
+.shop-item .si-price{font-size:11px;color:#e8c060}
+.shop-item .si-tag{font-size:9px;color:#6a5c48;margin-top:3px;background:rgba(255,179,71,.08);display:inline-block;padding:1px 6px;border-radius:3px}
+
+/* ===== SUBSCRIPTION SECTION ===== */
+.subscribe-section{background:rgba(255,179,71,.04);border:1px solid rgba(255,179,71,.12);border-radius:6px;padding:14px 16px;margin-bottom:10px;text-align:center}
+.subscribe-section h4{font-size:13px;color:#ffb347;letter-spacing:3px;margin-bottom:4px}
+.subscribe-section p{font-size:11px;color:#6a5c48;margin-bottom:10px;line-height:1.4}
+.subscribe-btn{padding:10px 28px;background:linear-gradient(135deg,#e8a030 0%,#ffb347 40%,#ffcc66 100%);border:none;color:#1a1008;font-size:12px;font-weight:600;letter-spacing:3px;cursor:pointer;font-family:inherit;border-radius:4px;transition:all .3s}
+.subscribe-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,179,71,.25)}
+
+/* ===== AMULET RECOMMENDATIONS IN RESULT ===== */
+.amulet-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.amulet-card.small{padding:10px;margin-bottom:0;gap:8px}
+.amulet-card.small .amulet-img{width:40px;height:40px;font-size:24px;line-height:40px;text-align:center;flex-shrink:0;background:rgba(255,255,255,.04);border-radius:3px}
+.amulet-card.small .amulet-name{font-size:12px}
+.amulet-card.small .amulet-desc{font-size:10px}
+.amulet-card.small .amulet-price{font-size:11px}
+
+/* Amulet shop modal scrollbar */
+.shop-grid::-webkit-scrollbar{width:3px}
+.shop-grid::-webkit-scrollbar-track{background:transparent}
+.shop-grid::-webkit-scrollbar-thumb{background:rgba(255,179,71,.2);border-radius:2px}
+
+@media(min-width:480px){
+  .shop-grid{grid-template-columns:1fr 1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash">
+  <div class="logo">行途</div>
+  <div class="logo-sub">XINGTU · 八字</div>
+  <div class="ornament">━━ ✦ ━━</div>
+  <button class="enter-btn" id="enterBtn">叩 问 命 运</button>
+  <div class="footer-note">✦ 四柱推命 · 阴阳五行 ✦</div>
+</div>
+
+<!-- ===== LOADING ===== -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+</div>
+
+<!-- ===== PICKER ===== -->
+<div id="picker">
+
+  <div class="header">
+    <h1>排 盘</h1>
+    <p>转动四柱 · 推演命局</p>
+  </div>
+
+  <div class="col-labels" id="colLabels">
+    <span style="width:120px;flex-shrink:0">年 柱</span>
+    <span style="flex:1">月 柱</span>
+    <span style="flex:1">日 柱</span>
+    <span style="flex:1">时 柱</span>
+  </div>
+
+  <div class="wheels-container" id="wheelsContainer">
+    <!-- Year -->
+    <div class="wheel-col-wrapper col-year" data-col="year">
+      <div class="selection-bar"></div>
+      <div class="wheel-col">
+        <ul class="wheel-col-inner" id="wheelYear"></ul>
+      </div>
+    </div>
+    <!-- Month -->
+    <div class="wheel-col-wrapper col-month" data-col="month">
+      <div class="selection-bar"></div>
+      <div class="wheel-col">
+        <ul class="wheel-col-inner" id="wheelMonth"></ul>
+      </div>
+    </div>
+    <!-- Day -->
+    <div class="wheel-col-wrapper col-day" data-col="day">
+      <div class="selection-bar"></div>
+      <div class="wheel-col">
+        <ul class="wheel-col-inner" id="wheelDay"></ul>
+      </div>
+    </div>
+    <!-- Hour -->
+    <div class="wheel-col-wrapper col-hour" data-col="hour">
+      <div class="selection-bar"></div>
+      <div class="wheel-col">
+        <ul class="wheel-col-inner" id="wheelHour"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="picker-footer">
+    <button class="reveal-btn" id="revealBtn">揭 示 命 运</button>
+  </div>
+
+</div>
+
+<!-- ===== RESULT ===== -->
+<div id="result">
+  <div class="result-header">
+    <button class="back-btn" id="backBtn">←</button>
+    <h2>命 盘</h2>
+    <div class="sub">四柱八字 · 五行流转</div>
+  </div>
+  <div class="result-body" id="resultBody"></div>
+</div>
+
+<!-- ===== AMULET MODAL ===== -->
+<div class="amulet-modal" id="amuletModal">
+  <div class="amulet-modal-content">
+    <img id="amuletModalImg" src="" alt="">
+    <h3 id="amuletModalName"></h3>
+    <div class="modal-desc" id="amuletModalDesc"></div>
+    <div class="modal-price" id="amuletModalPrice"></div>
+    <button class="modal-close" id="amuletModalClose">关 闭</button>
+  </div>
+</div>
+
+<!-- ===== MORE FLOATING BUTTON ===== -->
+<button class="more-btn" id="moreBtn">✦</button>
+
+<!-- ===== MORE MENU ===== -->
+<div class="more-menu-overlay" id="moreMenuOverlay">
+  <div class="more-menu-panel">
+    <h3>✦ 更 多 ✦</h3>
+    <div class="more-menu-item" id="menuAmuletShop">
+      <div class="mm-icon">🪬</div>
+      <div class="mm-text">
+        <div class="mm-title">护符商店</div>
+        <div class="mm-desc">浏览全部 20 款护符 · 五行加持</div>
+      </div>
+    </div>
+    <div class="more-menu-item" id="menuSubscribe">
+      <div class="mm-icon">📋</div>
+      <div class="mm-text">
+        <div class="mm-title">订阅行途</div>
+        <div class="mm-desc">解锁完整功能 · 流年运势</div>
+      </div>
+    </div>
+    <div class="more-menu-item" id="menuClose">
+      <div class="mm-icon">✕</div>
+      <div class="mm-text">
+        <div class="mm-title">关闭</div>
+        <div class="mm-desc">返回命盘</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AMULET SHOP MODAL ===== -->
+<div class="shop-modal" id="shopModal">
+  <div class="shop-modal-content">
+    <div class="shop-modal-header">
+      <h3>🪬 护 符 商 店</h3>
+      <button class="shop-modal-close" id="shopModalClose">✕</button>
+    </div>
+    <div class="shop-grid" id="shopGrid"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const STEMS = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANCHES = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ANIMALS = ['Rat','Ox','Tiger','Rabbit','Dragon','Snake','Horse','Goat','Monkey','Rooster','Dog','Pig'];
+const STEM_ELEM = ['木','木','火','火','土','土','金','金','水','水'];
+const BR_ELEM = ['水','土','木','木','土','火','火','土','金','金','土','水'];
+const ELEM_COLORS = {木:'#4CAF50',火:'#e74c3c',土:'#f0ad4e',金:'#7f8c8d',水:'#3498db'};
+const ELEM_EMOJI = {木:'🌳',火:'🔥',土:'⛰️',金:'⚙️',水:'💧'};
+const ELEM_NAMES = {木:'Wood',火:'Fire',土:'Earth',金:'Metal',水:'Water'};
+const TEN_GODS = ['比肩 Friend','劫财 Rob Wealth','食神 Eating','伤官 Hurting','偏财 Ind. Wealth','正财 Dir. Wealth','七杀 7 Kill','正官 Dir. Officer','偏印 Ind. Seal','正印 Dir. Seal'];
+const HIDDEN_STEMS = [['癸'],['癸','辛','己'],['甲','丙','戊'],['乙'],['乙','戊','癸'],['庚','丙','戊'],['丁','己'],['乙','己','丁'],['戊','庚','壬'],['辛'],['辛','丁','戊'],['壬','甲']];
+const HOUR_NAMES = ['23:00–01:00','01:00–03:00','03:00–05:00','05:00–07:00','07:00–09:00','09:00–11:00','11:00–13:00','13:00–15:00','15:00–17:00','17:00–19:00','19:00–21:00','21:00–23:00'];
+const STEM_YINYANG = [true,false,true,false,true,false,true,false,true,false]; // true=yang(甲丙戊庚壬), false=yin
+
+const AMULET_SHOP = [
+  {id:'jade-dragon',name:'Jade Dragon Pendant',elem:'wood',emoji:'🐉',price:29,desc:'Hand-carved nephrite jade — attracts growth and vitality.',tag:'Wood Boost',img:'https://picsum.photos/seed/jade-dragon/300/300'},
+  {id:'ruby-phoenix',name:'Ruby Phoenix Amulet',elem:'fire',emoji:'🦅',price:34,desc:'Cinnabar-infused charm — ignites passion and recognition.',tag:'Fire Boost',img:'https://picsum.photos/seed/ruby-phoenix/300/300'},
+  {id:'golden-turtle',name:'Golden Turtle Talisman',elem:'earth',emoji:'🐢',price:27,desc:'Brass talisman — grounds energy, stabilises fortune.',tag:'Earth Boost',img:'https://picsum.photos/seed/golden-turtle/300/300'},
+  {id:'silver-wolf',name:'Silver Wolf Guardian',elem:'metal',emoji:'🐺',price:39,desc:'Aged bronze from Song dynasty — protects wealth.',tag:'Metal Boost',img:'https://picsum.photos/seed/silver-wolf/300/300'},
+  {id:'wave-jade',name:'Jade Wave Pendant',elem:'water',emoji:'🌊',price:32,desc:'White jade with water ripples — attracts wisdom and flow.',tag:'Water Boost',img:'https://picsum.photos/seed/wave-jade/300/300'},
+  {id:'bamboo-forest',name:'Bamboo Forest Blessing',elem:'wood',emoji:'🎋',price:22,desc:'Engraved bamboo slip — brings steady career growth.',tag:'Career',img:'https://picsum.photos/seed/bamboo-forest/300/300'},
+  {id:'crimson-heart',name:'Crimson Heart Charm',elem:'fire',emoji:'❤️',price:44,desc:'Rose quartz & red thread — enhances love and relationships.',tag:'Love',img:'https://picsum.photos/seed/crimson-heart/300/300'},
+  {id:'amber-tiger',name:'Amber Tiger Eye',elem:'earth',emoji:'🐅',price:37,desc:'Golden amber with tiger stripe — confidence and courage.',tag:'Courage',img:'https://picsum.photos/seed/amber-tiger/300/300'},
+  {id:'iron-sword',name:'Iron Sword Miniature',elem:'metal',emoji:'⚔️',price:49,desc:'Miniature broadsword — cuts through obstacles and enemies.',tag:'Protection',img:'https://picsum.photos/seed/iron-sword/300/300'},
+  {id:'abyss-mirror',name:'Abyss Mirror Talisman',elem:'water',emoji:'🪞',price:42,desc:'Black obsidian mirror — reflects negative energy away.',tag:'Protection',img:'https://picsum.photos/seed/abyss-mirror/300/300'},
+  {id:'cherry-blossom',name:'Cherry Blossom Hairpin',elem:'wood',emoji:'🌸',price:19,desc:'Pink quartz hair ornament — attracts gentle romance.',tag:'Love',img:'https://picsum.photos/seed/cherry-blossom/300/300'},
+  {id:'sun-wheel',name:'Sun Wheel Pendant',elem:'fire',emoji:'☀️',price:33,desc:'Gold-plated sun disk — boosts charisma and leadership.',tag:'Career',img:'https://picsum.photos/seed/sun-wheel/300/300'},
+  {id:'mountain-seal',name:'Mountain Seal Stamp',elem:'earth',emoji:'⛰️',price:28,desc:'Jade seal with mountain engraving — authority and stability.',tag:'Career',img:'https://picsum.photos/seed/mountain-seal/300/300'},
+  {id:'moon-dagger',name:'Moon Shadow Dagger',elem:'metal',emoji:'🌙',price:45,desc:'Silver dagger with moonstone — dispels nightmares and fear.',tag:'Protection',img:'https://picsum.photos/seed/moon-dagger/300/300'},
+  {id:'koi-fish',name:'Koi Fish Pair',elem:'water',emoji:'🐟',price:36,desc:'Twin koi in wave pattern — wealth flowing like water.',tag:'Wealth',img:'https://picsum.photos/seed/koi-fish/300/300'},
+  {id:'pine-tree',name:'Pine Tree of Longevity',elem:'wood',emoji:'🌲',price:31,desc:'Ancient pine needle charm — health and long life.',tag:'Health',img:'https://picsum.photos/seed/pine-tree/300/300'},
+  {id:'dragon-pearl',name:'Dragon Pearl Ring',elem:'fire',emoji:'🔮',price:52,desc:'Red spinel set in gold — ultimate prosperity attractor.',tag:'Wealth',img:'https://picsum.photos/seed/dragon-pearl/300/300'},
+  {id:'crystal-sceptre',name:'Crystal Sceptre',elem:'earth',emoji:'💎',price:58,desc:'Quartz crystal wand — amplifies all elemental energies.',tag:'All Elements',img:'https://picsum.photos/seed/crystal-sceptre/300/300'},
+  {id:'shield-badge',name:'Guardian Shield Badge',elem:'metal',emoji:'🛡️',price:38,desc:'Bronze shield with lion — deflects misfortune and gossip.',tag:'Protection',img:'https://picsum.photos/seed/shield-badge/300/300'},
+  {id:'lotus-beads',name:'Lotus Prayer Beads',elem:'water',emoji:'🪷',price:26,desc:'Blue sandalwood beads — meditation and inner peace.',tag:'Health',img:'https://picsum.photos/seed/lotus-beads/300/300'}
+];
+
+function recommendAmulets(dayMasterElem) {
+  const elemMap = {木:'wood',火:'fire',土:'earth',金:'metal',水:'water'};
+  const target = elemMap[dayMasterElem];
+  const cycle = {wood:'water',fire:'wood',earth:'fire',metal:'earth',water:'metal'};
+  const primary = AMULET_SHOP.filter(a => a.elem === target).slice(0,3);
+  const secondary = AMULET_SHOP.filter(a => a.elem === cycle[target] && !primary.find(p => p.id === a.id)).slice(0,2);
+  return [...primary, ...secondary];
+}
+
+const MONTH_NAMES = ['寅月','卯月','辰月','巳月','午月','未月','申月','酉月','戌月','亥月','子月','丑月'];
+const MONTH_BRANCH = [2,3,4,5,6,7,8,9,10,11,0,1];
+
+// ============================================================
+// Bazi Calculation
+// ============================================================
+function calcBaZi(year, month, day, hour) {
+  const yStem = ((year - 4) % 10 + 10) % 10;
+  const yBranch = ((year - 4) % 12 + 12) % 12;
+  const mBranch = MONTH_BRANCH[(month - 1) % 12];
+  const mStem = ((yStem % 10) * 2 + mBranch) % 10;
+  const ref = new Date(1900, 0, 31);
+  const birth = new Date(year, month - 1, day);
+  const diff = Math.round((birth - ref) / 86400000);
+  const dStem = ((diff % 10) + 10) % 10;
+  const dBranch = ((diff % 12) + 12) % 12;
+  const hBranch = hour % 12;
+  const hStem = ((dStem % 10) * 2 + hBranch) % 10;
+  return {year:[yStem, yBranch], month:[mStem, mBranch], day:[dStem, dBranch], hour:[hStem, hBranch]};
+}
+
+function getTenGod(dayStem, stemIdx) {
+  const diff = (stemIdx - dayStem + 10) % 10;
+  return TEN_GODS[diff];
+}
+
+function getDayMasterElem(dayStem) {
+  return {elem:STEM_ELEM[dayStem], yin:!STEM_YINYANG[dayStem]};
+}
+
+// ============================================================
+// SCROLL WHEEL ENGINE
+// ============================================================
+class ScrollWheel {
+  constructor(containerEl, listEl, items, opts = {}) {
+    this.container = containerEl;
+    this.list = listEl;
+    this.items = items;
+    this.itemHeight = opts.itemHeight || 36;
+    this.visibleCount = opts.visibleCount || 5;
+    this.overscroll = opts.overscroll || 60;
+    this.onChange = opts.onChange || null;
+
+    this.selectedIndex = opts.defaultIndex !== undefined ? opts.defaultIndex : 0;
+    this.transform = 0;
+    this.isDragging = false;
+    this.velocity = 0;
+    this.lastY = 0;
+    this.lastTime = 0;
+    this.animFrame = null;
+    this.inertiaTimer = null;
+    this.wheelSnapTimer = null;
+
+    this.viewH = this.container.clientHeight || (this.itemHeight * this.visibleCount);
+    this.totalH = this.items.length * this.itemHeight;
+    this.maxTransform = this._getOffsetForIndex(0);
+    this.minTransform = this._getOffsetForIndex(this.items.length - 1);
+
+    this._buildList();
+    this._snapTo(this.selectedIndex, false);
+    this._bindEvents();
+  }
+
+  _buildList() {
+    this.list.innerHTML = '';
+    this.items.forEach((item, i) => {
+      const li = document.createElement('li');
+      li.className = 'wheel-item';
+      li.dataset.index = i;
+      if (typeof item === 'object') {
+        if (item.emoji) {
+          const em = document.createElement('span');
+          em.className = 'emoji-symbol';
+          em.textContent = item.emoji;
+          li.appendChild(em);
+        }
+        const lb = document.createElement('span');
+        lb.className = 'label';
+        lb.textContent = item.label;
+        li.appendChild(lb);
+        if (item.sub) {
+          const sb = document.createElement('span');
+          sb.className = 'sub';
+          sb.textContent = item.sub;
+          li.appendChild(sb);
+        }
+      } else {
+        const lb = document.createElement('span');
+        lb.className = 'label';
+        lb.textContent = item;
+        li.appendChild(lb);
+      }
+      this.list.appendChild(li);
+    });
+    // Compute actual item height from rendered DOM
+    if (this.list.children.length > 0) {
+      const first = this.list.children[0];
+      const actualH = first.offsetHeight;
+      if (actualH > 0) this.itemHeight = actualH;
+    }
+  }
+
+  _getOffsetForIndex(idx) {
+    return -(idx * this.itemHeight) + (this.viewH / 2) - (this.itemHeight / 2);
+  }
+
+  _getIndexFromOffset(offset) {
+    const raw = Math.round(-(offset - (this.viewH / 2) + (this.itemHeight / 2)) / this.itemHeight);
+    return Math.max(0, Math.min(this.items.length - 1, raw));
+  }
+
+  _clamp(t) {
+    return Math.max(this.minTransform - this.overscroll, Math.min(this.maxTransform + this.overscroll, t));
+  }
+
+  _applyTransform(t, instant) {
+    this.transform = t;
+    if (instant) {
+      this.list.style.transition = 'none';
+    }
+    this.list.style.transform = 'translateY(' + t + 'px)';
+    void this.list.offsetHeight;
+    this._updateItems();
+  }
+
+  _updateItems() {
+    const selIdx = this._getIndexFromOffset(this.transform);
+    const items = this.list.querySelectorAll('.wheel-item');
+    items.forEach((li, i) => {
+      li.style.color = i === selIdx ? '#e8ddd0' : '#7a6a55';
+      li.style.borderLeftColor = i === selIdx ? '#ffb347' : 'transparent';
+      if (i === selIdx) {
+        li.style.textShadow = '0 0 12px rgba(255,179,71,.25)';
+      } else {
+        li.style.textShadow = 'none';
+      }
+    });
+  }
+
+  _snapTo(idx, animate = true) {
+    idx = Math.max(0, Math.min(this.items.length - 1, idx));
+    this.selectedIndex = idx;
+    const target = this._getOffsetForIndex(idx);
+    if (!animate) {
+      this.list.style.transition = 'none';
+      this._applyTransform(target, true);
+    } else {
+      this.list.style.transition = 'transform .25s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      this._applyTransform(target, false);
+    }
+    this.transform = target;
+    if (this.onChange) this.onChange(idx);
+  }
+
+  _startY(y) {
+    this.isDragging = true;
+    this.velocity = 0;
+    this.lastY = y;
+    this.lastTime = performance.now();
+    this.list.classList.add('dragging');
+    if (this.inertiaTimer) {
+      cancelAnimationFrame(this.inertiaTimer);
+      this.inertiaTimer = null;
+    }
+    if (this.wheelSnapTimer) {
+      clearTimeout(this.wheelSnapTimer);
+      this.wheelSnapTimer = null;
+    }
+  }
+
+  _moveY(y) {
+    if (!this.isDragging) return;
+    const now = performance.now();
+    const dt = now - this.lastTime;
+
+    if (dt > 0) {
+      this.velocity = (y - this.lastY) / dt;
+    }
+
+    const dy = y - this.lastY;
+    let newT = this.transform + dy;
+
+    // Overscroll resistance using proper bounds
+    if (newT > this.maxTransform) {
+      newT = this.maxTransform + (newT - this.maxTransform) * 0.25;
+    } else if (newT < this.minTransform) {
+      newT = this.minTransform + (newT - this.minTransform) * 0.25;
+    }
+
+    this._applyTransform(newT, true);
+    this.lastY = y;
+    this.lastTime = now;
+  }
+
+  _endY() {
+    if (!this.isDragging) return;
+    this.isDragging = false;
+    this.list.classList.remove('dragging');
+
+    // Momentum velocity: px/ms * 16.67ms ≈ px per 60fps frame
+    const vel = this.velocity * 16.67;
+
+    // Snap target — start from current transform, not clamped
+    let targetT = this.transform;
+
+    // Apply inertia with proper decay
+    if (Math.abs(vel) > 1) {
+      let currentV = vel;
+      const step = () => {
+        targetT += currentV;
+        currentV *= 0.95;
+        // Clamp to bounds when returning
+        if (targetT > this.maxTransform) { targetT = this.maxTransform; currentV = 0; }
+        else if (targetT < this.minTransform) { targetT = this.minTransform; currentV = 0; }
+        this.list.style.transition = 'none';
+        this._applyTransform(targetT, true);
+        if (Math.abs(currentV) > 0.3) {
+          this.inertiaTimer = requestAnimationFrame(step);
+        } else {
+          // Snap to nearest item
+          const idx = this._getIndexFromOffset(targetT);
+          this._snapTo(idx, true);
+        }
+      };
+      this.inertiaTimer = requestAnimationFrame(step);
+    } else {
+      // Clamp back from overscroll
+      targetT = Math.max(this.minTransform, Math.min(this.maxTransform, targetT));
+      const idx = this._getIndexFromOffset(targetT);
+      this._snapTo(idx, true);
+    }
+  }
+
+  _bindEvents() {
+    // Mouse
+    this.container.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      this._startY(e.clientY);
+      const onMove = (ev) => { ev.preventDefault(); this._moveY(ev.clientY); };
+      const onUp = () => {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        this._endY();
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+
+    // Touch
+    this.container.addEventListener('touchstart', (e) => {
+      this._startY(e.touches[0].clientY);
+    }, {passive:true});
+    this.container.addEventListener('touchmove', (e) => {
+      this._moveY(e.touches[0].clientY);
+    }, {passive:true});
+    this.container.addEventListener('touchend', (e) => {
+      this._endY();
+    }, {passive:true});
+
+    // Wheel
+    this.container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const dy = e.deltaY * 0.5;
+      let newT = this.transform - dy;
+      if (newT > this.maxTransform + this.overscroll) newT = this.maxTransform + this.overscroll;
+      if (newT < this.minTransform - this.overscroll) newT = this.minTransform - this.overscroll;
+      this._applyTransform(newT, true);
+      if (this.wheelSnapTimer) clearTimeout(this.wheelSnapTimer);
+      this.wheelSnapTimer = setTimeout(() => {
+        const idx = this._getIndexFromOffset(newT);
+        this._snapTo(idx, true);
+      }, 80);
+    }, {passive:false});
+  }
+
+  getValue() {
+    return this.items[this.selectedIndex];
+  }
+
+  getIndex() {
+    return this.selectedIndex;
+  }
+
+  setIndex(idx, animate = true) {
+    this._snapTo(idx, animate);
+  }
+
+  destroy() {
+    if (this.inertiaTimer) cancelAnimationFrame(this.inertiaTimer);
+    if (this.wheelSnapTimer) clearTimeout(this.wheelSnapTimer);
+  }
+
+  recalcDimensions() {
+    // Recompute actual item height from rendered DOM
+    if (this.list.children.length > 0) {
+      const first = this.list.children[0];
+      const actualH = first.offsetHeight;
+      if (actualH > 0) this.itemHeight = actualH;
+    }
+    this.viewH = this.container.clientHeight || (this.itemHeight * this.visibleCount);
+    this.totalH = this.items.length * this.itemHeight;
+    this.maxTransform = this._getOffsetForIndex(0);
+    this.minTransform = this._getOffsetForIndex(this.items.length - 1);
+    this._snapTo(this.selectedIndex, false);
+  }
+}
+
+// ============================================================
+// APP
+// ============================================================
+(function() {
+  const splash = document.getElementById('splash');
+  const picker = document.getElementById('picker');
+  const result = document.getElementById('result');
+  const resultBody = document.getElementById('resultBody');
+  const loadingOverlay = document.getElementById('loadingOverlay');
+  const amuletModal = document.getElementById('amuletModal');
+
+  // Build data
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const curMonth = now.getMonth() + 1;
+  const curDay = now.getDate();
+  const curHour = now.getHours();
+
+  const years = [];
+  for (let y = curYear + 5; y >= curYear - 200; y--) {
+    const sIdx = ((y - 4) % 10 + 10) % 10;
+    const bIdx = ((y - 4) % 12 + 12) % 12;
+    years.push({label: y + '年', sub: STEMS[sIdx] + BRANCHES[bIdx] + ' ' + ANIMALS[bIdx], emoji: ELEM_EMOJI[STEM_ELEM[sIdx]]});
+  }
+  const months = [];
+  for (let m = 1; m <= 12; m++) {
+    const bIdx = MONTH_BRANCH[(m - 1) % 12];
+    months.push({label: m + '月', sub: MONTH_NAMES[m-1] || ''});
+  }
+  const days = [];
+  for (let d = 1; d <= 31; d++) {
+    days.push({label: d + '日'});
+  }
+  const hours = [];
+  for (let h = 0; h < 12; h++) {
+    hours.push({label: BRANCHES[h] + '时', sub: HOUR_NAMES[h]});
+  }
+
+  // Find default indices
+  const yearIdx = years.findIndex(y => y.label.startsWith(curYear + '年'));
+  const monthIdx = curMonth - 1;
+  const dayIdx = Math.min(curDay - 1, 30);
+  const hourIdx = Math.floor(curHour / 2) % 12;
+
+  // Create wheels
+  const wheels = {};
+
+  function initWheels() {
+    const yearContainer = document.querySelector('.wheel-col-wrapper[data-col="year"] .wheel-col');
+    const monthContainer = document.querySelector('.wheel-col-wrapper[data-col="month"] .wheel-col');
+    const dayContainer = document.querySelector('.wheel-col-wrapper[data-col="day"] .wheel-col');
+    const hourContainer = document.querySelector('.wheel-col-wrapper[data-col="hour"] .wheel-col');
+
+    wheels.year = new ScrollWheel(
+      document.querySelector('.wheel-col-wrapper[data-col="year"]'),
+      document.getElementById('wheelYear'),
+      years, {itemHeight: 36, visibleCount: 5, defaultIndex: yearIdx >= 0 ? yearIdx : 100}
+    );
+    wheels.month = new ScrollWheel(
+      document.querySelector('.wheel-col-wrapper[data-col="month"]'),
+      document.getElementById('wheelMonth'),
+      months, {itemHeight: 36, visibleCount: 5, defaultIndex: monthIdx}
+    );
+    wheels.day = new ScrollWheel(
+      document.querySelector('.wheel-col-wrapper[data-col="day"]'),
+      document.getElementById('wheelDay'),
+      days, {itemHeight: 36, visibleCount: 5, defaultIndex: dayIdx}
+    );
+    wheels.hour = new ScrollWheel(
+      document.querySelector('.wheel-col-wrapper[data-col="hour"]'),
+      document.getElementById('wheelHour'),
+      hours, {itemHeight: 36, visibleCount: 5, defaultIndex: hourIdx}
+    );
+
+    // Enable reveal btn when all wheels initialized
+    document.getElementById('revealBtn').disabled = false;
+  }
+
+  // ===== NAVIGATION =====
+  document.getElementById('enterBtn').addEventListener('click', () => {
+    splash.classList.add('hidden');
+    setTimeout(() => {
+      splash.style.display = 'none';
+      picker.style.display = 'flex';
+      setTimeout(() => {
+        picker.classList.add('active');
+        // Recalculate wheel dimensions now that container is visible
+        Object.values(wheels).forEach(w => w.recalcDimensions());
+      }, 30);
+    }, 800);
+  });
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    result.classList.remove('active');
+    setTimeout(() => {
+      result.style.display = 'none';
+      picker.style.display = 'flex';
+      setTimeout(() => picker.classList.add('active'), 30);
+    }, 400);
+  });
+
+  document.getElementById('amuletModalClose').addEventListener('click', () => {
+    amuletModal.classList.remove('active');
+  });
+  amuletModal.addEventListener('click', (e) => {
+    if (e.target === amuletModal) amuletModal.classList.remove('active');
+  });
+
+  // ===== REVEAL =====
+  document.getElementById('revealBtn').addEventListener('click', () => {
+    // Get selected values
+    const yearVal = wheels.year.getValue();
+    const monthVal = wheels.month.getValue();
+    const dayVal = wheels.day.getValue();
+    const hourVal = wheels.hour.getValue();
+
+    const year = parseInt(yearVal.label);
+    const month = parseInt(monthVal.label);
+    const day = parseInt(dayVal.label);
+    const hourIdx = wheels.hour.getIndex();
+
+    // Show loading
+    loadingOverlay.classList.add('active');
+
+    setTimeout(() => {
+      const bazi = calcBaZi(year, month, day, hourIdx);
+      renderResult(bazi, year, month, day, hourIdx);
+      loadingOverlay.classList.remove('active');
+
+      picker.classList.remove('active');
+      setTimeout(() => {
+        picker.style.display = 'none';
+        result.style.display = 'flex';
+        setTimeout(() => result.classList.add('active'), 30);
+      }, 300);
+    }, 600);
+  });
+
+  // ===== RENDER RESULT =====
+  function renderResult(bazi, year, month, day, hourIdx) {
+    const {year: y, month: m, day: d, hour: h} = bazi;
+    const [yStem, yBranch] = y;
+    const [mStem, mBranch] = m;
+    const [dStem, dBranch] = d;
+    const [hStem, hBranch] = h;
+
+    const yElem = STEM_ELEM[yStem];
+    const mElem = STEM_ELEM[mStem];
+    const dElem = STEM_ELEM[dStem];
+    const hElem = STEM_ELEM[hStem];
+
+    const dm = getDayMasterElem(dStem);
+    const dmYinYang = dm.yin ? '阴' : '阳';
+    const dmFull = dmYinYang + ELEM_NAMES[dm.elem] + ' (' + STEMS[dStem] + ')';
+
+    // Element counts
+    const elemCounts = {木:0,火:0,土:0,金:0,水:0};
+    [yElem, mElem, dElem, hElem].forEach(e => elemCounts[e]++);
+    // Also add branch elements
+    elemCounts[BR_ELEM[yBranch]]++;
+    elemCounts[BR_ELEM[mBranch]]++;
+    elemCounts[BR_ELEM[dBranch]]++;
+    elemCounts[BR_ELEM[hBranch]]++;
+    const total = Object.values(elemCounts).reduce((a,b)=>a+b,0) || 1;
+
+    // Ten Gods
+    const pillars = [
+      {stem: yStem, branch: yBranch, label: '年柱'},
+      {stem: mStem, branch: mBranch, label: '月柱'},
+      {stem: dStem, branch: dBranch, label: '日柱'},
+      {stem: hStem, branch: hBranch, label: '时柱'}
+    ];
+
+    // Hidden stems
+    const hiddenStemsList = [
+      {label: '年', stems: HIDDEN_STEMS[yBranch]},
+      {label: '月', stems: HIDDEN_STEMS[mBranch]},
+      {label: '日', stems: HIDDEN_STEMS[dBranch]},
+      {label: '时', stems: HIDDEN_STEMS[hBranch]}
+    ];
+
+    // Recommend amulets based on day master element
+    const recommended = recommendAmulets(dm.elem);
+
+    // Build HTML
+    let html = '';
+
+    // Pillars
+    html += '<div class="pillars-row">';
+    const pillarData = [
+      {stem: yStem, branch: yBranch, elem: yElem, label: '年'},
+      {stem: mStem, branch: mBranch, elem: mElem, label: '月'},
+      {stem: dStem, branch: dBranch, elem: dElem, label: '日'},
+      {stem: hStem, branch: hBranch, elem: hElem, label: '时'}
+    ];
+    pillarData.forEach(p => {
+      const color = ELEM_COLORS[p.elem];
+      html += `<div class="pillar-card" style="color:${color}">`;
+      html += `<div class="pillar-label">${p.label}柱</div>`;
+      html += `<div class="stem-char">${STEMS[p.stem]}</div>`;
+      html += `<div class="branch-char">${BRANCHES[p.branch]}</div>`;
+      html += `<div class="pillar-elem">${ELEM_EMOJI[p.elem]} ${ELEM_NAMES[p.elem]}</div>`;
+      html += `<div class="pillar-animal">${ANIMALS[p.branch]}</div>`;
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Day Master
+    html += `<div class="dm-card">
+      <div>
+        <div class="dm-label">日 主</div>
+        <div class="dm-value">${dmFull}</div>
+        <div class="dm-element" style="color:${ELEM_COLORS[dm.elem]}">${ELEM_EMOJI[dm.elem]} ${ELEM_NAMES[dm.elem]} · ${dmYinYang}</div>
+      </div>
+      <div class="dm-icon">${ELEM_EMOJI[dm.elem]}</div>
+    </div>`;
+
+    // Element Balance
+    html += '<div class="elem-section"><h3>五 行 平 衡</h3><div class="elem-bar">';
+    const elems = ['木','火','土','金','水'];
+    elems.forEach(el => {
+      const pct = (elemCounts[el] / total * 100);
+      if (pct > 0) {
+        html += `<div class="elem-bar-seg" style="width:${pct}%;background:${ELEM_COLORS[el]}"></div>`;
+      }
+    });
+    html += '</div><div class="elem-legend">';
+    elems.forEach(el => {
+      html += `<span><span class="elem-dot" style="background:${ELEM_COLORS[el]}"></span>${ELEM_NAMES[el]} ${elemCounts[el]}</span>`;
+    });
+    html += '</div></div>';
+
+    // Ten Gods grid
+    html += '<div class="tengods-grid">';
+    // Day stem is reference
+    const allStems = [yStem, mStem, dStem, hStem];
+    const allLabels = ['年','月','日','时'];
+    allStems.forEach((stem, idx) => {
+      const tg = getTenGod(dStem, stem);
+      const elem = STEM_ELEM[stem];
+      html += `<div class="tengod-cell" style="border-left:2px solid ${ELEM_COLORS[elem]}">
+        <div>
+          <div class="tg-label">${tg}</div>
+          <div class="tg-stem">${STEMS[stem]} · ${allLabels[idx]}柱</div>
+        </div>
+        <div class="tg-elem" style="color:${ELEM_COLORS[elem]}">${ELEM_EMOJI[elem]}</div>
+      </div>`;
+    });
+    html += '</div>';
+
+    // Hidden Stems
+    html += '<div class="hidden-stems"><h3>藏 干</h3><div class="hs-grid">';
+    hiddenStemsList.forEach(hs => {
+      const stemsStr = hs.stems.map(s => {
+        const idx = STEMS.indexOf(s);
+        return `<span style="color:${ELEM_COLORS[STEM_ELEM[idx]||'土']}">${s}</span>`;
+      }).join(' ');
+      html += `<div class="hs-pillar">
+        <div class="hs-label">${hs.label}支</div>
+        <div class="hs-stems">${stemsStr || '—'}</div>
+      </div>`;
+    });
+    html += '</div></div>';
+
+    // Recommended amulets
+    html += '<div class="elem-section"><h3>推 荐 护 符</h3><div class="amulet-grid">';
+    recommended.forEach(a => {
+      html += `<div class="amulet-card small" data-amulet-id="${a.id}">
+        <div class="amulet-img" style="font-size:24px;line-height:40px;text-align:center;flex-shrink:0;width:40px;height:40px;border-radius:3px;background:rgba(255,255,255,.04)">${a.emoji}</div>
+        <div class="amulet-info">
+          <div class="amulet-name">${a.name}</div>
+          <div class="amulet-desc">${a.desc}</div>
+          <div class="amulet-price">$${a.price}</div>
+        </div>
+      </div>`;
+    });
+    html += '</div></div>';
+
+    // Subscription section
+    html += '<div class="subscribe-section">';
+    html += '<h4>✦ 订 阅 行 途 ✦</h4>';
+    html += '<p>解锁完整命盘分析 · 五行流转动画 · 个人护符推荐 · 流年运势追踪</p>';
+    html += '<button class="subscribe-btn" id="subscribeBtn">立即订阅 · $4.99/月</button>';
+    html += '</div>';
+
+    resultBody.innerHTML = html;
+
+    // Amulet click handler
+    resultBody.querySelectorAll('[data-amulet-id]').forEach(el => {
+      el.addEventListener('click', function() {
+        const id = this.dataset.amuletId;
+        const item = AMULET_SHOP.find(a => a.id === id);
+        if (item) {
+          document.getElementById('amuletModalImg').src = item.img;
+          document.getElementById('amuletModalImg').alt = item.name;
+          document.getElementById('amuletModalName').textContent = item.name;
+          document.getElementById('amuletModalDesc').textContent = item.desc + ' — ' + item.tag;
+          document.getElementById('amuletModalPrice').textContent = '$' + item.price;
+          amuletModal.classList.add('active');
+        }
+      });
+    });
+
+    // Subscribe button handler
+    document.getElementById('subscribeBtn')?.addEventListener('click', function() {
+      alert('订阅功能即将上线！感谢您的支持。\\nSubscription coming soon — thank you!');
+    });
+  }
+
+  // ===== MORE MENU FUNCTIONS =====
+  function openMoreMenu() { document.getElementById('moreMenuOverlay').classList.add('active'); }
+  function closeMoreMenu() { document.getElementById('moreMenuOverlay').classList.remove('active'); }
+
+  // ===== AMULET SHOP FUNCTIONS =====
+  function openAmuletShop() {
+    closeMoreMenu();
+    const grid = document.getElementById('shopGrid');
+    grid.innerHTML = '';
+    AMULET_SHOP.forEach(a => {
+      const div = document.createElement('div');
+      div.className = 'shop-item';
+      div.innerHTML = `<div class="si-emoji">${a.emoji}</div><div class="si-name">${a.name}</div><div class="si-price">$${a.price}</div><div class="si-tag">${a.tag}</div>`;
+      div.addEventListener('click', () => showAmuletDetail(a.id));
+      grid.appendChild(div);
+    });
+    document.getElementById('shopModal').classList.add('active');
+  }
+  function closeAmuletShop() { document.getElementById('shopModal').classList.remove('active'); }
+  function showAmuletDetail(id) {
+    const item = AMULET_SHOP.find(a => a.id === id);
+    if (!item) return;
+    document.getElementById('amuletModalImg').src = item.img;
+    document.getElementById('amuletModalImg').alt = item.name;
+    document.getElementById('amuletModalName').textContent = item.name;
+    document.getElementById('amuletModalDesc').textContent = item.desc + ' — ' + item.tag;
+    document.getElementById('amuletModalPrice').textContent = '$' + item.price;
+    document.getElementById('amuletModal').classList.add('active');
+  }
+
+  // ===== MORE / SHOP EVENT BINDING =====
+  document.getElementById('moreBtn').addEventListener('click', openMoreMenu);
+  document.getElementById('moreMenuOverlay').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeMoreMenu();
+  });
+  document.getElementById('menuAmuletShop').addEventListener('click', openAmuletShop);
+  document.getElementById('menuSubscribe').addEventListener('click', () => {
+    closeMoreMenu();
+    document.getElementById('subscribeBtn')?.click();
+  });
+  document.getElementById('menuClose').addEventListener('click', closeMoreMenu);
+  document.getElementById('shopModalClose').addEventListener('click', closeAmuletShop);
+  document.getElementById('shopModal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeAmuletShop();
+  });
+
+  // ===== INIT =====
+  initWheels();
+
+})();
+</script>
+</body>
+</html>

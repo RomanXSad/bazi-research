@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XingTu — Monthly Revenue vs Expenses (Stacked)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f1a; color: #e0e0e0; padding: 20px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+
+  h1 { color: #e8c84a; font-size: 1.5em; margin-bottom: 4px; }
+  .sub { color: #8899bb; font-size: .85em; margin-bottom: 20px; }
+  
+  .chart-card { background: #1a1a2e; border-radius: 12px; padding: 24px; margin: 16px 0; }
+  .chart-card h2 { color: #c0c8e0; font-size: 1em; margin-bottom: 4px; }
+  .chart-card h3 { color: #667; font-size: .8em; font-weight: 400; margin-bottom: 12px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+  .phase-bar { display: flex; gap: 2px; margin: 8px 0 14px; height: 8px; border-radius: 4px; overflow: hidden; }
+  .phase-seg { flex: 1; display: flex; }
+  .phase-seg div { height: 100%; }
+  .phase-label { display: flex; justify-content: space-between; font-size: .72em; color: #667; margin-bottom: 4px; }
+  .phase-label span { }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; justify-content: center; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: .75em; color: #8899bb; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+  .note { background: #1a1a2e; border-radius: 8px; padding: 12px 14px; margin: 10px 0; font-size: .82em; color: #8899bb; line-height: 1.6; }
+  .note strong { color: #c0c8e0; }
+
+  .insight { background: #1a2e1a; border-left: 3px solid #4caf50; padding: 10px 14px; margin: 8px 0; border-radius: 0 6px 6px 0; font-size: .82em; color: #aaccaa; }
+  .insight strong { color: #81c784; }
+  .insight-red { background: #2e1a1a; border-left: 3px solid #f44336; padding: 10px 14px; margin: 8px 0; border-radius: 0 6px 6px 0; font-size: .82em; color: #ccaaaa; }
+  .insight-red strong { color: #e57373; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>XingTu + Amulet</h1>
+<div class="sub">Monthly Revenue vs Expenses — Stacked Column View (12 months, Optimistic Scenario — 50k visits target)</div>
+
+<div class="phase-label">
+  <span style="color:#4caf50">🟢 Build & Probe (M1-3)</span>
+  <span style="color:#42a5f5">🔵 Launch & Validate (M4-6)</span>
+  <span style="color:#e8c84a">🟡 Growth (M7-9)</span>
+  <span style="color:#f44336">🔴 Scale (M10-12)</span>
+</div>
+<div class="phase-bar">
+  <div class="phase-seg" style="flex:3"><div style="background:#4caf50;width:100%;border-radius:4px 0 0 4px"></div></div>
+  <div class="phase-seg" style="flex:3"><div style="background:#42a5f5;width:100%"></div></div>
+  <div class="phase-seg" style="flex:3"><div style="background:#e8c84a;width:100%"></div></div>
+  <div class="phase-seg" style="flex:3"><div style="background:#f44336;width:100%;border-radius:0 4px 4px 0"></div></div>
+</div>
+
+<!-- MAIN CHART -->
+<div class="chart-card">
+  <h2>Monthly Revenue vs Expenses — Stacked Components</h2>
+  <h3>Each month: left bar = Revenue sources, right bar = Expense categories. Scroll to see how each cost grows.</h3>
+  <div class="chart-wrapper" style="height:520px">
+    <canvas id="mainChart"></canvas>
+  </div>
+</div>
+
+<!-- NET PROFIT LINE -->
+<div class="chart-card">
+  <h2>Monthly Net Profit / Loss — Stacked Waterfall</h2>
+  <h3>Grey = loss (months 1-4), green = profit. Year 1 total net (high scenario): ~$3k</h3>
+  <div class="chart-wrapper" style="height:260px">
+    <canvas id="profitChart"></canvas>
+  </div>
+</div>
+
+<!-- INSIGHTS -->
+<div class="two-col">
+  <div class="chart-card">
+    <h2>🔍 Focus shifts by phase</h2>
+    <div class="insight" style="margin-top:8px">
+      <strong>Months 1-3 — BUILD & PROBE</strong><br>
+      • Highest marketing/SEO spend relative to revenue (100% of burn)<br>
+      • Dev cost dominates (building MVP + Flutter app)<br>
+      • Nearly zero revenue — net loss every month<br>
+      • <strong>Focus:</strong> $300 Google Ads probe, SEO content, MVP build
+    </div>
+    <div class="insight-red">
+      <strong>Months 4-6 — LAUNCH & VALIDATE</strong><br>
+      • First amulet sales start (small batch)<br>
+      • Logistics + COGS appear as new cost categories<br>
+      • Customer support ramps up<br>
+      • Marketing spend grows (TG Ads + influencers)<br>
+      • <strong>Focus:</strong> Channel validation, supply chain setup
+    </div>
+    <div class="insight">
+      <strong>Months 7-9 — GROWTH</strong><br>
+      • SEO compound effect — organic traffic grows<br>
+      • Revenue accelerates faster than costs<br>
+      • First profitable month (month 7 or 8)<br>
+      • Returns/refunds become visible cost<br>
+      • <strong>Focus:</strong> SEO scaling, customer retention, packaging quality
+    </div>
+    <div class="insight">
+      <strong>Months 10-12 — SCALE</strong><br>
+      • SEO costs flatten as % of revenue<br>
+      • Logistics becomes #2 cost after COGS<br>
+      • Support becomes ongoing (not project)<br>
+      • Profit margin expands (marketing % drops)<br>
+      • <strong>Focus:</strong> Automation, bulk shipping, subscription add-on
+    </div>
+  </div>
+  <div class="chart-card">
+    <h2>🧮 Key ratios by phase</h2>
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:.78em;margin-top:8px">
+      <tr><th>Metric</th><th>M1-3 Build</th><th>M4-6 Launch</th><th>M7-9 Growth</th><th>M10-12 Scale</th></tr>
+      <tr><td style="color:#8899bb">Avg monthly revenue</td><td>$67</td><td>$1,567</td><td>$4,500</td><td>$7,833</td></tr>
+      <tr><td style="color:#8899bb">Marketing as % of rev</td><td style="color:#e57373"><b>447%</b></td><td style="color:#ffb74d">38%</td><td style="color:#81c784">22%</td><td style="color:#81c784">15%</td></tr>
+      <tr><td style="color:#8899bb">COGS + Shipping as %</td><td>0%</td><td style="color:#ffb74d">42%</td><td style="color:#81c784">35%</td><td style="color:#81c784">32%</td></tr>
+      <tr><td style="color:#8899bb">Support + Maint as %</td><td style="color:#e57373"><b>700%</b></td><td style="color:#ffb74d">18%</td><td>13%</td><td style="color:#81c784">10%</td></tr>
+      <tr><td style="color:#8899bb">Net profit margin</td><td style="color:#e57373"><b>-740%</b></td><td style="color:#e57373">-7%</td><td style="color:#81c784">+8%</td><td style="color:#81c784"><b>+17%</b></td></tr>
+      <tr><td style="color:#8899bb">Orders per month</td><td>~3</td><td>~63</td><td>~180</td><td>~313</td></tr>
+      <tr><td style="color:#8899bb">Cumulative net</td><td style="color:#e57373"><b>-$7,200</b></td><td style="color:#e57373">-$9,600</td><td style="color:#ffb74d">-$4,200</td><td style="color:#81c784"><b>+$3,000</b></td></tr>
+    </table>
+    </div>
+    <div class="note" style="margin-top:10px">
+      <strong>Cumulative net at year end:</strong> ~$3,000 (High scenario). The $30k seed covers upfront losses. <strong>Year 2 is where real profit begins</strong> — all infrastructure is built, SEO matures, and marketing costs drop from 15-20% of revenue to 8-12%.
+    </div>
+  </div>
+</div>
+
+<!-- MONTHLY DATA TABLE -->
+<div class="chart-card">
+  <h2>Monthly data — detailed ($ amounts, High scenario)</h2>
+  <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;font-size:.7em">
+    <thead>
+      <tr><th>Item</th><th>M1</th><th>M2</th><th>M3</th><th>M4</th><th>M5</th><th>M6</th><th>M7</th><th>M8</th><th>M9</th><th>M10</th><th>M11</th><th>M12</th><th>Y1</th></tr>
+    </thead>
+    <tbody>
+      <tr style="color:#42a5f5;font-weight:600"><td><b>Revenue</b></td>
+        <td>$0</td><td>$50</td><td>$150</td><td>$500</td><td>$1,200</td><td>$3,000</td><td>$4,500</td><td>$5,200</td><td>$6,800</td><td>$7,500</td><td>$8,100</td><td>$9,000</td><td><b>$46,000</b></td></tr>
+      <tr><td style="color:#ef5350">COGS</td>
+        <td>$0</td><td>$12</td><td>$35</td><td>$116</td><td>$278</td><td>$696</td><td>$1,044</td><td>$1,206</td><td>$1,578</td><td>$1,740</td><td>$1,879</td><td>$2,088</td><td>$10,672</td></tr>
+      <tr><td style="color:#ff7043">Shipping & Logistics</td>
+        <td>$0</td><td>$25</td><td>$75</td><td>$200</td><td>$360</td><td>$750</td><td>$1,125</td><td>$1,300</td><td>$1,700</td><td>$1,875</td><td>$2,025</td><td>$2,250</td><td>$11,685</td></tr>
+      <tr><td style="color:#ffa726">Returns & Refunds</td>
+        <td>$0</td><td>$0</td><td>$0</td><td>$20</td><td>$48</td><td>$120</td><td>$180</td><td>$208</td><td>$272</td><td>$300</td><td>$324</td><td>$360</td><td>$1,832</td></tr>
+      <tr><td style="color:#66bb6a">Stripe Fees</td>
+        <td>$0</td><td>$1</td><td>$4</td><td>$15</td><td>$35</td><td>$87</td><td>$131</td><td>$151</td><td>$197</td><td>$218</td><td>$235</td><td>$261</td><td>$1,335</td></tr>
+      <tr><td style="color:#42a5f5">Marketing & SEO</td>
+        <td>$600</td><td>$600</td><td>$400</td><td>$500</td><td>$400</td><td>$500</td><td>$500</td><td>$400</td><td>$400</td><td>$400</td><td>$400</td><td>$400</td><td>$5,500</td></tr>
+      <tr><td style="color:#ab47bc">Customer Support</td>
+        <td>$100</td><td>$100</td><td>$100</td><td>$150</td><td>$200</td><td>$250</td><td>$300</td><td>$300</td><td>$350</td><td>$400</td><td>$400</td><td>$450</td><td>$3,100</td></tr>
+      <tr><td style="color:#7e57c2">App Maintenance</td>
+        <td>$800</td><td>$800</td><td>$400</td><td>$400</td><td>$400</td><td>$400</td><td>$400</td><td>$400</td><td>$300</td><td>$300</td><td>$300</td><td>$300</td><td>$5,800</td></tr>
+      <tr><td style="color:#26c6da">Hosting & Infra</td>
+        <td>$25</td><td>$25</td><td>$25</td><td>$25</td><td>$35</td><td>$50</td><td>$50</td><td>$60</td><td>$60</td><td>$70</td><td>$75</td><td>$75</td><td>$575</td></tr>
+      <tr><td style="color:#26a69a">Inventory Storage</td>
+        <td>$0</td><td>$0</td><td>$0</td><td>$20</td><td>$35</td><td>$50</td><td>$60</td><td>$65</td><td>$75</td><td>$80</td><td>$85</td><td>$90</td><td>$560</td></tr>
+      <tr><td style="color:#78909c">Legal & Compliance</td>
+        <td>$500</td><td>$200</td><td>$100</td><td>$100</td><td>$100</td><td>$100</td><td>$100</td><td>$100</td><td>$100</td><td>$100</td><td>$100</td><td>$100</td><td>$1,700</td></tr>
+      <tr><td style="color:#8d6e63">Packaging & Materials</td>
+        <td>$200</td><td>$100</td><td>$50</td><td>$80</td><td>$100</td><td>$150</td><td>$160</td><td>$170</td><td>$180</td><td>$190</td><td>$200</td><td>$210</td><td>$1,790</td></tr>
+      <tr><td style="color:#bdbdbd">Photo & Content</td>
+        <td>$300</td><td>$200</td><td>$100</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$0</td><td>$0</td><td>$0</td><td>$0</td><td>$0</td><td>$800</td></tr>
+      <tr><td style="color:#90a4ae">Tools & Subs</td>
+        <td>$100</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$50</td><td>$650</td></tr>
+      <tr><td style="color:#e0e0e0">Contingency (10%)</td>
+        <td>$263</td><td>$211</td><td>$134</td><td>$161</td><td>$183</td><td>$281</td><td>$361</td><td>$374</td><td>$467</td><td>$488</td><td>$517</td><td>$569</td><td>$4,009</td></tr>
+      <tr style="border-top:2px solid #e8c84a;font-weight:700;color:#e8c84a">
+        <td><b>Total Expenses</b></td>
+        <td><b>$2,888</b></td><td><b>$2,324</b></td><td><b>$1,473</b></td><td><b>$1,887</b></td><td><b>$2,274</b></td><td><b>$3,534</b></td><td><b>$4,461</b></td><td><b>$4,784</b></td><td><b>$5,729</b></td><td><b>$6,211</b></td><td><b>$6,590</b></td><td><b>$7,203</b></td><td><b>$49,358</b></td></tr>
+      <tr style="font-weight:700">
+        <td style="color:#e8c84a"><b>Net Profit</b></td>
+        <td style="color:#f44336"><b>-$2,888</b></td>
+        <td style="color:#f44336"><b>-$2,274</b></td>
+        <td style="color:#f44336"><b>-$1,323</b></td>
+        <td style="color:#f44336"><b>-$1,387</b></td>
+        <td style="color:#f44336"><b>-$1,074</b></td>
+        <td style="color:#f44336"><b>-$534</b></td>
+        <td style="color:#ffb74d"><b>$39</b></td>
+        <td style="color:#4caf50"><b>$416</b></td>
+        <td style="color:#4caf50"><b>$1,071</b></td>
+        <td style="color:#4caf50"><b>$1,289</b></td>
+        <td style="color:#4caf50"><b>$1,510</b></td>
+        <td style="color:#4caf50"><b>$1,797</b></td>
+        <td style="color:#4caf50"><b>-$3,358</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note" style="margin-top:8px">
+    <strong>Note:</strong> Net profit in High scenario is <b>-$3,358 for Year 1</b> after ALL costs including up-front dev and legal. This is expected — the $30k seed was always designed to cover Year 1 losses. <strong>Year 2 becomes highly profitable</strong> (~$30k net) because development, legal setup, packaging design, and photography are one-time costs that don't repeat.
+  </div>
+</div>
+
+</div>
+
+<script>
+// === DATA: Monthly Revenue & Expenses ===
+const months = ['M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12'];
+
+// Revenue (only amulet sales in Y1 — no subs yet)
+const revenueAmulets = [0, 50, 150, 500, 1200, 3000, 4500, 5200, 6800, 7500, 8100, 9000];
+const revenueSubs = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // no subs in Y1
+
+// Expense components (monthly)
+const cogs = [0, 12, 35, 116, 278, 696, 1044, 1206, 1578, 1740, 1879, 2088];
+const shipping = [0, 25, 75, 200, 360, 750, 1125, 1300, 1700, 1875, 2025, 2250];
+const returns = [0, 0, 0, 20, 48, 120, 180, 208, 272, 300, 324, 360];
+const stripe = [0, 1, 4, 15, 35, 87, 131, 151, 197, 218, 235, 261];
+const marketing = [600, 600, 400, 500, 400, 500, 500, 400, 400, 400, 400, 400];
+const support = [100, 100, 100, 150, 200, 250, 300, 300, 350, 400, 400, 450];
+const maintenance = [800, 800, 400, 400, 400, 400, 400, 400, 300, 300, 300, 300];
+const hosting = [25, 25, 25, 25, 35, 50, 50, 60, 60, 70, 75, 75];
+const storage = [0, 0, 0, 20, 35, 50, 60, 65, 75, 80, 85, 90];
+const legal = [500, 200, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
+const packaging = [200, 100, 50, 80, 100, 150, 160, 170, 180, 190, 200, 210];
+const photo = [300, 200, 100, 50, 50, 50, 50, 0, 0, 0, 0, 0];
+const tools = [100, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50];
+const contingency = [263, 211, 134, 161, 183, 281, 361, 374, 467, 488, 517, 569];
+
+// === MAIN CHART: Revenue Stacked (left) vs Expense Stacked (right) per month ===
+const ctx = document.getElementById('mainChart').getContext('2d');
+
+// Build custom dataset pairs for each month
+// We'll use a grouped + stacked approach
+// One bar per month per category (revenue left, expenses right)
+
+const labels = months;
+
+const mainChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      // === REVENUE STACK (LEFT BAR) ===
+      {
+        label: '📈 Amulet Sales',
+        data: revenueAmulets,
+        backgroundColor: '#42a5f5',
+        borderRadius: 0,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8,
+        order: 1,
+      },
+      {
+        label: '🔄 Subscription',
+        data: revenueSubs,
+        backgroundColor: '#2196f3',
+        borderRadius: 0,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8,
+        order: 1,
+      },
+      // === EXPENSE STACK (RIGHT BAR) using hidden spacer ===
+      {
+        label: 'COGS (amulet production)',
+        data: cogs,
+        backgroundColor: '#ef5350',
+        order: 2,
+      },
+      {
+        label: 'Shipping & Logistics',
+        data: shipping,
+        backgroundColor: '#ff7043',
+        order: 2,
+      },
+      {
+        label: 'Returns & Refunds',
+        data: returns,
+        backgroundColor: '#ffa726',
+        order: 2,
+      },
+      {
+        label: 'Stripe Fees',
+        data: stripe,
+        backgroundColor: '#66bb6a',
+        order: 2,
+      },
+      {
+        label: 'Marketing & SEO',
+        data: marketing,
+        backgroundColor: '#42a5f5',
+        order: 2,
+      },
+      {
+        label: 'Customer Support',
+        data: support,
+        backgroundColor: '#ab47bc',
+        order: 2,
+      },
+      {
+        label: 'App Maintenance',
+        data: maintenance,
+        backgroundColor: '#7e57c2',
+        order: 2,
+      },
+      {
+        label: 'Hosting & Infra',
+        data: hosting,
+        backgroundColor: '#26c6da',
+        order: 2,
+      },
+      {
+        label: 'Inventory Storage',
+        data: storage,
+        backgroundColor: '#26a69a',
+        order: 2,
+      },
+      {
+        label: 'Legal & Compliance',
+        data: legal,
+        backgroundColor: '#78909c',
+        order: 2,
+      },
+      {
+        label: 'Packaging & Materials',
+        data: packaging,
+        backgroundColor: '#8d6e63',
+        order: 2,
+      },
+      {
+        label: 'Photo & Content',
+        data: photo,
+        backgroundColor: '#bdbdbd',
+        order: 2,
+      },
+      {
+        label: 'Tools & Subs',
+        data: tools,
+        backgroundColor: '#90a4ae',
+        order: 2,
+      },
+      {
+        label: 'Contingency (10%)',
+        data: contingency,
+        backgroundColor: '#e0e0e0',
+        order: 2,
+      },
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { 
+        position: 'bottom', 
+        labels: { color: '#8899bb', font: { size: 9 }, padding: 10, usePointStyle: true },
+        maxHeight: 100,
+      },
+      tooltip: {
+        mode: 'index',
+        callbacks: {
+          label: ctx => {
+            if (ctx.parsed.y === 0) return null;
+            // Mark revenue vs expense
+            const prefix = ctx.dataset.label.includes('📈') || ctx.dataset.label.includes('🔄') ? '💰 ' : '💸 ';
+            return prefix + ctx.dataset.label + ': $' + ctx.parsed.y.toLocaleString();
+          },
+          footer: items => {
+            // Calculate totals for this month
+            const idx = items[0].dataIndex;
+            const rev = revenueAmulets[idx] + revenueSubs[idx];
+            const exp = cogs[idx]+shipping[idx]+returns[idx]+stripe[idx]+marketing[idx]+support[idx]+maintenance[idx]+hosting[idx]+storage[idx]+legal[idx]+packaging[idx]+photo[idx]+tools[idx]+contingency[idx];
+            const net = rev - exp;
+            return '────────────────\nTotal Revenue: $' + rev.toLocaleString() + '\nTotal Expenses: $' + exp.toLocaleString() + '\nNet: ' + (net >= 0 ? '+' : '') + '$' + net.toLocaleString();
+          }
+        }
+      }
+    },
+    scales: {
+      x: { 
+        stacked: false,
+        ticks: { color: '#667', font: { size: 10 } },
+        grid: { color: '#1a1a2e' }
+      },
+      y: { 
+        stacked: true,
+        ticks: { color: '#667', callback: v => '$' + (v/1000) + 'k' },
+        grid: { color: '#1a1a2e' }
+      }
+    }
+  },
+  plugins: [ChartDataLabels ? {} : {}]
+});
+
+// === PROFIT/LOSS CHART ===
+const netProfit = [];
+for (let i = 0; i < 12; i++) {
+  const rev = revenueAmulets[i] + revenueSubs[i];
+  const exp = cogs[i]+shipping[i]+returns[i]+stripe[i]+marketing[i]+support[i]+maintenance[i]+hosting[i]+storage[i]+legal[i]+packaging[i]+photo[i]+tools[i]+contingency[i];
+  netProfit.push(rev - exp);
+}
+
+new Chart(document.getElementById('profitChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Monthly Net Profit',
+      data: netProfit,
+      backgroundColor: netProfit.map(v => v >= 0 ? '#4caf50' : '#f44336'),
+      borderRadius: 3,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#8899bb', font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => (ctx.parsed.y >= 0 ? '+' : '') + '$' + ctx.parsed.y.toLocaleString() } }
+    },
+    scales: {
+      x: { ticks: { color: '#667', font: { size: 9 } }, grid: { color: '#1a1a2e' } },
+      y: { ticks: { color: '#667', callback: v => '$' + v }, grid: { color: '#1a1a2e' } }
+    }
+  }
+});
+</script>
+</body>
+</html>

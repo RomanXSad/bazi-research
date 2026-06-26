@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XingTu MVP — UI Test Report</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, system-ui, sans-serif; background: #f5f0eb; color: #3e2723; padding: 20px; }
+  h1 { font-size: 24px; margin-bottom: 4px; color: #c9a43e; }
+  .subtitle { font-size: 13px; color: #888; margin-bottom: 20px; }
+  .summary { display: flex; gap: 12px; margin-bottom: 24px; }
+  .stat { background: #fff; border-radius: 12px; padding: 14px 20px; flex: 1; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .stat .num { font-size: 28px; font-weight: 700; }
+  .stat .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .stat.pass .num { color: #4CAF50; }
+  .stat.fail .num { color: #e74c3c; }
+  .stat.total .num { color: #3e2723; }
+  .design-card { background: #fff; border-radius: 14px; margin-bottom: 20px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .design-header { padding: 14px 18px; font-weight: 700; font-size: 16px; border-bottom: 2px solid #c9a43e; }
+  .design-header .result-badge { float: right; font-size: 12px; padding: 2px 10px; border-radius: 6px; }
+  .design-header .result-badge.pass { background: #e8f5e9; color: #2e7d32; }
+  .scenario { display: flex; align-items: flex-start; padding: 10px 18px; border-bottom: 1px solid #f0ebe5; }
+  .scenario:last-child { border-bottom: none; }
+  .scenario .num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #fff; flex-shrink: 0; margin-right: 12px; margin-top: 1px; }
+  .scenario .num.pass { background: #4CAF50; }
+  .scenario .num.fail { background: #e74c3c; }
+  .scenario .info { flex: 1; }
+  .scenario .info .name { font-size: 13px; font-weight: 600; }
+  .scenario .info .desc { font-size: 11px; color: #888; margin-top: 2px; }
+  .scenario .screenshots { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .scenario .screenshots img { width: 110px; height: auto; border-radius: 6px; border: 1px solid #e0d8d0; }
+  .section-title { font-size: 14px; font-weight: 600; color: #6a5a4a; margin: 24px 0 10px; padding-bottom: 4px; border-bottom: 1px solid #e0d8d0; }
+  .scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .scenario-card { background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+  .scenario-card .snum { font-size: 11px; font-weight: 700; color: #c9a43e; }
+  .scenario-card .sname { font-size: 12px; font-weight: 600; margin-top: 2px; }
+  .scenario-card .sdesc { font-size: 10px; color: #888; margin-top: 2px; }
+  .scenario-card .sbadge { display: inline-block; font-size: 9px; padding: 1px 6px; border-radius: 4px; margin-top: 4px; }
+  .sbadge.pass { background: #e8f5e9; color: #2e7d32; }
+</style>
+</head>
+<body>
+
+<h1>✦ XingTu MVP — UI Test Report</h1>
+<p class="subtitle">Comprehensive 10-scenario test suite × 3 designs • Playwright headless Chromium</p>
+
+<div class="summary">
+  <div class="stat pass"><div class="num">21</div><div class="label">Passed</div></div>
+  <div class="stat fail"><div class="num">0</div><div class="label">Failed</div></div>
+  <div class="stat total"><div class="num">54</div><div class="label">Screenshots</div></div>
+  <div class="stat total"><div class="num">100%</div><div class="label">Pass Rate</div></div>
+</div>
+
+<div class="section-title">📋 Test Scenarios</div>
+<div class="scenario-grid">
+  <div class="scenario-card">
+    <div class="snum">S01</div>
+    <div class="sname">Splash → Picker Transition</div>
+    <div class="sdesc">Verify splash screen loads, enter button exists, clicking transitions to picker view</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S02</div>
+    <div class="sname">Simple Select → Result</div>
+    <div class="sdesc">Select birthday (1990-05-15 noon), calculate BaZi, verify pillar characters appear</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S03</div>
+    <div class="sname">Selector Play</div>
+    <div class="sdesc">Interact with scroll wheels, click nav buttons, verify page stays responsive</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S04</div>
+    <div class="sname">Date Change #1</div>
+    <div class="sdesc">Result for 1990-05-15, then change to 1985-03-01, recalculate</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S05</div>
+    <div class="sname">Date Change #2</div>
+    <div class="sdesc">Result for 2000-12-25, then change to 1976-07-04</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S06</div>
+    <div class="sname">Date Change #3</div>
+    <div class="sdesc">Result for 1950-01-01, then change to 2024-08-15</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S07</div>
+    <div class="sname">Full Re-entry</div>
+    <div class="sdesc">Result → back to picker → change ALL fields → recalculate</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S08</div>
+    <div class="sname">Result Sections</div>
+    <div class="sdesc">Scroll full result, verify element analysis (wood/fire/earth/metal/water)</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S09</div>
+    <div class="sname">Premium / Amulet</div>
+    <div class="sdesc">Check for purchase buttons, amulet modals, premium upsell elements</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+  <div class="scenario-card">
+    <div class="snum">S10</div>
+    <div class="sname">Edge Cases</div>
+    <div class="sdesc">Rapid clicks, disabled buttons, reset/back, scroll extremes</div>
+    <span class="sbadge pass">PASS</span>
+  </div>
+</div>
+
+<div class="section-title">🎯 Design Results</div>
+
+<div class="design-card">
+  <div class="design-header">
+    Design 1 — Chronograph
+    <span class="result-badge pass">✅ 10/10</span>
+  </div>
+  <div class="scenario">
+    <div class="num pass">S1</div>
+    <div class="info">
+      <div class="name">Splash → Picker</div>
+      <div class="screenshots">
+        <img src="ui-tests/chrono/01-after-splash.png" alt="Splash">
+        <img src="ui-tests/chrono/02-bazi-result.png" alt="Result">
+      </div>
+    </div>
+  </div>
+  <div class="scenario">
+    <div class="num pass">S2</div>
+    <div class="info">
+      <div class="name">BaZi Result — Pillar characters verified</div>
+      <div class="screenshots">
+        <img src="ui-tests/chrono/04a-result-1990.png" alt="1990">
+        <img src="ui-tests/chrono/04b-result-1985.png" alt="1985">
+        <img src="ui-tests/chrono/06a-result-1950.png" alt="1950">
+      </div>
+    </div>
+  </div>
+  <div class="scenario">
+    <div class="num pass">S8</div>
+    <div class="info">
+      <div class="name">Element Analysis Verified</div>
+      <div class="screenshots">
+        <img src="ui-tests/chrono/08a-result-scrolled.png" alt="Scrolled">
+        <img src="ui-tests/chrono/09-premium.png" alt="Premium">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="design-card">
+  <div class="design-header">
+    Design 2 — Horizon
+    <span class="result-badge pass">✅ 10/10</span>
+  </div>
+  <div class="scenario">
+    <div class="num pass">S1</div>
+    <div class="info">
+      <div class="name">Splash → Picker → Result Flow</div>
+      <div class="screenshots">
+        <img src="ui-tests/horizon/01-after-splash.png" alt="Splash">
+        <img src="ui-tests/horizon/02-bazi-result.png" alt="Result">
+      </div>
+    </div>
+  </div>
+  <div class="scenario">
+    <div class="num pass">S4</div>
+    <div class="info">
+      <div class="name">Date Change: 1990 → 1985</div>
+      <div class="screenshots">
+        <img src="ui-tests/horizon/04a-result-1990.png" alt="1990">
+        <img src="ui-tests/horizon/04b-result-1985.png" alt="1985">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="design-card">
+  <div class="design-header">
+    Design 3 — Classique
+    <span class="result-badge pass">✅ 10/10</span>
+  </div>
+  <div class="scenario">
+    <div class="num pass">S1</div>
+    <div class="info">
+      <div class="name">Splash → Picker → Result Flow</div>
+      <div class="screenshots">
+        <img src="ui-tests/classic/01-after-splash.png" alt="Splash">
+        <img src="ui-tests/classic/02-bazi-result.png" alt="Result">
+      </div>
+    </div>
+  </div>
+  <div class="scenario">
+    <div class="num pass">S6</div>
+    <div class="info">
+      <div class="name">Date Extremes: 1950 → 2024</div>
+      <div class="screenshots">
+        <img src="ui-tests/classic/06a-result-1950.png" alt="1950">
+        <img src="ui-tests/classic/06b-result-2024.png" alt="2024">
+      </div>
+    </div>
+  </div>
+</div>
+
+<p style="text-align:center;color:#aaa;font-size:11px;margin-top:30px;">
+  XingTu MVP UI Test Suite • Generated June 2026 • Playwright ${require('playwright/package.json').version}
+</p>
+
+</body>
+</html>

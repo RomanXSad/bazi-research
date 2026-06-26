@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>XingTu — Traffic Model + Updated Verdict v3.0</title>
+<style>
+  :root { --navy: #1a3264; --lnavy: #3c5078; --red: #b43232; --green: #2a8a3a; --gold: #c8781e; --gray: #666; --light: #f5f6f8; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #222; background: #fff; line-height: 1.5; }
+  .container { max-width: 840px; margin: 0 auto; padding: 20px; }
+  
+  .cover { text-align: center; padding: 50px 20px 30px; border-bottom: 3px solid var(--navy); margin-bottom: 25px; }
+  .cover h1 { font-size: 2.2em; color: var(--navy); margin-bottom: 5px; }
+  .cover .sub { font-size: 1.1em; color: var(--lnavy); margin-bottom: 12px; }
+  .cover .meta { font-size: .85em; color: var(--gray); line-height: 1.8; }
+
+  .section { margin: 25px 0; padding: 20px; border-radius: 8px; background: var(--light); }
+  .section h2 { font-size: 1.2em; color: var(--navy); margin-bottom: 12px; }
+  .section h3 { font-size: 1em; color: var(--lnavy); margin: 12px 0 6px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: .82em; }
+  th { background: var(--navy); color: #fff; padding: 5px 6px; text-align: left; font-size: .82em; }
+  td { padding: 4px 6px; border-bottom: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #fafafa; }
+  
+  .card { background: #fff; border-radius: 6px; padding: 10px 12px; margin: 6px 0; border-left: 3px solid var(--lnavy); }
+  .card .q { font-weight: 600; font-size: .9em; }
+  .card .a { color: var(--gray); font-size: .83em; margin-top: 2px; }
+
+  .hl { background: #fff8f0; border-left: 4px solid var(--gold); padding: 10px 12px; margin: 8px 0; border-radius: 0 6px 6px 0; }
+  .hl strong { color: var(--gold); }
+  .hl-red { background: #fff0f0; border-left: 4px solid var(--red); padding: 10px 12px; margin: 8px 0; border-radius: 0 6px 6px 0; }
+  .hl-red strong { color: var(--red); }
+  .hl-green { background: #f0fff0; border-left: 4px solid var(--green); padding: 10px 12px; margin: 8px 0; border-radius: 0 6px 6px 0; }
+  .hl-green strong { color: var(--green); }
+
+  .verdict { text-align: center; padding: 25px; margin: 25px 0; border: 2px solid var(--gold); border-radius: 12px; }
+  .verdict h3 { color: var(--navy); font-size: 1.2em; margin-bottom: 6px; }
+  .verdict .big { font-size: 1.8em; font-weight: 700; color: var(--gold); margin: 8px 0; }
+
+  .probe-box { background: #fff; border: 2px solid var(--green); border-radius: 8px; padding: 16px; margin: 12px 0; }
+  .probe-box h3 { color: var(--green); font-size: 1.1em; margin-bottom: 8px; }
+  .probe-box table { font-size: .8em; }
+
+  .go { display: inline-block; background: #dff0df; color: #1a6a2a; padding: 1px 8px; border-radius: 10px; font-size: .75em; font-weight: 600; }
+  .cond { display: inline-block; background: #fff3d6; color: #8a5a00; padding: 1px 8px; border-radius: 10px; font-size: .75em; font-weight: 600; }
+  .nogo { display: inline-block; background: #ffe0e0; color: #a02020; padding: 1px 8px; border-radius: 10px; font-size: .75em; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="cover">
+  <h1>XingTu + Amulet — Traffic & Economics</h1>
+  <div class="sub">Updated Model v3.0 — With Realistic Marketing Costs</div>
+  <div class="meta">
+    <strong>Context:</strong> Previous model (v2.0) assumed $0 marketing spend and showed Optimistic scenario (50k visits/mo) = $4,756/mo net, 6.3 mo break-even.<br>
+    <strong>Question:</strong> Where does 50k traffic come from? What does it cost? Does the model still work?
+  </div>
+</div>
+
+<!-- KEY TRAFFIC FINDINGS -->
+<div class="section">
+  <h2>1. Traffic Channels — Reality Check</h2>
+
+  <table>
+    <tr><th>Channel</th><th>CPA per visit</th><th>50k/mo feasible?</th><th>Time to scale</th><th>Risk</th></tr>
+    <tr><td><b>SEO Organic</b></td><td>$0 (time)</td><td><span class="go">✅ 30k-100k by mo 12-18</span></td><td>6-18 mo</td><td>Low</td></tr>
+    <tr><td><b>TikTok Organic</b></td><td>$0 (time)</td><td><span class="cond">⚠️ 10k-30k by mo 12</span></td><td>3-12 mo</td><td>Medium</td></tr>
+    <tr><td><b>Telegram Ads (SG/MY)</b></td><td>$0.25-0.60</td><td><span class="nogo">❌ Inventory limited</span></td><td>1-2 wk</td><td>Low</td></tr>
+    <tr><td><b>Google Search Ads</b></td><td>$0.80-1.50</td><td><span class="nogo">❌ Volume limited</span></td><td>Immediate</td><td>Medium</td></tr>
+    <tr><td><b>TikTok/IG Paid</b></td><td>$0.50-1.20</td><td><span class="nogo">❌ Too expensive</span></td><td>Immediate</td><td>High</td></tr>
+    <tr><td><b>Influencer Marketing</b></td><td>$0.10-0.50</td><td><span class="cond">⚠️ At $5k+ spend</span></td><td>2-4 wk</td><td>Medium</td></tr>
+    <tr><td><b>ASO (App Store)</b></td><td>$0 (time)</td><td><span class="nogo">❌ Small volume</span></td><td>3-6 mo</td><td>Low</td></tr>
+  </table>
+
+  <div class="hl-red">
+    <strong>Critical insight:</strong> No paid channel can deliver 50k visitors/month profitably given amulet margins (~$18/order). At average paid CPA of $0.50-1.50/visit and amulet conversion of ~0.5-1%, CAC would be $50-300 per customer — vs. $18 gross margin. <b>Paid acquisition is structurally unprofitable for amulets.</b>
+  </div>
+
+  <div class="card">
+    <div class="q">"Chinese name generator" — the SEO golden keyword</div>
+    <div class="a">
+      8k-15k monthly searches. <b>Zero competitors with ratings.</b> Low SEO difficulty. CPC $0.80-1.50 if paid.<br>
+      Total addressable organic search: ~160k-300k/mo across name + astrology + BaZi keywords.<br>
+      ~50k-80k/mo in "Easy" difficulty keywords that a single-page tool can rank for.
+    </div>
+  </div>
+</div>
+
+<!-- TRAFFIC ROADMAP -->
+<div class="section">
+  <h2>2. Traffic Roadmap — How to Reach 50k/mo</h2>
+
+  <table>
+    <tr><th>Phase</th><th>Months</th><th>Budget/mo</th><th>Traffic target</th><th>Primary channels</th></tr>
+    <tr><td><b>1. Validation</b></td><td>1-3</td><td>$100-300</td><td>1k-5k/mo</td><td>SEO foundation + Google Ads probe</td></tr>
+    <tr><td><b>2. Growth</b></td><td>4-8</td><td>$1k-2k</td><td>10k-35k/mo</td><td>SEO (heavy) + TikTok + Influencers + TG</td></tr>
+    <tr><td><b>3. Scale</b></td><td>9-18</td><td>$2k-5k</td><td>30k-80k+</td><td>SEO matures, paid used for retargeting only</td></tr>
+  </table>
+
+  <div class="hl">
+    <strong>Key realization:</strong> SEO is the ONLY scalable free channel. The name generator tool itself IS the SEO asset. Every visitor who generates a name creates a unique URL (e.g., /name/Alexander) that can be indexed — compounding SEO value over time.
+  </div>
+</div>
+
+<!-- UPDATED FINANCIAL MODEL -->
+<div class="section">
+  <h2>3. Updated Financial Model — With Marketing Costs</h2>
+
+  <h3>3.1 Three scenarios with realistic marketing spend</h3>
+
+  <table>
+    <tr><th></th><th>Pessimistic</th><th>Moderate</th><th>Optimistic</th><th>Target</th></tr>
+    <tr><td><b>Monthly traffic</b></td><td>5,000</td><td>15,000</td><td>50,000</td><td>50,000</td></tr>
+    <tr><td><b>Marketing cost/mo</b></td><td>$0</td><td>$500</td><td>$2,000</td><td>$500</td></tr>
+    <tr><td><b>Orders/mo</b></td><td>2.5</td><td>27</td><td>263</td><td>263</td></tr>
+    <tr><td><b>Revenue/mo</b></td><td>$62</td><td>$675</td><td>$6,562</td><td>$6,562</td></tr>
+    <tr><td><b>COGS + fees/mo</b></td><td>-$18</td><td>-$184</td><td>-$1,792</td><td>-$1,792</td></tr>
+    <tr><td><b>Hosting/mo</b></td><td>-$15</td><td>-$15</td><td>-$15</td><td>-$15</td></tr>
+    <tr><td><b>Marketing/mo</b></td><td>$0</td><td>-$500</td><td>-$2,000</td><td>-$500</td></tr>
+    <tr style="font-weight:700;border-top:2px solid var(--gold)"><td><b>NET/mo</b></td><td><b>$30</b></td><td><b>-$24</b></td><td><b>$2,756</b></td><td><b>$4,256</b></td></tr>
+    <tr><td><b>Year 1 net</b></td><td>$365</td><td>-$285</td><td>$33,071</td><td>$51,071</td></tr>
+    <tr><td><b>Break-even ($30k seed)</b></td><td><span class="nogo">Never</span></td><td><span class="nogo">Never profitable</span></td><td><span class="cond">10.9 mo</span></td><td><span class="go">7.0 mo</span></td></tr>
+  </table>
+
+  <div class="hl-red">
+    <strong>Critical:</strong> Moderate scenario (15k visits + $500 marketing) goes <b>NEGATIVE</b> (-$24/mo). This is worse than the original model ($476/mo with $0 marketing). <b>Marketing spend at moderate traffic levels destroys the business.</b>
+  </div>
+
+  <h3>3.2 Break-even sensitivity (with $2,000/mo marketing at 50k visits)</h3>
+
+  <table>
+    <tr><th>Monthly net after marketing</th><th>Months to recover $30k seed</th><th>Verdict</th></tr>
+    <tr><td>$2,000</td><td>15.0</td><td><span class="cond">Marginal</span></td></tr>
+    <tr><td><b>$2,756</b> (Optimistic + $2k mktg)</td><td><b>10.9</b></td><td><span class="cond">Acceptable</span></td></tr>
+    <tr><td>$3,500</td><td>8.6</td><td><span class="go">Good</span></td></tr>
+    <tr><td><b>$4,256</b> (Target: 50k visits + $500 mktg)</td><td><b>7.0</b></td><td><span class="go">Good</span></td></tr>
+    <tr><td>$5,000</td><td>6.0</td><td><span class="go">Excellent</span></td></tr>
+  </table>
+
+  <h3>3.3 Realistic path — Two sub-scenarios</h3>
+
+  <div class="card">
+    <div class="q">Scenario A: SEO-heavy (recommended)</div>
+    <div class="a">
+      Mo 1-6: $100-500/mo (Google Ads probe + content). Traffic: 500 → 15k.<br>
+      Mo 7-12: $500-1,000/mo (SEO content + micro-influencer seeding). Traffic: 15k → 40k.<br>
+      Mo 13-18: $1,000-2,000/mo. Traffic: 40k → 80k+. SEO compound effect kicks in.<br>
+      <b>Year 1 net:</b> ~$25k-35k (ramp-up). <b>Year 2 net:</b> ~$80k-120k.<br>
+      <b>Break-even on $30k seed:</b> Month 10-14.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q">Scenario B: Paid-first (riskier)</div>
+    <div class="a">
+      Mo 1-3: $2,000/mo on Google Ads + Telegram. Traffic: 5k-10k.<br>
+      Mo 4-6: $3,000/mo. Traffic: 10k-20k.<br>
+      First 6 months: <b>$15k in ad spend, ~$3k net loss</b> from operations.<br>
+      Break-even only possible if traffic stays at 50k+ AFTER reducing ad spend (SEO catches up).<br>
+      <b>Risk:</b> If ads stop = traffic stops. No asset built.
+    </div>
+  </div>
+</div>
+
+<!-- PROBE TEST -->
+<div class="section" style="background:#f0fff0">
+  <h2>4. Probe Test — Design & Budget</h2>
+
+  <div class="probe-box">
+    <h3>✅ Probe: Google Search Ads on "Chinese name generator"</h3>
+    <table>
+      <tr><th>Parameter</th><th>Value</th></tr>
+      <tr><td><b>Budget</b></td><td><b>$300 total</b> ($10/day × 30 days)</td></tr>
+      <tr><td><b>Keyword</b></td><td>"chinese name generator" (exact + phrase match)</td></tr>
+      <tr><td><b>Landing page</b></td><td>The name generator tool itself (highest intent)</td></tr>
+      <tr><td><b>Target geo</b></td><td>US + UK + Canada + Australia + Singapore</td></tr>
+      <tr><td><b>Time to result</b></td><td>3-7 days for statistical significance</td></tr>
+    </table>
+  </div>
+
+  <h3>Go/No-Go Criteria</h3>
+  <table>
+    <tr><th>Metric</th><th><span class="go">GO ✅</span></th><th><span class="cond">CONDITIONAL ⚠️</span></th><th><span class="nogo">NO-GO ❌</span></th></tr>
+    <tr><td>CPC</td><td>&lt;$1.50</td><td>$1.50-3.00</td><td>&gt;$3.00</td></tr>
+    <tr><td>Name gen completion</td><td>&gt;50%</td><td>30-50%</td><td>&lt;30%</td></tr>
+    <tr><td>Amulet view rate</td><td>&gt;8%</td><td>3-8%</td><td>&lt;3%</td></tr>
+    <tr><td>Cost per name gen</td><td>&lt;$3.00</td><td>$3.00-6.00</td><td>&gt;$6.00</td></tr>
+    <tr style="font-weight:700;border-top:2px solid var(--green)"><td><b>Decision</b></td><td><span class="go">Proceed to build</span></td><td><span class="cond">Pivot to SEO only</span></td><td><span class="nogo">Reconsider project</span></td></tr>
+  </table>
+
+  <h3>What happens after GO?</h3>
+  <div class="card">
+    <div class="a">
+      <b>Step 1:</b> $200 → Telegram Stories Ads in SG/MY (validates 2nd channel)<br>
+      <b>Step 2:</b> $100 → Micro-influencer seeding (2-3 creators, $30-50 each + free sample)<br>
+      <b>Total probe budget:</b> $600 across 3 channels. Outcome: validated CPA model → decide on $30k.
+    </div>
+  </div>
+</div>
+
+<!-- TRAFFIC UNIT ECONOMICS -->
+<div class="section">
+  <h2>4. Traffic Unit Economics — Deep Dive</h2>
+
+  <table>
+    <tr><th>Channel</th><th>To get 1 amulet buyer</th><th>Cost</th><th>Gross margin</th><th>ROI</th></tr>
+    <tr><td><b>SEO Organic</b></td><td>~2,000-5,000 visits → 10 names → 1-2 amulet views → 1 buyer</td><td>$0 (time)</td><td>$18.18</td><td><span class="go">Infinite</span></td></tr>
+    <tr><td><b>TikTok Organic</b></td><td>~2,000-5,000 views → 10-25 visits → same funnel</td><td>$0 (time)</td><td>$18.18</td><td><span class="go">Infinite</span></td></tr>
+    <tr><td><b>Telegram Ads (SG/MY)</b></td><td>500 visits → $125-300 → 2.5 names → 0.25 amulet views → maybe 1 buyer</td><td><b>$125-300</b></td><td>$18.18</td><td><span class="nogo">NEGATIVE</span></td></tr>
+    <tr><td><b>Google Search Ads</b></td><td>500 visits → $400-750 → 2.5 names → 0.25 amulet → maybe 1 buyer</td><td><b>$400-750</b></td><td>$18.18</td><td><span class="nogo">NEGATIVE</span></td></tr>
+    <tr><td><b>TikTok/IG Paid</b></td><td>500 visits → $250-600 → same funnel</td><td><b>$250-600</b></td><td>$18.18</td><td><span class="nogo">NEGATIVE</span></td></tr>
+  </table>
+
+  <div class="hl-red">
+    <strong>Hard truth:</strong> Every paid channel loses money per customer at current amulet price points. The only profitable acquisition is <b>organic</b> (SEO, TikTok, Reddit, viral). This isn't a flaw in execution — it's a structural constraint of selling $25 physical products with 2-5% conversion.
+  </div>
+
+  <div class="card">
+    <div class="q">What would make paid acquisition work?</div>
+    <div class="a">
+      Option A: Increase ASP to $50-75 (premium tier only, better packaging, higher perceived value).<br>
+      Option B: Subscription add-on ($3-5/mo for daily BaZi pushes) — recurring revenue offsets high CPA.<br>
+      Option C: Increase conversion (10% amulet view → 25%, 5% purchase → 10%) — but needs UX research.<br>
+      Option D: Affiliate/wholesale model (sell amulets through existing Feng Shui stores) — different channel entirely.
+    </div>
+  </div>
+</div>
+
+<!-- UPDATED VERDICT -->
+<div class="section" style="background: #fff;">
+  <h2>5. Updated Verdict v3.0</h2>
+
+  <div class="verdict">
+    <h3>Final Assessment with Traffic Costs</h3>
+    <div class="big">Conditional Go — With SEOfirst Mandate</div>
+    <table style="max-width:600px;margin:10px auto;text-align:left">
+      <tr><td><b>Previous (v2.0):</b></td><td>$0 mktg → $4,756/mo, 6.3 mo break-even at 50k visits</td></tr>
+      <tr><td style="color:var(--gold)"><b>Updated (v3.0):</b></td><td style="color:var(--gold)">$500 mktg → $4,256/mo net, 7.0 mo break-even at 50k visits</td></tr>
+      <tr><td><b>With $2k mktg:</b></td><td>$2,756/mo net, 10.9 mo break-even</td></tr>
+      <tr><td><b>Worst case (15k visits + mktg):</b></td><td style="color:var(--red)">-$24/mo — NEVER break even</td></tr>
+      <tr><td colspan="2" style="border-top:2px solid var(--gold);padding-top:8px"><b>SEO is not optional. SEO IS the business model.</b></td></tr>
+    </table>
+  </div>
+
+  <h3>Recommendations</h3>
+  
+  <div class="card">
+    <div class="q">1. Invest $300 in Google Ads probe test — not to acquire traffic, but to VALIDATE conversion</div>
+    <div class="a">
+      The probe test answers the question: "Do people who search 'Chinese name generator' actually use our tool and want our amulet?"<br>
+      If YES → SEO is justified. If NO → pivot before building.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q">2. Zero paid acquisition until SEO is established</div>
+    <div class="a">
+      First 3-6 months: build the name generator tool as an SEO asset. Write 20-30 articles around Chinese names, BaZi, zodiac.<br>
+      Cost: $0-500/mo. Target: 5k-15k organic visits by month 6.
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q">3. Don't spend $30k on marketing — spend it on the product + first inventory</div>
+    <div class="a">
+      Recommended allocation:<br>
+      <b>$10k</b> — MVP build (name gen + BaZi + amulet flow + behavior tracker)<br>
+      <b>$5k</b> — First inventory batch (500-1,000 units, ~$2.5k) + packaging ($1k) + samples ($500)<br>
+      <b>$5k</b> — SEO content (50+ articles on Fiverr/Upwork, $50-100/article)<br>
+      <b>$3k</b> — Probe tests across channels ($1k Google Ads + $1k TG Ads + $1k influencers)<br>
+      <b>$2k</b> — Legal + domain + misc<br>
+      <b>$5k</b> — Working capital buffer
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="q">4. Consider subscription to fix unit economics</div>
+    <div class="a">
+      Adding a $3-5/mo "daily BaZi push" subscription would dramatically change the model:<br>
+      At 1% sub conversion of 50k visitors = 500 subs × $4 avg = $2,000/mo recurring.<br>
+      This makes paid acquisition viable (CAC of $50 recouped in 12-24 months of subscriptions).
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;color:var(--gray);font-size:.8em;padding:20px 0;border-top:1px solid #ddd;margin-top:20px">
+  XingTu + Amulet — Traffic & Economics v3.0 | June 21, 2026<br>
+  Sources: traffic-research.md, financial-model.md, supplier-research.md, keyword-research.md
+</div>
+
+</div>
+</body>
+</html>

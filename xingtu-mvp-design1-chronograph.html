@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>XingTu · BaZi Birthday Selector</title>
+  <meta name="description" content="Chronograph-style BaZi birthday selector with circular sector dials">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Reset & Base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f0eb;
+      color: #3e2723;
+      min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      position: relative;
+    }
+
+    /* ===== 4-Corner Ambient Glow ===== */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(80px);
+      opacity: 0.35;
+    }
+    body::before {
+      top: -100px;
+      left: -100px;
+      background: radial-gradient(circle, #c9a43e55, transparent 70%);
+    }
+    body::after {
+      bottom: -100px;
+      right: -100px;
+      background: radial-gradient(circle, #c9a43e33, transparent 70%);
+    }
+    .glow-top-right {
+      position: fixed;
+      top: -120px;
+      right: -80px;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #8b735533, transparent 70%);
+      filter: blur(70px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-bottom-left {
+      position: fixed;
+      bottom: -80px;
+      left: -80px;
+      width: 250px;
+      height: 250px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #c9a43e44, transparent 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ===== App Shell ===== */
+    #app {
+      max-width: 420px;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 20px 16px;
+      padding: 20px env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== Header ===== */
+    #app-header {
+      text-align: center;
+      padding: 20px 0 12px;
+    }
+    #app-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #c9a43e, #dbb94c, #c9a43e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: 2px;
+    }
+    #app-subtitle {
+      font-size: 0.75rem;
+      color: #a09080;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* ===== Splash Screen ===== */
+    #splash {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      text-align: center;
+      animation: fadeIn 0.8s ease-out;
+      padding: 40px 20px;
+    }
+    #splash .splash-logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+      animation: scaleIn 0.6s ease-out 0.2s both;
+    }
+    #splash .splash-logo circle:first-child {
+      fill: none;
+      stroke: url(#gold-gradient);
+      stroke-width: 6;
+    }
+    #splash .splash-logo .inner-ring {
+      fill: none;
+      stroke: #c9a43e;
+      stroke-width: 3;
+      opacity: 0.5;
+    }
+    #splash .splash-logo .center-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      fill: #c9a43e;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    #splash-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 2rem;
+      color: #3e2723;
+      margin-bottom: 8px;
+      animation: fadeUp 0.6s ease-out 0.4s both;
+    }
+    #splash-subtitle {
+      font-size: 0.9rem;
+      color: #a09080;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease-out 0.5s both;
+    }
+    #splash .splash-ornament {
+      font-size: 1.5rem;
+      color: #c9a43e;
+      margin-bottom: 24px;
+      animation: fadeUp 0.6s ease-out 0.6s both;
+    }
+    #btn-begin {
+      padding: 16px 56px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: linear-gradient(135deg, #c9a43e, #b8943f);
+      color: #fff;
+      letter-spacing: 2px;
+      box-shadow: 0 4px 20px rgba(201, 164, 62, 0.35);
+      transition: all 0.3s ease;
+      touch-action: manipulation;
+      animation: fadeUp 0.6s ease-out 0.7s both;
+    }
+    #btn-begin:active {
+      transform: scale(0.96);
+    }
+
+    /* ===== Picker Screen ===== */
+    #picker { display: none; }
+    #picker.active { display: block; animation: fadeIn 0.4s ease-out; }
+    #picker-header {
+      text-align: center;
+      margin: 8px 0 20px;
+    }
+    #picker-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #3e2723;
+    }
+    #picker-instruction {
+      font-size: 0.8rem;
+      color: #a09080;
+      margin-top: 4px;
+    }
+
+    /* ===== Dials 2x2 Grid ===== */
+    #dials-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    /* ===== Dial Card ===== */
+    .dial-card {
+      background: #faf7f2;
+      border-radius: 16px;
+      padding: 10px;
+      box-shadow: 0 2px 12px rgba(62, 39, 35, 0.06), 0 1px 4px rgba(62, 39, 35, 0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .dial-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    .dial-canvas {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 190px;
+      position: relative;
+    }
+
+    .dial-canvas svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    /* ===== Dial Label ===== */
+    .dial-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: #a09080;
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    /* ===== Sector Hover ===== */
+    .dial-sector {
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+    .dial-sector:hover {
+      opacity: 0.75;
+    }
+    .dial-sector.selected {
+      stroke: #c9a43e !important;
+      stroke-width: 2.5 !important;
+      filter: brightness(1.25) drop-shadow(0 0 3px rgba(201, 164, 62, 0.5));
+    }
+
+    /* ===== Sector Text ===== */
+    .sector-text {
+      pointer-events: none;
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 9px;
+      fill: rgba(255,255,255,0.85);
+      text-anchor: middle;
+      dominant-baseline: central;
+      font-weight: 600;
+    }
+    .sector-text.selected-text {
+      fill: #ffffff !important;
+      font-weight: 700;
+      font-size: 10px;
+    }
+
+    /* ===== Center Hub ===== */
+    .dial-hub {
+      pointer-events: none;
+    }
+    .hub-inner {
+      fill: #faf7f2;
+      stroke: #e8e0d8;
+      stroke-width: 2;
+    }
+    .hub-selected {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      fill: #c9a43e;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .hub-placeholder {
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-size: 10px;
+      fill: #d0c8b8;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* ===== Gold Bezel ===== */
+    .gold-bezel {
+      fill: none;
+      stroke: url(#gold-gradient);
+      stroke-width: 7;
+      filter: drop-shadow(0 0 2px rgba(201, 164, 62, 0.3));
+    }
+
+    /* ===== Year Navigation ===== */
+    .year-nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .year-nav-btn {
+      background: #f5f0eb;
+      border: 1px solid #e0d8d0;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      font-size: 1.1rem;
+      line-height: 1;
+      cursor: pointer;
+      color: #8b7355;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+      padding: 0;
+    }
+    .year-nav-btn:active {
+      background: #c9a43e;
+      color: #fff;
+      border-color: #c9a43e;
+    }
+    .year-range-label {
+      font-size: 0.65rem;
+      color: #a09080;
+      font-weight: 500;
+      letter-spacing: 1px;
+      min-width: 48px;
+      text-align: center;
+    }
+    .year-sub-label {
+      font-weight: 400;
+      font-size: 0.6rem;
+      color: #b0a090;
+    }
+
+    /* ===== Calculate Button ===== */
+    #picker-actions {
+      text-align: center;
+      padding: 8px 0 20px;
+    }
+    #btn-calculate {
+      padding: 14px 48px;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      background: #e8e0d8;
+      color: #b0a090;
+      letter-spacing: 2px;
+      transition: all 0.3s ease;
+      touch-action: manipulation;
+    }
+    #btn-calculate:not(:disabled) {
+      background: linear-gradient(135deg, #c9a43e, #b8943f);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(201, 164, 62, 0.35);
+    }
+    #btn-calculate:not(:disabled):active {
+      transform: scale(0.96);
+    }
+
+    /* ===== Results Screen ===== */
+    #result { display: none; }
+    #result.active { display: block; animation: fadeIn 0.5s ease-out; }
+
+    #result-header {
+      text-align: center;
+      margin: 20px 0;
+    }
+    #result-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 1.3rem;
+      color: #3e2723;
+    }
+
+    #four-pillars {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .pillar {
+      background: #faf7f2;
+      border: 1px solid #e8e0d8;
+      border-radius: 12px;
+      padding: 14px 8px;
+      text-align: center;
+      box-shadow: 0 1px 6px rgba(62, 39, 35, 0.04);
+    }
+    .pillar-stem {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #c9a43e;
+    }
+    .pillar-branch {
+      font-size: 1.1rem;
+      color: #3e2723;
+      margin-top: 4px;
+    }
+    .pillar-label {
+      font-size: 0.65rem;
+      color: #a09080;
+      margin-top: 6px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .pillar-element {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-top: 6px;
+    }
+
+    /* ===== BaZi Detail Sections ===== */
+    .detail-section {
+      background: #faf7f2;
+      border: 1px solid #e8e0d8;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 6px rgba(62, 39, 35, 0.04);
+    }
+    .detail-section h3 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 0.9rem;
+      color: #c9a43e;
+      margin-bottom: 10px;
+      letter-spacing: 1px;
+    }
+
+    /* Ten Gods */
+    #ten-gods-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .ten-god-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 10px;
+      background: #f5f0eb;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+    .ten-god-stem {
+      font-weight: 600;
+      color: #8b7355;
+      font-size: 1rem;
+    }
+    .ten-god-name {
+      color: #6a5a4a;
+      font-size: 0.75rem;
+    }
+
+    /* Element Balance */
+    #element-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .elem-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .elem-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .elem-label {
+      font-size: 0.8rem;
+      color: #5a4a3a;
+      width: 72px;
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+    .elem-bar-track {
+      flex: 1;
+      height: 8px;
+      background: #f5f0eb;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .elem-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+    .elem-count {
+      font-size: 0.75rem;
+      color: #a09080;
+      width: 20px;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    /* Lucky Amulet */
+    #lucky-amulet-box {
+      text-align: center;
+      padding: 12px;
+    }
+    #amulet-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+    #amulet-text {
+      font-size: 0.95rem;
+      color: #8b7355;
+      font-weight: 600;
+    }
+    #amulet-desc {
+      font-size: 0.8rem;
+      color: #a09080;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    #result-actions {
+      text-align: center;
+      padding: 16px 0;
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+    #btn-back {
+      padding: 12px 36px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid #e0d8d0;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #faf7f2;
+      color: #6a5a4a;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    #btn-back:active {
+      background: #f0ebe4;
+    }
+    #btn-reset {
+      padding: 12px 36px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border: 1px solid #e8d8c8;
+      border-radius: 10px;
+      cursor: pointer;
+      background: transparent;
+      color: #b09070;
+      letter-spacing: 1px;
+      transition: all 0.2s ease;
+      touch-action: manipulation;
+    }
+    #btn-reset:active {
+      background: rgba(201, 164, 62, 0.05);
+    }
+
+    /* Footer */
+    #app-footer {
+      text-align: center;
+      padding: 12px 8px;
+      color: #d0c8b8;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      margin-top: auto;
+    }
+
+    /* ===== Animations ===== */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.6); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    @keyframes dial-appear {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .dial-card {
+      animation: dial-appear 0.4s ease-out both;
+    }
+    .dial-card:nth-child(1) { animation-delay: 0.0s; }
+    .dial-card:nth-child(2) { animation-delay: 0.1s; }
+    .dial-card:nth-child(3) { animation-delay: 0.2s; }
+    .dial-card:nth-child(4) { animation-delay: 0.3s; }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 380px) {
+      #app { padding: 12px 10px; }
+      #app-title { font-size: 1.8rem; }
+      .dial-canvas { max-width: 140px; }
+      .dial-label { font-size: 0.6rem; }
+      .pillar-stem { font-size: 1.2rem; }
+      .pillar-branch { font-size: 0.95rem; }
+      #dials-container { gap: 8px; }
+    }
+    @media (min-width: 421px) {
+      #app { max-width: 420px; }
+      .dial-canvas { max-width: 180px; }
+    }
+    /* More FAB */#moreFAB{position:fixed;bottom:20px;right:20px;z-index:100;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#c9a43e,#b8943f);color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(201,164,62,.4);transition:transform .2s;user-select:none;-webkit-user-select:none}#moreFAB:active{transform:scale(.9)}#moreOverlay{position:fixed;inset:0;z-index:200;display:none;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:center;justify-content:center}#moreOverlay.show{display:flex}#moreMenu{background:#1a1a2e;border-radius:16px;padding:20px;width:300px;max-width:90vw;color:#e0e0e8}.more-title{font-size:18px;font-weight:700;color:#c9a43e;text-align:center;margin-bottom:12px}.more-item{padding:12px 14px;margin-bottom:6px;background:#0d0d22;border-radius:10px;cursor:pointer;font-size:14px;font-weight:500;transition:background .2s}.more-item:active{background:#1f1f3a}.more-close{text-align:center;padding:10px;color:#888;font-size:13px;cursor:pointer;margin-top:4px}#amuletShopOverlay{position:fixed;inset:0;z-index:300;display:none;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding-top:20px;overflow-y:auto}#amuletShopOverlay.show{display:flex}#amuletShop{background:#1a1a2e;border-radius:16px;padding:20px;width:360px;max-width:92vw;margin-bottom:20px;color:#e0e0e8}.shop-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}.shop-header h3{font-size:18px;font-weight:700;color:#c9a43e}.shop-sub{font-size:11px;color:#888;margin-bottom:12px}.shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.shop-card{background:#0d0d22;border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:all .2s;border:1px solid transparent}.shop-card:active{transform:scale(.96);border-color:#c9a43e40}.shop-card .sc-emoji{font-size:28px;margin-bottom:4px}.shop-card .sc-name{font-size:11px;font-weight:600;color:#e0e0e8;margin-bottom:2px}.shop-card .sc-tag{font-size:8px;padding:1px 5px;border-radius:3px;display:inline-block;margin-bottom:2px;background:rgba(201,164,62,.15);color:#c9a43e}.shop-card .sc-price{font-size:14px;font-weight:700;color:#4CAF50}.shop-card.recommended{border-color:#c9a43e;background:rgba(201,164,62,.06)}.amulet-buy-row{display:flex;gap:8px;margin-top:8px;overflow-x:auto;padding-bottom:4px}.amulet-buy-card{flex-shrink:0;width:100px;background:#0d0d22;border-radius:8px;padding:8px;text-align:center;cursor:pointer}.amulet-buy-card:active{transform:scale(.95)}.amulet-buy-card .abc-emoji{font-size:24px}.amulet-buy-card .abc-name{font-size:9px;color:#ccc;margin-top:2px}.amulet-buy-card .abc-price{font-size:12px;font-weight:700;color:#4CAF50;margin-top:1px}
+  </style>
+</head>
+<body>
+
+  <!-- Ambient glow corners -->
+  <div class="glow-top-right"></div>
+  <div class="glow-bottom-left"></div>
+
+  <!-- ===== SVG DEFS (shared filters, gradients) ===== -->
+  <svg style="position:absolute;width:0;height:0;" aria-hidden="true">
+    <defs>
+      <radialGradient id="gold-gradient" cx="30%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#f7e8b0" />
+        <stop offset="40%" stop-color="#d4a853" />
+        <stop offset="80%" stop-color="#b8943f" />
+        <stop offset="100%" stop-color="#8a6e2a" />
+      </radialGradient>
+      <radialGradient id="gold-fill" cx="30%" cy="30%" r="70%">
+        <stop offset="0%" stop-color="#f7e8b0" />
+        <stop offset="50%" stop-color="#d4a853" />
+        <stop offset="100%" stop-color="#a07830" />
+      </radialGradient>
+    </defs>
+  </svg>
+
+  <!-- ===== APP SHELL ===== -->
+  <div id="app">
+
+    <!-- Header -->
+    <header id="app-header">
+      <h1 id="app-title">XingTu</h1>
+      <p id="app-subtitle">BaZi · Destiny Dial</p>
+    </header>
+
+    <!-- Main content -->
+    <main id="main-content">
+
+      <!-- ===== Splash Screen ===== -->
+      <section id="splash">
+        <svg class="splash-logo" viewBox="0 0 140 140">
+          <circle cx="70" cy="70" r="64"/>
+          <circle class="inner-ring" cx="70" cy="70" r="52"/>
+          <path d="M70 10 A60 60 0 0 1 126 60" fill="none" stroke="#c9a43e" stroke-width="2" opacity="0.4"/>
+          <path d="M70 130 A60 60 0 0 1 14 80" fill="none" stroke="#c9a43e" stroke-width="2" opacity="0.4"/>
+          <text class="center-text" x="70" y="65">星</text>
+          <text class="center-text" font-size="14" x="70" y="90">XingTu</text>
+        </svg>
+        <h2 id="splash-title">Discover Your Destiny</h2>
+        <p id="splash-subtitle">Enter your birth moment and unlock the ancient wisdom of BaZi — the Four Pillars of Destiny</p>
+        <div class="splash-ornament">✦ ✦ ✦</div>
+        <button id="btn-begin" type="button">Begin Reading</button>
+      </section>
+
+      <!-- ===== Picker Screen ===== -->
+      <section id="picker">
+        <div id="picker-header">
+          <h2 id="picker-title">Select Your Birth Moment</h2>
+          <p id="picker-instruction">Tap each dial to set Year, Month, Day & Hour</p>
+        </div>
+
+        <div id="dials-container">
+          <div class="dial-card dial-card-year">
+            <div class="dial-wrapper" id="dial-year" data-dial="year">
+              <div class="dial-canvas" id="dial-canvas-year"></div>
+              <div class="year-nav-row">
+                <button class="year-nav-btn" id="year-prev" type="button" aria-label="Previous 12 years">‹</button>
+                <span class="year-range-label" id="year-range-label">1920–2030</span>
+                <button class="year-nav-btn" id="year-next" type="button" aria-label="Next 12 years">›</button>
+              </div>
+              <div class="dial-label">Year <span class="year-sub-label" id="year-sub-label"></span></div>
+            </div>
+          </div>
+          <div class="dial-card">
+            <div class="dial-wrapper" id="dial-month" data-dial="month">
+              <div class="dial-canvas" id="dial-canvas-month"></div>
+              <div class="dial-label">Month</div>
+            </div>
+          </div>
+          <div class="dial-card">
+            <div class="dial-wrapper" id="dial-day" data-dial="day">
+              <div class="dial-canvas" id="dial-canvas-day"></div>
+              <div class="dial-label">Day</div>
+            </div>
+          </div>
+          <div class="dial-card">
+            <div class="dial-wrapper" id="dial-hour" data-dial="hour">
+              <div class="dial-canvas" id="dial-canvas-hour"></div>
+              <div class="dial-label">Hour</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="picker-actions">
+          <button id="btn-calculate" type="button" disabled>Calculate BaZi</button>
+        </div>
+      </section>
+
+      <!-- ===== Result Screen ===== -->
+      <section id="result">
+        <div id="result-header">
+          <h2 id="result-title">Your BaZi Chart</h2>
+        </div>
+
+        <div id="four-pillars">
+          <div class="pillar" id="pillar-year">
+            <div class="pillar-stem" id="pillar-stem-year">—</div>
+            <div class="pillar-branch" id="pillar-branch-year">—</div>
+            <div class="pillar-element" id="pillar-element-year"></div>
+            <div class="pillar-label">Year</div>
+          </div>
+          <div class="pillar" id="pillar-month">
+            <div class="pillar-stem" id="pillar-stem-month">—</div>
+            <div class="pillar-branch" id="pillar-branch-month">—</div>
+            <div class="pillar-element" id="pillar-element-month"></div>
+            <div class="pillar-label">Month</div>
+          </div>
+          <div class="pillar" id="pillar-day">
+            <div class="pillar-stem" id="pillar-stem-day">—</div>
+            <div class="pillar-branch" id="pillar-branch-day">—</div>
+            <div class="pillar-element" id="pillar-element-day"></div>
+            <div class="pillar-label">Day</div>
+          </div>
+          <div class="pillar" id="pillar-hour">
+            <div class="pillar-stem" id="pillar-stem-hour">—</div>
+            <div class="pillar-branch" id="pillar-branch-hour">—</div>
+            <div class="pillar-element" id="pillar-element-hour"></div>
+            <div class="pillar-label">Hour</div>
+          </div>
+        </div>
+
+        <div class="detail-section" id="ten-gods-section">
+          <h3>✦ Ten Gods (十神)</h3>
+          <div id="ten-gods-list"></div>
+        </div>
+
+        <div class="detail-section" id="element-section">
+          <h3>✦ Element Balance (五行)</h3>
+          <div id="element-bars"></div>
+        </div>
+
+        <div class="detail-section" id="amulet-section">
+          <h3>✦ Lucky Amulet</h3>
+          <div id="lucky-amulet-box">
+            <div id="amulet-icon">🔮</div>
+            <div id="amulet-text">—</div>
+            <div id="amulet-desc">—</div>
+          </div>
+        </div>
+
+        <div id="result-actions">
+          <button id="btn-back" type="button">Adjust Birth Time</button>
+          <button id="btn-reset" type="button">New Reading</button>
+        </div>
+      </section>
+
+    </main>
+
+    <footer id="app-footer">
+      XingTu · BaZi Explorer
+    </footer>
+  </div>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // ═══════════════════════════════════════════════════════════════
+    //  BaZi Calculation Engine — Self-contained, zero-dependency
+    // ═══════════════════════════════════════════════════════════════
+
+    // ── Heavenly Stems (天干) ──
+    const STEMS = [
+      { index: 0, chinese: '甲', pinyin: 'jia',  element: 'wood',  yinYang: 'yang' },
+      { index: 1, chinese: '乙', pinyin: 'yi',   element: 'wood',  yinYang: 'yin'  },
+      { index: 2, chinese: '丙', pinyin: 'bing', element: 'fire',  yinYang: 'yang' },
+      { index: 3, chinese: '丁', pinyin: 'ding', element: 'fire',  yinYang: 'yin'  },
+      { index: 4, chinese: '戊', pinyin: 'wu',   element: 'earth', yinYang: 'yang' },
+      { index: 5, chinese: '己', pinyin: 'ji',   element: 'earth', yinYang: 'yin'  },
+      { index: 6, chinese: '庚', pinyin: 'geng', element: 'metal', yinYang: 'yang' },
+      { index: 7, chinese: '辛', pinyin: 'xin',  element: 'metal', yinYang: 'yin'  },
+      { index: 8, chinese: '壬', pinyin: 'ren',  element: 'water', yinYang: 'yang' },
+      { index: 9, chinese: '癸', pinyin: 'gui',  element: 'water', yinYang: 'yin'  },
+    ];
+
+    // ── Earthly Branches (地支) ──
+    const BRANCHES = [
+      { index: 0,  chinese: '子', pinyin: 'zi',   zodiac: 'Rat',    element: 'water' },
+      { index: 1,  chinese: '丑', pinyin: 'chou', zodiac: 'Ox',     element: 'earth' },
+      { index: 2,  chinese: '寅', pinyin: 'yin',  zodiac: 'Tiger',  element: 'wood'  },
+      { index: 3,  chinese: '卯', pinyin: 'mao',  zodiac: 'Rabbit', element: 'wood'  },
+      { index: 4,  chinese: '辰', pinyin: 'chen', zodiac: 'Dragon', element: 'earth' },
+      { index: 5,  chinese: '巳', pinyin: 'si',   zodiac: 'Snake',  element: 'fire'  },
+      { index: 6,  chinese: '午', pinyin: 'wu',   zodiac: 'Horse',  element: 'fire'  },
+      { index: 7,  chinese: '未', pinyin: 'wei',  zodiac: 'Goat',   element: 'earth' },
+      { index: 8,  chinese: '申', pinyin: 'shen', zodiac: 'Monkey', element: 'metal' },
+      { index: 9,  chinese: '酉', pinyin: 'you',  zodiac: 'Rooster',element: 'metal' },
+      { index: 10, chinese: '戌', pinyin: 'xu',   zodiac: 'Dog',    element: 'earth' },
+      { index: 11, chinese: '亥', pinyin: 'hai',  zodiac: 'Pig',    element: 'water' },
+    ];
+
+    // ── Element definitions for UI colors & display ──
+    const ELEMENT_META = {
+      wood:  { name: 'Wood',  cn: '木', primary: '#4CA416', light: '#6CC836', glow: 'rgba(76,164,22,0.4)' },
+      fire:  { name: 'Fire',  cn: '火', primary: '#D4380D', light: '#F05A2A', glow: 'rgba(212,56,13,0.4)' },
+      earth: { name: 'Earth', cn: '土', primary: '#C89020', light: '#E0B040', glow: 'rgba(200,144,32,0.4)' },
+      metal: { name: 'Metal', cn: '金', primary: '#8A8A8A', light: '#B0B0B0', glow: 'rgba(138,138,138,0.4)' },
+      water: { name: 'Water', cn: '水', primary: '#1A5D9C', light: '#3A8DC4', glow: 'rgba(26,93,156,0.4)' },
+    };
+
+    function stemElement(stemIdx) { return STEMS[stemIdx].element; }
+    function stemIsYang(stemIdx) { return STEMS[stemIdx].yinYang === 'yang'; }
+
+    // ── Five Tiger Escape (五虎遁) — Month Stem Start ──
+    const WU_HU_DUN = [2, 4, 6, 8, 0];
+
+    // ── Five Rat Escape (五鼠遁) — Hour Stem Start ──
+    const WU_SHU_DUN = [0, 2, 4, 6, 8];
+
+    function mod(n, m) { return ((n % m) + m) % m; }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  Amulet Shop — 20 items with element tags
+    // ═══════════════════════════════════════════════════════════════
+    const AMULET_SHOP = [
+      {id:'jade-dragon', name:'Jade Dragon Pendant', elem:'wood', emoji:'🐉', price:29, desc:'Hand-carved nephrite jade — attracts growth and vitality.', tag:'Wood Boost'},
+      {id:'ruby-phoenix', name:'Ruby Phoenix Amulet', elem:'fire', emoji:'🦅', price:34, desc:'Cinnabar-infused charm — ignites passion and recognition.', tag:'Fire Boost'},
+      {id:'golden-turtle', name:'Golden Turtle Talisman', elem:'earth', emoji:'🐢', price:27, desc:'Brass talisman — grounds energy, stabilises fortune.', tag:'Earth Boost'},
+      {id:'silver-wolf', name:'Silver Wolf Guardian', elem:'metal', emoji:'🐺', price:39, desc:'Aged bronze from Song dynasty — protects wealth.', tag:'Metal Boost'},
+      {id:'wave-jade', name:'Jade Wave Pendant', elem:'water', emoji:'🌊', price:32, desc:'White jade with water ripples — attracts wisdom and flow.', tag:'Water Boost'},
+      {id:'bamboo-forest', name:'Bamboo Forest Blessing', elem:'wood', emoji:'🎋', price:22, desc:'Engraved bamboo slip — brings steady career growth.', tag:'Career'},
+      {id:'crimson-heart', name:'Crimson Heart Charm', elem:'fire', emoji:'❤️', price:44, desc:'Rose quartz & red thread — enhances love and relationships.', tag:'Love'},
+      {id:'amber-tiger', name:'Amber Tiger Eye', elem:'earth', emoji:'🐅', price:37, desc:'Golden amber with tiger stripe — confidence and courage.', tag:'Courage'},
+      {id:'iron-sword', name:'Iron Sword Miniature', elem:'metal', emoji:'⚔️', price:49, desc:'Miniature broadsword — cuts through obstacles and enemies.', tag:'Protection'},
+      {id:'abyss-mirror', name:'Abyss Mirror Talisman', elem:'water', emoji:'🪞', price:42, desc:'Black obsidian mirror — reflects negative energy away.', tag:'Protection'},
+      {id:'cherry-blossom', name:'Cherry Blossom Hairpin', elem:'wood', emoji:'🌸', price:19, desc:'Pink quartz hair ornament — attracts gentle romance.', tag:'Love'},
+      {id:'sun-wheel', name:'Sun Wheel Pendant', elem:'fire', emoji:'☀️', price:33, desc:'Gold-plated sun disk — boosts charisma and leadership.', tag:'Career'},
+      {id:'mountain-seal', name:'Mountain Seal Stamp', elem:'earth', emoji:'⛰️', price:28, desc:'Jade seal with mountain engraving — authority and stability.', tag:'Career'},
+      {id:'moon-dagger', name:'Moon Shadow Dagger', elem:'metal', emoji:'🌙', price:45, desc:'Silver dagger with moonstone — dispels nightmares and fear.', tag:'Protection'},
+      {id:'koi-fish', name:'Koi Fish Pair', elem:'water', emoji:'🐟', price:36, desc:'Twin koi in wave pattern — wealth flowing like water.', tag:'Wealth'},
+      {id:'pine-tree', name:'Pine Tree of Longevity', elem:'wood', emoji:'🌲', price:31, desc:'Ancient pine needle charm — health and long life.', tag:'Health'},
+      {id:'dragon-pearl', name:'Dragon Pearl Ring', elem:'fire', emoji:'🔮', price:52, desc:'Red spinel set in gold — ultimate prosperity attractor.', tag:'Wealth'},
+      {id:'crystal-sceptre', name:'Crystal Sceptre', elem:'earth', emoji:'💎', price:58, desc:'Quartz crystal wand — amplifies all elemental energies.', tag:'All Elements'},
+      {id:'shield-badge', name:'Guardian Shield Badge', elem:'metal', emoji:'🛡️', price:38, desc:'Bronze shield with lion — deflects misfortune and gossip.', tag:'Protection'},
+      {id:'lotus-beads', name:'Lotus Prayer Beads', elem:'water', emoji:'🪷', price:26, desc:'Blue sandalwood beads — meditation and inner peace.', tag:'Health'},
+    ];
+
+    function isLeap(y) {
+      return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+    }
+
+    function daysSince1900(year, month, day) {
+      const dim = [31, isLeap(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+      let total = 0;
+      for (let y = 1900; y < year; y++) total += isLeap(y) ? 366 : 365;
+      for (let m = 0; m < month - 1; m++) total += dim[m];
+      return total + day - 1;
+    }
+
+    function calculateBaZi(year, month, day, hour) {
+      const yStemIdx = mod(year - 4, 10);
+      const yBranchIdx = mod(year - 4, 12);
+
+      // Month branch: month 1=寅(2), 2=卯(3), ..., 12=丑(1)
+      const MONTH_BRANCH_TABLE = [2,3,4,5,6,7,8,9,10,11,0,1];
+      const mBranchIdx = MONTH_BRANCH_TABLE[month-1];
+      const yearGroup = mod(yStemIdx, 5);
+      const firstMonthStem = WU_HU_DUN[yearGroup];
+      const mStemIdx = mod(firstMonthStem + mBranchIdx - 2, 10);
+
+      let dy = year, dm = month, dd = day;
+      if (hour >= 23) {
+        dd += 1;
+        const dim = [31, isLeap(dy) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        if (dd > dim[dm - 1]) { dd = 1; dm += 1; if (dm > 12) { dm = 1; dy += 1; } }
+      }
+      const totalDays = daysSince1900(dy, dm, dd);
+      const dStemIdx = mod(totalDays, 10);
+      const dBranchIdx = mod(totalDays, 12);
+
+      let hBranchIdx;
+      if (hour >= 23 || hour < 1) hBranchIdx = 0;
+      else if (hour >= 1 && hour < 3)  hBranchIdx = 1;
+      else if (hour >= 3 && hour < 5)  hBranchIdx = 2;
+      else if (hour >= 5 && hour < 7)  hBranchIdx = 3;
+      else if (hour >= 7 && hour < 9)  hBranchIdx = 4;
+      else if (hour >= 9 && hour < 11) hBranchIdx = 5;
+      else if (hour >= 11 && hour < 13) hBranchIdx = 6;
+      else if (hour >= 13 && hour < 15) hBranchIdx = 7;
+      else if (hour >= 15 && hour < 17) hBranchIdx = 8;
+      else if (hour >= 17 && hour < 19) hBranchIdx = 9;
+      else if (hour >= 19 && hour < 21) hBranchIdx = 10;
+      else hBranchIdx = 11;
+      const dayGroup = mod(dStemIdx, 5);
+      const ziStem = WU_SHU_DUN[dayGroup];
+      const hStemIdx = mod(ziStem + hBranchIdx, 10);
+
+      const pStems = [yStemIdx, mStemIdx, dStemIdx, hStemIdx];
+      const pBranches = [yBranchIdx, mBranchIdx, dBranchIdx, hBranchIdx];
+      const pillarLabels = ['Year', 'Month', 'Day', 'Hour'];
+      const pillars = pStems.map((s, i) => ({
+        stem: { chinese: STEMS[s].chinese, index: s, element: STEMS[s].element, yinYang: STEMS[s].yinYang },
+        branch: { chinese: BRANCHES[pBranches[i]].chinese, index: pBranches[i], element: BRANCHES[pBranches[i]].element, zodiac: BRANCHES[pBranches[i]].zodiac },
+        label: pillarLabels[i],
+        full: STEMS[s].chinese + BRANCHES[pBranches[i]].chinese
+      }));
+
+      const pillarStrings = pillars.map(p => p.full);
+      const dayMaster = STEMS[dStemIdx];
+
+      const elements = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+      const allComponents = [
+        stemElement(yStemIdx), stemElement(mStemIdx), stemElement(dStemIdx), stemElement(hStemIdx),
+        BRANCHES[yBranchIdx].element, BRANCHES[mBranchIdx].element,
+        BRANCHES[dBranchIdx].element, BRANCHES[hBranchIdx].element
+      ];
+      allComponents.forEach(el => { elements[el]++; });
+
+      function getTenGod(stemIdx, dayMasterIdx) {
+        const sEl = stemElement(stemIdx);
+        const dEl = stemElement(dayMasterIdx);
+        const sYang = stemIsYang(stemIdx);
+        const dYang = stemIsYang(dayMasterIdx);
+
+        const elementCycle = ['wood', 'fire', 'earth', 'metal', 'water'];
+        const sElIdx = elementCycle.indexOf(sEl);
+        const dElIdx = elementCycle.indexOf(dEl);
+
+        const sameElement = sElIdx === dElIdx;
+        const producesMe = (sElIdx === (dElIdx + 4) % 5);
+        const iProduce = (sElIdx === (dElIdx + 1) % 5);
+        const controlsMe = (sElIdx === (dElIdx + 3) % 5);
+        const iControl = (sElIdx === (dElIdx + 2) % 5);
+
+        const sameYinYang = (sYang === dYang);
+
+        if (sameElement) {
+          return sameYinYang ? '比肩 (Friend)' : '劫财 (Rob Wealth)';
+        }
+        if (producesMe) {
+          return sameYinYang ? '偏印 (Indirect Resource)' : '正印 (Direct Resource)';
+        }
+        if (iProduce) {
+          return sameYinYang ? '食神 (Eating God)' : '伤官 (Hurt Officer)';
+        }
+        if (controlsMe) {
+          return sameYinYang ? '七杀 (Seven Kill)' : '正官 (Direct Officer)';
+        }
+        if (iControl) {
+          return sameYinYang ? '偏财 (Indirect Wealth)' : '正财 (Direct Wealth)';
+        }
+        return '—';
+      }
+
+      const HIDDEN_STEMS = {
+        0: [9], 1: [5, 9, 7], 2: [0, 2, 4], 3: [1],
+        4: [4, 1, 9], 5: [2, 6, 4], 6: [3, 5], 7: [5, 3, 1],
+        8: [6, 8, 4], 9: [7], 10: [4, 7, 3], 11: [8, 0],
+      };
+
+      const tenGodEntries = [];
+      const mainStems = [yStemIdx, mStemIdx, dStemIdx, hStemIdx];
+      const mainLabels = ['Year', 'Month', 'Day★', 'Hour'];
+      const mainBranches = [yBranchIdx, mBranchIdx, dBranchIdx, hBranchIdx];
+
+      for (let i = 0; i < 4; i++) {
+        tenGodEntries.push({
+          stem: STEMS[mainStems[i]].chinese,
+          label: mainLabels[i],
+          god: getTenGod(mainStems[i], dStemIdx)
+        });
+        const hidden = HIDDEN_STEMS[mainBranches[i]];
+        if (hidden.length > 0 && hidden[0] !== mainStems[i]) {
+          tenGodEntries.push({
+            stem: STEMS[hidden[0]].chinese,
+            label: mainLabels[i] + '藏',
+            god: getTenGod(hidden[0], dStemIdx)
+          });
+        }
+        if (hidden.length >= 3) {
+          tenGodEntries.push({
+            stem: STEMS[hidden[1]].chinese,
+            label: mainLabels[i] + '藏',
+            god: getTenGod(hidden[1], dStemIdx)
+          });
+        }
+      }
+
+      function getLuckyAmulet(elemCounts, dayStemIdx) {
+        const dEl = stemElement(dayStemIdx);
+        const sorted = Object.entries(elemCounts).sort((a, b) => a[1] - b[1]);
+        const minCount = sorted[0][1];
+        const deficientEls = sorted.filter(e => e[1] === minCount);
+        const dElIdx = ['wood', 'fire', 'earth', 'metal', 'water'].indexOf(dEl);
+        const producingEl = ['water', 'wood', 'fire', 'earth', 'metal'][dElIdx];
+
+        const AMULETS = {
+          wood:  { icon: '🪴', item: 'Jade Pendant (翡翠)',    dir: 'East',         color: 'Green',  desc: 'Wear green jade, face East for meditation, surround yourself with plants.' },
+          fire:  { icon: '🔥', item: 'Ruby or Red Coral (红宝石)', dir: 'South',      color: 'Red',    desc: 'Wear red gemstones, face South when working, keep a warm light nearby.' },
+          earth: { icon: '🏔️', item: 'Yellow Crystal (黄水晶)',   dir: 'Center / Southwest', color: 'Yellow', desc: 'Wear yellow or amber stones, carry earth-toned accessories.' },
+          metal: { icon: '⚔️', item: 'Silver or White Gold (白银)', dir: 'West',      color: 'White',  desc: 'Wear silver jewelry, keep metal objects on your West side.' },
+          water: { icon: '🌊', item: 'Black Obsidian (黑曜石)',   dir: 'North',       color: 'Black',  desc: 'Wear dark stones, place a small water fountain in the North area.' },
+        };
+
+        let targetEl = deficientEls[0][0];
+        if (elemCounts[producingEl] <= Math.max(...Object.values(elemCounts)) - 2) {
+          targetEl = producingEl;
+        }
+        const amulet = AMULETS[targetEl] || AMULETS.earth;
+        return { element: targetEl, elementCn: ELEMENT_META[targetEl].cn, ...amulet };
+      }
+
+      const luckyAmulet = getLuckyAmulet(elements, dStemIdx);
+
+      return {
+        pillars: pillarStrings,
+        pillarsDetail: pillars,
+        tenGods: tenGodEntries,
+        elementBalance: elements,
+        luckyAmulet: luckyAmulet,
+        dayMaster: dayMaster.chinese,
+      };
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  Amulet Recommendation Logic
+    // ═══════════════════════════════════════════════════════════════
+    function recommendAmulets(elemCounts, dayStemIdx, count=3) {
+      const sorted = Object.entries(elemCounts).sort((a,b) => a[1] - b[1]);
+      const minCount = sorted[0][1];
+      const needed = sorted.filter(e => e[1] === minCount).map(e => e[0]);
+      const prodCycle = {wood:'water', fire:'wood', earth:'fire', metal:'earth', water:'metal'};
+      const producers = needed.map(el => prodCycle[el] || el);
+      let pool = AMULET_SHOP.filter(a => needed.includes(a.elem) || producers.includes(a.elem));
+      if (pool.length < count) pool = AMULET_SHOP.slice();
+      for (let i = pool.length-1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i+1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, count);
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  SCREEN MANAGEMENT
+    // ═══════════════════════════════════════════════════════════════
+
+    function showScreen(screenId) {
+      const screens = ['splash', 'picker', 'result'];
+      screens.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.display = '';
+        el.classList.remove('active');
+        if (id === screenId) {
+          el.classList.add('active');
+          // Only force display:block for picker and result (CSS defaults to none)
+          if (id !== 'splash') {
+            el.style.display = 'block';
+          }
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    //  DIAL DATA & UI
+    // ═══════════════════════════════════════════════════════════════
+
+    const ELEMENTS = {
+      wood:  { name: 'Wood',  primary: '#4CA416', light: '#6CC836', dark: '#2D6E0A', glow: 'rgba(76,164,22,0.4)' },
+      fire:  { name: 'Fire',  primary: '#D4380D', light: '#F05A2A', dark: '#9A2000', glow: 'rgba(212,56,13,0.4)' },
+      earth: { name: 'Earth', primary: '#C89020', light: '#E0B040', dark: '#8A6010', glow: 'rgba(200,144,32,0.4)' },
+      metal: { name: 'Metal', primary: '#8A8A8A', light: '#B0B0B0', dark: '#606060', glow: 'rgba(138,138,138,0.4)' },
+      water: { name: 'Water', primary: '#1A5D9C', light: '#3A8DC4', dark: '#0A3D6C', glow: 'rgba(26,93,156,0.4)' }
+    };
+
+    const DIAL_CONFIG = {
+      year: {
+        element: 'wood',
+        values: [],  // populated dynamically by createDial
+        stems: ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'],
+        branches: ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+      },
+      month: {
+        element: 'fire',
+        values: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      },
+      day: {
+        element: 'earth',
+        values: Array.from({length: 31}, (_, i) => String(i + 1))
+      },
+      hour: {
+        element: 'water',
+        values: ['子Zǐ', '丑Chǒu', '寅Yín', '卯Mǎo', '辰Chén', '巳Sì',
+                 '午Wǔ', '未Wèi', '申Shēn', '酉Yǒu', '戌Xū', '亥Hài'],
+        branches: ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥']
+      }
+    };
+
+    const selections = { year: null, month: null, day: null, hour: null };
+
+    // Year dial: show 12 consecutive years, navigate with arrows
+    let yearRangeStart = 1920;
+
+    function getYearValues() {
+      const arr = [];
+      for (let i = 0; i < 12; i++) {
+        const y = yearRangeStart + i;
+        const animalIdx = mod(y - 4, 12);
+        arr.push({ year: y, label: String(y), animal: BRANCHES[animalIdx].zodiac, branch: BRANCHES[animalIdx] });
+      }
+      return arr;
+    }
+
+    const DEG = Math.PI / 180;
+
+    function polarToCartesian(cx, cy, r, angleDeg) {
+      const rad = (angleDeg - 90) * DEG;
+      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+    }
+
+    function sectorPath(cx, cy, rInner, rOuter, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, rOuter, startAngle);
+      const end = polarToCartesian(cx, cy, rOuter, endAngle);
+      const startInner = polarToCartesian(cx, cy, rInner, startAngle);
+      const endInner = polarToCartesian(cx, cy, rInner, endAngle);
+      const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+      return [
+        `M ${startInner.x} ${startInner.y}`,
+        `L ${start.x} ${start.y}`,
+        `A ${rOuter} ${rOuter} 0 ${largeArc} 1 ${end.x} ${end.y}`,
+        `L ${endInner.x} ${endInner.y}`,
+        `A ${rInner} ${rInner} 0 ${largeArc} 0 ${startInner.x} ${startInner.y}`
+      ].join(' ');
+    }
+
+    function createDial(dialName) {
+      const config = DIAL_CONFIG[dialName];
+      const el = ELEMENTS[config.element];
+      const canvas = document.getElementById(`dial-canvas-${dialName}`);
+      if (!canvas) return;
+
+      // For year dial, populate values dynamically
+      let sectorValues;
+      let isYearDial = false;
+      if (dialName === 'year') {
+        isYearDial = true;
+        const yearData = getYearValues();
+        sectorValues = yearData.map(d => d.label);
+        config.values = sectorValues;
+      } else {
+        sectorValues = config.values;
+      }
+
+      const N = sectorValues.length;
+      const dialSize = 240;
+      const cx = dialSize / 2;
+      const cy = dialSize / 2;
+      const outerR = 112;
+      const bezelR = 116;
+      const innerR = 22;
+      const elementRingR = 108;
+      const sectorAngle = 360 / N;
+
+      const svgNS = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(svgNS, 'svg');
+      svg.setAttribute('viewBox', `0 0 ${dialSize} ${dialSize}`);
+      svg.setAttribute('width', dialSize);
+      svg.setAttribute('height', dialSize);
+      svg.style.display = 'block';
+      svg.setAttribute('touch-action', 'none');
+
+      // Gold Bezel
+      const bezel = document.createElementNS(svgNS, 'circle');
+      bezel.setAttribute('cx', cx);
+      bezel.setAttribute('cy', cy);
+      bezel.setAttribute('r', bezelR);
+      bezel.setAttribute('fill', 'none');
+      bezel.setAttribute('stroke', 'url(#gold-gradient)');
+      bezel.setAttribute('stroke-width', '7');
+      bezel.setAttribute('class', 'gold-bezel');
+      svg.appendChild(bezel);
+
+      // Element-colored Ring
+      const elemRingOuter = document.createElementNS(svgNS, 'circle');
+      elemRingOuter.setAttribute('cx', cx);
+      elemRingOuter.setAttribute('cy', cy);
+      elemRingOuter.setAttribute('r', elementRingR);
+      elemRingOuter.setAttribute('fill', 'none');
+      elemRingOuter.setAttribute('stroke', el.primary);
+      elemRingOuter.setAttribute('stroke-width', '8');
+      elemRingOuter.setAttribute('opacity', '0.5');
+      svg.appendChild(elemRingOuter);
+
+      // Sectors
+      const sectors = [];
+      const sectorGroup = document.createElementNS(svgNS, 'g');
+      sectorGroup.setAttribute('class', 'dial-sectors');
+
+      const yearData = isYearDial ? getYearValues() : null;
+
+      for (let i = 0; i < N; i++) {
+        const aStart = i * sectorAngle;
+        const aEnd = (i + 1) * sectorAngle;
+        const midAngle = (aStart + aEnd) / 2;
+        const brightness = 0.85 + (i % 2 === 0 ? 0.15 : 0.0);
+
+        const path = document.createElementNS(svgNS, 'path');
+        path.setAttribute('d', sectorPath(cx, cy, innerR, outerR, aStart, aEnd));
+        path.setAttribute('fill', el.primary);
+        path.setAttribute('opacity', brightness);
+        path.setAttribute('stroke', el.dark);
+        path.setAttribute('stroke-width', '0.5');
+        path.setAttribute('class', 'dial-sector');
+        path.dataset.index = i;
+        path.dataset.value = sectorValues[i];
+        path.dataset.dial = dialName;
+        if (isYearDial && yearData) {
+          path.dataset.yearValue = yearData[i].year;
+          path.dataset.animal = yearData[i].animal;
+        }
+
+        const textR = (innerR + outerR) / 2;
+        const textPos = polarToCartesian(cx, cy, textR, midAngle);
+        const text = document.createElementNS(svgNS, 'text');
+        text.setAttribute('x', textPos.x);
+        text.setAttribute('y', textPos.y);
+        text.setAttribute('class', 'sector-text');
+
+        // Year dial: show year number
+        if (isYearDial && yearData) {
+          text.textContent = yearData[i].label;
+        } else {
+          text.textContent = sectorValues[i];
+        }
+
+        sectorGroup.appendChild(path);
+        sectorGroup.appendChild(text);
+        sectors.push({ path, text, index: i, value: sectorValues[i] });
+      }
+
+      svg.appendChild(sectorGroup);
+
+      // Center Hub
+      const hubGroup = document.createElementNS(svgNS, 'g');
+      hubGroup.setAttribute('class', 'dial-hub');
+
+      const hubBg = document.createElementNS(svgNS, 'circle');
+      hubBg.setAttribute('cx', cx);
+      hubBg.setAttribute('cy', cy);
+      hubBg.setAttribute('r', innerR - 1);
+      hubBg.setAttribute('class', 'hub-inner');
+      hubGroup.appendChild(hubBg);
+
+      const hubDot = document.createElementNS(svgNS, 'circle');
+      hubDot.setAttribute('cx', cx);
+      hubDot.setAttribute('cy', cy - 10);
+      hubDot.setAttribute('r', 5);
+      hubDot.setAttribute('fill', '#c9a43e');
+      hubDot.setAttribute('opacity', '0.7');
+      hubGroup.appendChild(hubDot);
+
+      const hubLabel = document.createElementNS(svgNS, 'text');
+      hubLabel.setAttribute('id', `hub-text-${dialName}`);
+      hubLabel.setAttribute('x', cx);
+      hubLabel.setAttribute('y', cy + 12);
+      hubLabel.setAttribute('class', 'hub-placeholder');
+      hubLabel.textContent = '—';
+      hubGroup.appendChild(hubLabel);
+
+      svg.appendChild(hubGroup);
+
+      // Shadow ring
+      const shadowRing = document.createElementNS(svgNS, 'circle');
+      shadowRing.setAttribute('cx', cx);
+      shadowRing.setAttribute('cy', cy);
+      shadowRing.setAttribute('r', outerR);
+      shadowRing.setAttribute('fill', 'none');
+      shadowRing.setAttribute('stroke', 'rgba(62,39,35,0.08)');
+      shadowRing.setAttribute('stroke-width', '2');
+      svg.appendChild(shadowRing);
+
+      canvas.innerHTML = '';
+      canvas.appendChild(svg);
+
+      function handleSectorClick(event) {
+        const path = event.currentTarget;
+        const index = parseInt(path.dataset.index);
+        const value = path.dataset.value;
+
+        selections[dialName] = { index, value, yearValue: path.dataset.yearValue ? parseInt(path.dataset.yearValue) : null };
+
+        sectors.forEach(s => {
+          s.path.classList.remove('selected');
+          s.text.classList.remove('selected-text');
+        });
+        path.classList.add('selected');
+        sectors[index].text.classList.add('selected-text');
+
+        const hubText = document.getElementById(`hub-text-${dialName}`);
+        if (hubText) {
+          if (isYearDial && path.dataset.yearValue) {
+            hubText.textContent = path.dataset.yearValue;
+          } else {
+            hubText.textContent = sectorValues.length <= 12 ? sectorValues[index] : String(index + 1);
+          }
+          hubText.setAttribute('class', 'hub-selected');
+        }
+
+        // Update year sub-label
+        if (isYearDial && path.dataset.animal) {
+          const sub = document.getElementById('year-sub-label');
+          if (sub) sub.textContent = `· ${path.dataset.animal}`;
+        }
+
+        updateCalculateButton();
+        canvas.dispatchEvent(new CustomEvent('dial-select', { detail: { dial: dialName, value, index }, bubbles: true }));
+      }
+
+      sectors.forEach(s => {
+        s.path.addEventListener('click', handleSectorClick);
+        s.path.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          handleSectorClick({ currentTarget: e.currentTarget });
+        }, { passive: false });
+      });
+    }
+
+    function updateCalculateButton() {
+      const btn = document.getElementById('btn-calculate');
+      if (!btn) return;
+      const allSelected = selections.year !== null &&
+                          selections.month !== null &&
+                          selections.day !== null &&
+                          selections.hour !== null;
+      btn.disabled = !allSelected;
+    }
+
+    function dialSelectionsToInput() {
+      // Year: use the actual year value stored during selection
+      const birthYear = selections.year.yearValue !== null ? selections.year.yearValue : new Date().getFullYear();
+
+      const month = selections.month.index + 1;
+      const day = selections.day.index + 1;
+      const hourBranchIdx = selections.hour.index;
+      const hour = hourBranchIdx === 0 ? 23 : (hourBranchIdx * 2 - 1);
+
+      return { year: birthYear, month, day, hour, hourBranchIdx };
+    }
+
+    function showResults() {
+      const input = dialSelectionsToInput();
+      const result = calculateBaZi(input.year, input.month, input.day, input.hour);
+
+      const pillarNames = ['year', 'month', 'day', 'hour'];
+      const pillarColors = { wood: '#4CA416', fire: '#D4380D', earth: '#C89020', metal: '#8A8A8A', water: '#1A5D9C' };
+
+      for (let i = 0; i < 4; i++) {
+        const name = pillarNames[i];
+        const detail = result.pillarsDetail[i];
+        const stemEl = document.getElementById(`pillar-stem-${name}`);
+        const branchEl = document.getElementById(`pillar-branch-${name}`);
+        const elemDot = document.getElementById(`pillar-element-${name}`);
+
+        if (stemEl) stemEl.textContent = detail.stem.chinese;
+        if (branchEl) branchEl.textContent = detail.branch.chinese;
+        if (elemDot) {
+          const col = pillarColors[detail.stem.element] || pillarColors.earth;
+          elemDot.style.background = col;
+          elemDot.style.boxShadow = `0 0 8px ${col}44`;
+        }
+      }
+
+      const tgList = document.getElementById('ten-gods-list');
+      if (tgList) {
+        tgList.innerHTML = '';
+        result.tenGods.forEach(entry => {
+          const item = document.createElement('div');
+          item.className = 'ten-god-item';
+          item.innerHTML = `<span class="ten-god-stem">${entry.stem}</span><span class="ten-god-name">${entry.god}</span>`;
+          tgList.appendChild(item);
+        });
+      }
+
+      const elemBars = document.getElementById('element-bars');
+      if (elemBars) {
+        elemBars.innerHTML = '';
+        const maxCount = Math.max(1, ...Object.values(result.elementBalance));
+        Object.entries(result.elementBalance).forEach(([el, count]) => {
+          const meta = ELEMENT_META[el];
+          const row = document.createElement('div');
+          row.className = 'elem-bar-row';
+          const pct = (count / maxCount) * 100;
+          row.innerHTML = `
+            <span class="elem-dot" style="background:${meta.primary}"></span>
+            <span class="elem-label">${meta.cn} ${meta.name}</span>
+            <div class="elem-bar-track"><div class="elem-bar-fill" style="width:${pct}%;background:${meta.primary};box-shadow:0 0 6px ${meta.glow}"></div></div>
+            <span class="elem-count">${count}</span>
+          `;
+          elemBars.appendChild(row);
+        });
+      }
+
+      const amuletText = document.getElementById('amulet-text');
+      const amuletDesc = document.getElementById('amulet-desc');
+      const amuletIcon = document.getElementById('amulet-icon');
+      if (amuletText) amuletText.textContent = `Recommended: ${result.luckyAmulet.item}`;
+      if (amuletDesc) amuletDesc.textContent = `${result.luckyAmulet.dir} · ${result.luckyAmulet.color} — ${result.luckyAmulet.desc}`;
+      if (amuletIcon) amuletIcon.textContent = result.luckyAmulet.icon;
+
+      // Recommend amulets from shop
+      const needElem = result.luckyAmulet.element;
+      const dStemIdx = result.pillarsDetail[2].stem.index;
+      const recs = recommendAmulets(result.elementBalance, dStemIdx, 3);
+      let amuletHTML = '<div class="amulet-buy-row">';
+      recs.forEach(a => {
+        amuletHTML += '<div class="amulet-buy-card" onclick="showAmuletDetail(\'' + a.id + '\')">'
+          + '<div class="abc-emoji">' + a.emoji + '</div>'
+          + '<div class="abc-name">' + a.name + '</div>'
+          + '<div class="abc-price">$' + a.price + '</div></div>';
+      });
+      amuletHTML += '</div>';
+      const amuletBox = document.getElementById('lucky-amulet-box');
+      if (amuletBox) {
+        // Remove old appended row if any
+        const oldRow = amuletBox.querySelector('.amulet-buy-row');
+        if (oldRow) oldRow.remove();
+        amuletBox.insertAdjacentHTML('beforeend', amuletHTML);
+      }
+
+      showScreen('result');
+    }
+
+    function resetAll() {
+      Object.keys(selections).forEach(k => { selections[k] = null; });
+      ['year', 'month', 'day', 'hour'].forEach(dialName => {
+        const canvas = document.getElementById(`dial-canvas-${dialName}`);
+        const hubText = document.getElementById(`hub-text-${dialName}`);
+        if (hubText) {
+          hubText.textContent = '—';
+          hubText.setAttribute('class', 'hub-placeholder');
+        }
+        const sectors = canvas ? canvas.querySelectorAll('.dial-sector') : [];
+        sectors.forEach(s => s.classList.remove('selected'));
+        const texts = canvas ? canvas.querySelectorAll('.sector-text') : [];
+        texts.forEach(t => t.classList.remove('selected-text'));
+      });
+      updateCalculateButton();
+    }
+
+    function rebuildYearDial() {
+      // Clear previous selection for year
+      selections.year = null;
+      createDial('year');
+      updateCalculateButton();
+      const rangeLabel = document.getElementById('year-range-label');
+      if (rangeLabel) {
+        rangeLabel.textContent = `${yearRangeStart}–${yearRangeStart + 11}`;
+      }
+      const sub = document.getElementById('year-sub-label');
+      if (sub) sub.textContent = '';
+    }
+
+    function updateYearRangeLabel() {
+      const rangeLabel = document.getElementById('year-range-label');
+      if (rangeLabel) {
+        rangeLabel.textContent = `${yearRangeStart}–${yearRangeStart + 11}`;
+      }
+    }
+
+    function initDials() {
+      ['year', 'month', 'day', 'hour'].forEach(createDial);
+      updateYearRangeLabel();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      showScreen('splash');
+      initDials();
+
+      document.getElementById('btn-begin').addEventListener('click', () => {
+        showScreen('picker');
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', showResults);
+
+      document.getElementById('btn-back').addEventListener('click', () => {
+        showScreen('picker');
+      });
+
+      document.getElementById('btn-reset').addEventListener('click', () => {
+        resetAll();
+        showScreen('splash');
+      });
+
+      // Year navigation
+      document.getElementById('year-prev').addEventListener('click', () => {
+        const minYear = 1900;
+        if (yearRangeStart - 12 >= minYear) {
+          yearRangeStart -= 12;
+          rebuildYearDial();
+        }
+      });
+
+      document.getElementById('year-next').addEventListener('click', () => {
+        const maxYear = 2030;
+        if (yearRangeStart + 12 + 11 <= maxYear) {
+          yearRangeStart += 12;
+          rebuildYearDial();
+        }
+      });
+    });
+
+  })();
+
+  // ═══════════════════════════════════════════════════════════════
+  //  Amulet Shop & More Menu — outside IIFE for inline onclick
+  // ═══════════════════════════════════════════════════════════════
+  function showAmuletDetail(id) {
+    const a = AMULET_SHOP.find(x => x.id === id);
+    if (!a) return;
+    alert('📿 ' + a.name + '\n\n' + a.desc + '\n\nElement: ' + a.elem + '\nPrice: $' + a.price + '\n\n[Click OK to purchase — demo]');
+  }
+  function openMoreMenu() { document.getElementById('moreOverlay').classList.add('show'); }
+  function closeMoreMenu() { document.getElementById('moreOverlay').classList.remove('show'); }
+  function openAmuletShop() {
+    closeMoreMenu();
+    const grid = document.getElementById('shopGrid');
+    let html = '';
+    AMULET_SHOP.forEach(a => {
+      html += '<div class="shop-card" onclick="showAmuletDetail(\'' + a.id + '\')">'
+        + '<div class="sc-emoji">' + a.emoji + '</div>'
+        + '<div class="sc-name">' + a.name + '</div>'
+        + '<div class="sc-tag">' + a.tag + '</div>'
+        + '<div class="sc-price">$' + a.price + '</div></div>';
+    });
+    grid.innerHTML = html;
+    document.getElementById('amuletShopOverlay').classList.add('show');
+  }
+  function closeAmuletShop() { document.getElementById('amuletShopOverlay').classList.remove('show'); }
+</script>
+
+<!-- More FAB Button -->
+<div id="moreFAB" onclick="openMoreMenu()">
+  <span id="moreIcon">+</span>
+</div>
+
+<!-- More Menu Overlay -->
+<div id="moreOverlay" onclick="closeMoreMenu()">
+  <div id="moreMenu" onclick="event.stopPropagation()">
+    <div class="more-title">✦ XingTu Premium</div>
+    <div class="more-item" onclick="openAmuletShop()">📿 Buy Lucky Amulet</div>
+    <div class="more-item" onclick="alert('🔒 Full Reading — Unlock detailed BaZi analysis, yearly forecast & personal guidance.\n\nSubscribe: $7/month')">📖 Full Reading · $7/mo</div>
+    <div class="more-item" onclick="alert('🔒 Name Analysis — Discover your Chinese name based on your BaZi.\n\nOne-time: $5')">📝 Name Analysis · $5</div>
+    <div class="more-item" onclick="alert('🔒 Daily Fortune — Get your daily BaZi forecast delivered every morning.\n\nSubscribe: $3/month')">📅 Daily Fortune · $3/mo</div>
+    <div class="more-item" onclick="alert('🔒 Bundle — Everything included. Full Reading + Name Analysis + Daily Fortune.\n\nSubscribe: $12/month')">🎁 Complete Bundle · $12/mo</div>
+    <div class="more-close" onclick="closeMoreMenu()">✕ Close</div>
+  </div>
+</div>
+
+<!-- Amulet Shop Overlay -->
+<div id="amuletShopOverlay" onclick="closeAmuletShop()">
+  <div id="amuletShop" onclick="event.stopPropagation()">
+    <div class="shop-header">
+      <h3>📿 Amulet Shop</h3>
+      <span onclick="closeAmuletShop()" style="cursor:pointer;font-size:24px">✕</span>
+    </div>
+    <div class="shop-sub">Based on your BaZi, we recommend:</div>
+    <div id="shopGrid" class="shop-grid"></div>
+  </div>
+</div>
+
+</body>
+</html>
